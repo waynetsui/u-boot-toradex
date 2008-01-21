@@ -216,9 +216,9 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 
 		if (!opts->quiet) {
 			int percent = (int)
-				((unsigned long long)
+				((unsigned long)
 				 (erase.addr+meminfo->erasesize-opts->offset)
-				 * 100 / erase_length);
+				 / erase_length) * 100;
 
 			/* output progress message only at whole percent
 			 * steps to reduce the number of messages printed
@@ -483,9 +483,9 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 
 		if (!opts->quiet) {
 			int percent = (int)
-				((unsigned long long)
-				 (opts->length-imglen) * 100
-				 / opts->length);
+				((unsigned long)
+				 (opts->length-imglen)
+				 / opts->length) * 100;
 			/* output progress message only at whole percent
 			 * steps to reduce the number of messages printed
 			 * on (slow) serial consoles
@@ -659,9 +659,9 @@ int nand_read_opts(nand_info_t *meminfo, const nand_read_options_t *opts)
 
 		if (!opts->quiet) {
 			int percent = (int)
-				((unsigned long long)
-				 (opts->length-imglen) * 100
-				 / opts->length);
+				((unsigned long)
+				 (opts->length-imglen)
+				 / opts->length) * 100;
 			/* output progress message only at whole percent
 			 * steps to reduce the number of messages printed
 			 * on (slow) serial consoles

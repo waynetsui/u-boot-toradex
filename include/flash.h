@@ -222,6 +222,7 @@ extern void flash_read_factory_serial(flash_info_t * info, void * buffer, int of
 #define ATM_ID_BV1614	0x000000C0	/* 49BV1614  ID */
 #define ATM_ID_BV1614A	0x000000C8	/* 49BV1614A ID */
 #define ATM_ID_BV6416	0x000000D6	/* 49BV6416  ID */
+#define ATM_ID_BV322A   0x000000C8      /* 49BV322A  ID */
 
 #define FUJI_ID_29F800BA  0x22582258	/* MBM29F800BA ID  (8M) */
 #define FUJI_ID_29F800TA  0x22D622D6	/* MBM29F800TA ID  (8M) */

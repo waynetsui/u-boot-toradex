@@ -188,6 +188,7 @@ LIST_ARM7="	\
 
 LIST_ARM9="	\
 	at91rm9200dk	cmc_pu2						\
+	at91sam9260ek	at91sam9261ek	at91sam9263ek			\
 	ap920t		ap922_XA10	ap926ejs	ap946es		\
 	ap966		cp920t		cp922_XA10	cp926ejs	\
 	cp946es		cp966		lpd7a400	mp2usb		\

@@ -155,7 +155,59 @@ typedef struct vidinfo {
 
 	u_char	vl_bpix;	/* Bits per pixel, 0 = 1 */
 } vidinfo_t;
-#endif /* CONFIG_MPC823, CONFIG_PXA250 or CONFIG_MCC200 */
+
+#elif	defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9263EK) || \
+	defined(CONFIG_AT91SAM9RLEK)
+
+#include <asm/arch/hardware.h>
+/*
+ * Infos on LCDC for AT91SAM9261. Contains frame buffer address
+ */
+struct lcdc_info {
+        AT91PS_LCDC lcdc;
+        unsigned long frame_buffer;
+};
+
+/*
+ * LCD Controller structure for AT91SAM9x
+ */
+typedef struct vidinfo {
+	ushort	vl_col;		/* Number of columns (i.e. 640) */
+	ushort	vl_row;		/* Number of rows (i.e. 480) */
+	ushort	vl_width;	/* Width of display area in millimeters */
+	ushort	vl_height;	/* Height of display area in millimeters */
+        __u32	vl_pixclock;	/* pixel clock in ps	*/
+
+	/* LCD configuration register */
+	u_char	vl_clkp;	/* Clock polarity */
+	u_char	vl_oep;		/* Output Enable polarity */
+	u_char	vl_hsp;		/* Horizontal Sync polarity */
+	u_char	vl_vsp;		/* Vertical Sync polarity */
+	u_char	vl_dp;		/* Data polarity */
+	u_char	vl_bpix;	/* Bits per pixel, 0 = 1, 1 = 2, 2 = 4, 3 = 8, 4 = 16 */
+	u_char	vl_lbw;		/* LCD Bus width, 0 = 4, 1 = 8 */
+	u_char	vl_splt;	/* Split display, 0 = single-scan, 1 = dual-scan */
+	u_char	vl_clor;	/* Color, 0 = mono, 1 = color */
+	u_char	vl_tft;		/* 0 = passive, 1 = TFT */
+
+	/* Horizontal control register. Timing from data sheet */
+	ushort	vl_hpw;		/* Horz sync pulse width */
+	u_char	vl_blw;		/* Wait before of line */
+	u_char	vl_elw;		/* Wait end of line */
+
+	/* Vertical control register. */
+	u_char	vl_vpw;		/* Vertical sync pulse width */
+	u_char	vl_bfw;		/* Wait before of frame */
+	u_char	vl_efw;		/* Wait end of frame */
+
+	/* PXA LCD controller params */
+	struct	lcdc_info controller;
+
+} vidinfo_t;
+
+extern vidinfo_t panel_info;
+
+#endif /* CONFIG_MPC823, CONFIG_PXA250 or CONFIG_MCC200 or CONFIG_AT91SAM9261EK or CONFIG_AT91SAM9263EK */
 
 /* Video functions */
 

@@ -284,6 +284,9 @@ void start_armboot (void)
 #	ifndef PAGE_SIZE
 #	  define PAGE_SIZE 4096
 #	endif
+
+#if 	!defined (CONFIG_AT91SAM9261EK) && !defined (CONFIG_AT91SAM9263EK) && \
+	!defined (CONFIG_AT91SAM9RLEK)
 	/*
 	 * reserve memory for LCD display (always full pages)
 	 */
@@ -291,6 +294,7 @@ void start_armboot (void)
 	addr = (_bss_end + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
 	size = lcd_setmem (addr);
 	gd->fb_base = addr;
+#endif
 #endif /* CONFIG_LCD */
 
 	/* armboot_start is defined in the board-specific linker script */

@@ -50,6 +50,11 @@
 #include <lcdvideo.h>
 #endif
 
+#if	defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9263EK) || \
+	defined(CONFIG_AT91SAM9RLEK)
+#define CONFIG_AT91_LCD
+#endif
+
 #ifdef CONFIG_LCD
 
 /************************************************************************/
@@ -354,7 +359,11 @@ int drv_lcd_init (void)
 
 	strcpy (lcddev.name, "lcd");
 	lcddev.ext   = 0;			/* No extensions */
+#ifdef CFG_CONSOLE_IS_SERIAL
+	lcddev.flags = 0;
+#else
 	lcddev.flags = DEV_FLAGS_OUTPUT;	/* Output only */
+#endif
 	lcddev.putc  = lcd_putc;		/* 'putc' function */
 	lcddev.puts  = lcd_puts;		/* 'puts' function */
 
@@ -474,14 +483,22 @@ ulong lcd_setmem (ulong addr)
 
 static void lcd_setfgcolor (int color)
 {
-	lcd_color_fg = color & 0x0F;
+#if defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9263EK)
+  lcd_color_fg = color;
+#else
+  lcd_color_fg = color & 0x0F;
+#endif
 }
 
 /*----------------------------------------------------------------------*/
 
 static void lcd_setbgcolor (int color)
 {
-	lcd_color_bg = color & 0x0F;
+#if defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9263EK)
+  lcd_color_bg = color;
+#else
+  lcd_color_bg = color & 0x0F;
+#endif
 }
 
 /*----------------------------------------------------------------------*/
@@ -508,7 +525,11 @@ static int lcd_getbgcolor (void)
 #ifdef CONFIG_LCD_LOGO
 void bitmap_plot (int x, int y)
 {
+#if defined(CONFIG_AT91_LCD)
+        uint *cmap;
+#else
 	ushort *cmap;
+#endif
 	ushort i, j;
 	uchar *bmap;
 	uchar *fb;
@@ -533,21 +554,43 @@ void bitmap_plot (int x, int y)
 		cmap = (ushort *)fbi->palette;
 #elif defined(CONFIG_MPC823)
 		cmap = (ushort *)&(cp->lcd_cmap[BMP_LOGO_OFFSET*sizeof(ushort)]);
+#elif defined(CONFIG_AT91_LCD)
+		cmap = (uint *) panel_info.controller.lcdc->LCDC_LUT_ENTRY;
 #endif
 
+#if !defined(CONFIG_AT91_LCD)
 		WATCHDOG_RESET();
+#endif
 
 		/* Set color map */
 		for (i=0; i<(sizeof(bmp_logo_palette)/(sizeof(ushort))); ++i) {
 			ushort colreg = bmp_logo_palette[i];
+			ushort lcdc_lut_entry;
 #ifdef  CFG_INVERT_COLORS
 			*cmap++ = 0xffff - colreg;
 #else
+#if defined(CONFIG_AT91_LCD)
+#if defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9263EK)
+			lcdc_lut_entry = ((colreg & 0x0F) << 11);  /* get the blue color */
+			lcdc_lut_entry |= ((colreg & 0xF0) << 2);  /* get the green color */
+			lcdc_lut_entry |= ((colreg & 0xF00) >> 7); /* get the red color */
+#elif defined(CONFIG_AT91SAM9RLEK)
+			lcdc_lut_entry = ((colreg & 0x0F)  << 1);  /* get the blue color */
+			lcdc_lut_entry |= ((colreg & 0xF0) << 3);  /* get the green color */
+			lcdc_lut_entry |= ((colreg & 0xF00)<< 4);  /* get the red color */
+#endif
+
+			*(cmap + BMP_LOGO_OFFSET) = lcdc_lut_entry;
+			cmap++;
+#else
 			*cmap++ = colreg;
+#endif
 #endif
 		}
 
+#if !defined(CONFIG_AT91_LCD)
 		WATCHDOG_RESET();
+#endif
 
 		for (i=0; i<BMP_LOGO_HEIGHT; ++i) {
 			memcpy (fb, bmap, BMP_LOGO_WIDTH);
@@ -566,7 +609,10 @@ void bitmap_plot (int x, int y)
 		}
 	}
 
+#if !defined(CONFIG_AT91_LCD)
 	WATCHDOG_RESET();
+#endif
+
 }
 #endif /* CONFIG_LCD_LOGO */
 
@@ -578,8 +624,14 @@ void bitmap_plot (int x, int y)
  */
 int lcd_display_bitmap(ulong bmp_image, int x, int y)
 {
+#if defined(CONFIG_AT91_LCD)
+        uint *cmap;
+#else	
+
 #if !defined(CONFIG_MCC200)
 	ushort *cmap;
+#endif
+
 #endif
 	ushort i, j;
 	uchar *fb;
@@ -633,6 +685,8 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		cmap = (ushort *)fbi->palette;
 #elif defined(CONFIG_MPC823)
 		cmap = (ushort *)&(cp->lcd_cmap[255*sizeof(ushort)]);
+#elif defined(CONFIG_AT91_LCD)
+		cmap = (uint *) panel_info.controller.lcdc->LCDC_LUT_ENTRY;
 #else
 # error "Don't know location of color map"
 #endif
@@ -764,6 +818,60 @@ static void *lcd_logo (void)
 #  endif /* CONFIG_LCD_INFO_BELOW_LOGO */
 # endif /* CONFIG_LCD_INFO */
 #endif /* CONFIG_MPC823 */
+
+#if defined(CONFIG_AT91_LCD)
+#ifdef CONFIG_LCD_INFO
+	sprintf (info, "%s %s", U_BOOT_VERSION, __DATE__);
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y, info, strlen(info));
+	
+	sprintf (info, "(C) 2006 ATMEL Corp");
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT,
+		       info, strlen(info));
+	
+	sprintf (info, "at91support@atmel.com");
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 2,
+		       info, strlen(info));
+
+#ifdef CONFIG_LCD_INFO_BELOW_LOGO
+
+#ifdef CONFIG_AT91SAM9261EK
+	sprintf (info, "AT91SAM9261 CPU at %s MHz", "200");
+#elif CONFIG_AT91SAM9263EK
+	sprintf (info, "AT91SAM9263 CPU at %s MHz", "200");
+#elif CONFIG_AT91SAM9RLEK
+	sprintf (info, "AT91SAM9RL CPU at %s MHz", "200");
+#endif
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 3,
+		       info, strlen(info));
+	sprintf (info, "%ld MB SDRAM,%ld MB NandFlash",
+		 64,
+		 256);
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 4,
+		       info, strlen(info));
+#else
+	/* leave one blank line */
+#ifdef CONFIG_AT91SAM9261EK
+	sprintf (info, "AT91SAM9261 CPU at %s MHz, %ld MB SDRAM, %ld MB NandFlash",
+		"200",
+		64,
+		256);
+#elif  CONFIG_AT91SAM9263EK
+	sprintf (info, "AT91SAM9263 CPU at %s MHz, %ld MB SDRAM, %ld MB NandFlash",
+		"200",
+		64,
+		256);
+#elif  CONFIG_AT91SAM9RLEK
+	sprintf (info, "AT91SAM9RL CPU at %s MHz, %ld MB SDRAM, %ld MB NandFlash",
+		"200",
+		64,
+		256);
+#endif
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 4,
+					info, strlen(info));
+
+#endif  /* CONFIG_LCD_INFO_BELOW_LOGO */
+#endif  /* CONFIG_LCD_INFO */
+#endif  /* CONFIG_AT91_LCD */
 
 #if defined(CONFIG_LCD_LOGO) && !defined(CONFIG_LCD_INFO_BELOW_LOGO)
 	return ((void *)((ulong)lcd_base + BMP_LOGO_HEIGHT * lcd_line_length));

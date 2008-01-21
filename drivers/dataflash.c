@@ -26,18 +26,39 @@
 AT91S_DATAFLASH_INFO dataflash_info[CFG_MAX_DATAFLASH_BANKS];
 static AT91S_DataFlash DataFlashInst;
 
+#ifdef CONFIG_AT91SAM9260EK
+int cs[][CFG_MAX_DATAFLASH_BANKS] = {
+	{CFG_DATAFLASH_LOGIC_ADDR_CS0, 0},	/* Logical adress, CS */
+	{CFG_DATAFLASH_LOGIC_ADDR_CS1, 1}
+};
+#elif (defined(CONFIG_AT91SAM9263EK) || defined(CONFIG_AT91SAM9RLEK))
+int cs[][CFG_MAX_DATAFLASH_BANKS] = {
+	{CFG_DATAFLASH_LOGIC_ADDR_CS0, 0}	/* Logical adress, CS */
+};
+#else
 int cs[][CFG_MAX_DATAFLASH_BANKS] = {
 	{CFG_DATAFLASH_LOGIC_ADDR_CS0, 0},	/* Logical adress, CS */
 	{CFG_DATAFLASH_LOGIC_ADDR_CS3, 3}
 };
+#endif
 
 /*define the area offsets*/
+#if	defined CONFIG_AT91SAM9261EK || defined CONFIG_AT91SAM9260EK \
+	|| defined CONFIG_AT91SAM9263EK || defined CONFIG_AT91SAM9RLEK
+dataflash_protect_t area_list[NB_DATAFLASH_AREA] = {
+	{0, 0x3fff, FLAG_PROTECT_SET},			/* ROM code */
+	{0x4000, 0x7fff, FLAG_PROTECT_CLEAR},		/* u-boot environment */
+	{0x8000, 0x37fff, FLAG_PROTECT_SET},		/* u-boot code */
+	{0x38000, 0x1fffff, FLAG_PROTECT_CLEAR},	/* data area size to tune */
+};
+#else
 dataflash_protect_t area_list[NB_DATAFLASH_AREA] = {
 	{0, 0x7fff, FLAG_PROTECT_SET},			/* ROM code */
 	{0x8000, 0x1ffff, FLAG_PROTECT_SET},		/* u-boot code */
 	{0x20000, 0x27fff, FLAG_PROTECT_CLEAR},		/* u-boot environment */
 	{0x28000, 0x1fffff, FLAG_PROTECT_CLEAR},	/* data area size to tune */
 };
+#endif
 
 extern void AT91F_SpiInit (void);
 extern int AT91F_DataflashProbe (int i, AT91PS_DataflashDesc pDesc);
@@ -52,7 +73,7 @@ extern int AT91F_DataFlashWrite( AT91PS_DataFlash pDataFlash,
 int AT91F_DataflashInit (void)
 {
 	int i, j;
-	int dfcode;
+	int dfcode, found = 0;
 
 	AT91F_SpiInit ();
 
@@ -72,6 +93,7 @@ int AT91F_DataflashInit (void)
 			dataflash_info[i].Desc.DataFlash_state = IDLE;
 			dataflash_info[i].logical_address = cs[i][0];
 			dataflash_info[i].id = dfcode;
+			found += dfcode;
 			break;
 
 		case AT45DB321:
@@ -83,6 +105,7 @@ int AT91F_DataflashInit (void)
 			dataflash_info[i].Desc.DataFlash_state = IDLE;
 			dataflash_info[i].logical_address = cs[i][0];
 			dataflash_info[i].id = dfcode;
+			found += dfcode;
 			break;
 
 		case AT45DB642:
@@ -94,6 +117,7 @@ int AT91F_DataflashInit (void)
 			dataflash_info[i].Desc.DataFlash_state = IDLE;
 			dataflash_info[i].logical_address = cs[i][0];
 			dataflash_info[i].id = dfcode;
+			found += dfcode;
 			break;
 		case AT45DB128:
 			dataflash_info[i].Device.pages_number = 16384;
@@ -104,9 +128,11 @@ int AT91F_DataflashInit (void)
 			dataflash_info[i].Desc.DataFlash_state = IDLE;
 			dataflash_info[i].logical_address = cs[i][0];
 			dataflash_info[i].id = dfcode;
+			found += dfcode;
 			break;
 
 		default:
+			dfcode = 0;
 			break;
 		}
 		/* set the last area end to the dataflash size*/
@@ -121,7 +147,7 @@ int AT91F_DataflashInit (void)
 			dataflash_info[i].Device.area_list[j].protected = area_list[j].protected;
 		}
 	}
-	return (1);
+	return found;
 }
 
 
@@ -204,8 +230,9 @@ int addr_dataflash (unsigned long addr)
 	int i;
 
 	for (i = 0; i < CFG_MAX_DATAFLASH_BANKS; i++) {
-		if ((((int) addr) & 0xFF000000) ==
-			dataflash_info[i].logical_address) {
+		if ( dataflash_info[i].id
+			&& ((((int) addr) & 0xFF000000) ==
+			dataflash_info[i].logical_address)) {
 			addr_valid = 1;
 			break;
 		}

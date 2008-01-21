@@ -1742,6 +1742,9 @@ xtract_omap730p2 = $(subst _cs0boot,,$(subst _cs3boot,, $(subst _config,,$1)))
 at91rm9200dk_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t at91rm9200dk NULL at91rm9200
 
+at91rm9200ek_config	:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm920t at91rm9200ek NULL at91rm9200
+
 cmc_pu2_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t cmc_pu2 NULL at91rm9200
 
@@ -2006,6 +2009,25 @@ xsengine_config :	unconfig
 
 zylonite_config :
 	@$(MKCONFIG) $(@:_config=) arm pxa zylonite
+
+#########################################################################
+## ARM926EJS Systems
+#########################################################################
+
+at91sam9260ek_config	:	unconfig
+	@./mkconfig $(@:_config=) arm arm926ejs at91sam9260ek NULL at91sam926x
+
+at91sam9xeek_config	:	unconfig
+	@./mkconfig -n at91sam9xeek at91sam9260ek arm arm926ejs at91sam9260ek NULL at91sam926x
+
+at91sam9261ek_config	:	unconfig
+	@./mkconfig $(@:_config=) arm arm926ejs at91sam9261ek NULL at91sam926x
+
+at91sam9rlek_config	:	unconfig
+	@./mkconfig $(@:_config=) arm arm926ejs at91sam9rlek NULL at91sam926x
+
+at91sam9263ek_config	:	unconfig
+	@./mkconfig $(@:_config=) arm arm926ejs at91sam9263ek NULL at91sam926x
 
 #########################################################################
 ## ARM1136 Systems

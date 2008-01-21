@@ -5,8 +5,8 @@
  *
  *  ----- Adapted for OMAP1610 OMAP730 from ARM925t code ------
  *
- *  Copyright (c) 2001	Marius Gröger <mag@sysgo.de>
- *  Copyright (c) 2002	Alex Züpke <azu@sysgo.de>
+ *  Copyright (c) 2001	Marius GrÃ¶ger <mag@sysgo.de>
+ *  Copyright (c) 2002	Alex ZÃ¼pke <azu@sysgo.de>
  *  Copyright (c) 2002	Gary Jennejohn <gj@denx.de>
  *  Copyright (c) 2003	Richard Woodruff <r-woodruff2@ti.com>
  *  Copyright (c) 2003	Kshitij <kshitij@ti.com>
@@ -199,7 +199,7 @@ _start_armboot:
  *************************************************************************
  */
 
-
+#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 cpu_init_crit:
 	/*
 	 * flush v4 I/D caches
@@ -225,6 +225,8 @@ cpu_init_crit:
 	bl	lowlevel_init	/* go setup pll,mux,memory */
 	mov	lr, ip		/* restore link */
 	mov	pc, lr		/* back to my caller */
+#endif
+
 /*
  *************************************************************************
  *

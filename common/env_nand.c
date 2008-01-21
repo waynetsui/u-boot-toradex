@@ -38,6 +38,7 @@
 #include <linux/stddef.h>
 #include <malloc.h>
 #include <nand.h>
+#include <asm/errno.h>
 
 #if defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_NAND)
 #define CMD_SAVEENV
@@ -156,28 +157,39 @@ int saveenv(void)
 {
 	ulong total;
 	int ret = 0;
+	int use_redund = 1;
 
 	env_ptr->flags++;
 	total = CFG_ENV_SIZE;
 
+save_env_retry:
 	if(gd->env_valid == 1) {
 		puts ("Erasing redundant Nand...");
 		if (nand_erase(&nand_info[0],
 			       CFG_ENV_OFFSET_REDUND, CFG_ENV_SIZE))
-			return 1;
-		puts ("Writing to redundant Nand... ");
-		ret = nand_write(&nand_info[0], CFG_ENV_OFFSET_REDUND, &total,
-				 (u_char*) env_ptr);
+			ret = -EIO;
+		else {
+			puts ("Writing to redundant Nand... ");
+			ret = nand_write(&nand_info[0], CFG_ENV_OFFSET_REDUND, &total,
+					 (u_char*) env_ptr);
+		}
 	} else {
 		puts ("Erasing Nand...");
 		if (nand_erase(&nand_info[0],
 			       CFG_ENV_OFFSET, CFG_ENV_SIZE))
-			return 1;
-
-		puts ("Writing to Nand... ");
-		ret = nand_write(&nand_info[0], CFG_ENV_OFFSET, &total,
-				 (u_char*) env_ptr);
+			ret = -EIO;
+		else {
+			puts ("Writing to Nand... ");
+			ret = nand_write(&nand_info[0], CFG_ENV_OFFSET, &total,
+					 (u_char*) env_ptr);
+		}
 	}
+	if ((ret || total != CFG_ENV_SIZE) && use_redund) {
+		gd->env_valid = (gd->env_valid == 2 ? 1 : 2);
+		use_redund = 0;
+		goto save_env_retry;
+	}
+
 	if (ret || total != CFG_ENV_SIZE)
 		return 1;
 
@@ -214,19 +226,26 @@ void env_relocate_spec (void)
 	ulong total;
 	int crc1_ok = 0, crc2_ok = 0;
 	env_t *tmp_env1, *tmp_env2;
+	int ret;
 
 	total = CFG_ENV_SIZE;
 
 	tmp_env1 = (env_t *) malloc(CFG_ENV_SIZE);
 	tmp_env2 = (env_t *) malloc(CFG_ENV_SIZE);
 
-	nand_read(&nand_info[0], CFG_ENV_OFFSET, &total,
-		  (u_char*) tmp_env1);
-	nand_read(&nand_info[0], CFG_ENV_OFFSET_REDUND, &total,
-		  (u_char*) tmp_env2);
+	ret = nand_block_isbad(&nand_info[0], CFG_ENV_OFFSET);
+	if (!ret) {
+		nand_read(&nand_info[0], CFG_ENV_OFFSET, &total,
+			  (u_char*) tmp_env1);
+		crc1_ok = (crc32(0, tmp_env1->data, ENV_SIZE) == tmp_env1->crc);
+	}
 
-	crc1_ok = (crc32(0, tmp_env1->data, ENV_SIZE) == tmp_env1->crc);
-	crc2_ok = (crc32(0, tmp_env2->data, ENV_SIZE) == tmp_env2->crc);
+	ret = nand_block_isbad(&nand_info[0], CFG_ENV_OFFSET_REDUND);
+	if (!ret) {
+		nand_read(&nand_info[0], CFG_ENV_OFFSET_REDUND, &total,
+			  (u_char*) tmp_env2);
+		crc2_ok = (crc32(0, tmp_env2->data, ENV_SIZE) == tmp_env2->crc);
+	}
 
 	if(!crc1_ok && !crc2_ok)
 		return use_default();

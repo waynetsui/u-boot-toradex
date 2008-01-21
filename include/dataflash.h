@@ -72,6 +72,29 @@
 # define	FLAG_SETENV		0x80
 #endif /* CFG_NO_FLASH */
 
+#ifdef CFG_NO_FLASH
+
+/*-----------------------------------------------------------------------
+ * return codes from flash_write():
+ */
+#define ERR_OK				0
+#define ERR_TIMOUT			1
+#define ERR_NOT_ERASED			2
+#define ERR_PROTECTED			4
+#define ERR_INVAL			8
+#define ERR_ALIGN			16
+#define ERR_UNKNOWN_FLASH_VENDOR	32
+#define ERR_UNKNOWN_FLASH_TYPE		64
+#define ERR_PROG_ERROR			128
+
+/*-----------------------------------------------------------------------
+ * Protection Flags for flash_protect():
+ */
+#define FLAG_PROTECT_SET	0x01
+#define FLAG_PROTECT_CLEAR	0x02
+
+#endif /* CFG_NO_FLASH */
+
 /*define the area structure*/
 typedef struct {
 	unsigned long start;

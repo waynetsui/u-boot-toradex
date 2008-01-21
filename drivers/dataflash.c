@@ -31,7 +31,7 @@ int cs[][CFG_MAX_DATAFLASH_BANKS] = {
 	{CFG_DATAFLASH_LOGIC_ADDR_CS0, 0},	/* Logical adress, CS */
 	{CFG_DATAFLASH_LOGIC_ADDR_CS1, 1}
 };
-#elif defined(CONFIG_AT91SAM9263EK)
+#elif (defined(CONFIG_AT91SAM9263EK) || defined(CONFIG_AT91SAM9RLEK))
 int cs[][CFG_MAX_DATAFLASH_BANKS] = {
 	{CFG_DATAFLASH_LOGIC_ADDR_CS0, 0}	/* Logical adress, CS */
 };
@@ -43,7 +43,7 @@ int cs[][CFG_MAX_DATAFLASH_BANKS] = {
 #endif
 
 /*define the area offsets*/
-#if defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9260EK) || defined(CONFIG_AT91SAM9263EK)
+#if defined(CONFIG_AT91SAM9261EK) || defined(CONFIG_AT91SAM9260EK) || defined(CONFIG_AT91SAM9263EK) || defined(CONFIG_AT91SAM9RLEK)
 #if	defined(CONFIG_NEW_PARTITION)
 dataflash_protect_t area_list[NB_DATAFLASH_AREA] = {
 	{0x00000000,	0x00003FFF, 	FLAG_PROTECT_SET,	0,    		"Bootstrap"},  	/* ROM code */
@@ -329,8 +329,9 @@ int addr_dataflash (unsigned long addr)
 	int i;
 
 	for (i = 0; i < CFG_MAX_DATAFLASH_BANKS; i++) {
-		if ((((int) addr) & 0xFF000000) ==
-			dataflash_info[i].logical_address) {
+		if ( dataflash_info[i].id
+			&& ((((int) addr) & 0xFF000000) ==
+			dataflash_info[i].logical_address)) {
 			addr_valid = 1;
 			break;
 		}

@@ -300,6 +300,7 @@ eth_init(bd_t * bd)
 	DM9000_iow(DM9000_ISR, 0x0f);	/* Clear interrupt status */
 
 	/* Set Node address */
+#ifndef CONFIG_AT91SAM9261EK
 	for (i = 0; i < 6; i++)
 		((u16 *) bd->bi_enetaddr)[i] = read_srom_word(i);
 
@@ -334,10 +335,10 @@ eth_init(bd_t * bd)
 	DM9000_iow(DM9000_RCR, RCR_DIS_LONG | RCR_DIS_CRC | RCR_RXEN);	/* RX enable */
 	DM9000_iow(DM9000_IMR, IMR_PAR);	/* Enable TX/RX interrupt mask */
 	i = 0;
-	while (!(phy_read(1) & 0x20)) {	/* autonegation complete bit */
+	while (!(phy_read(1) & 0x20)) {	/* autonegotiation complete bit */
 		udelay(1000);
 		i++;
-		if (i == 10000) {
+		if (i == 3000) { /* wait 3 seconds */
 			printf("could not establish link\n");
 			return 0;
 		}

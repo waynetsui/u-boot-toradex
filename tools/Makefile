@@ -41,6 +41,15 @@ LOGO_H	= $(OBJTREE)/include/bmp_logo.h
 
 ifeq ($(LOGO_BMP),)
 LOGO_BMP= logos/denx.bmp
+ifeq ($(BOARD),at91sam9261ek)
+LOGO_BMP= logos/atmel.bmp
+endif
+ifeq ($(BOARD),at91sam9263ek)
+LOGO_BMP= logos/atmel.bmp
+endif
+ifeq ($(BOARD),at91sam9rlek)
+LOGO_BMP= logos/atmel.bmp
+endif
 endif
 
 #-------------------------------------------------------------------------

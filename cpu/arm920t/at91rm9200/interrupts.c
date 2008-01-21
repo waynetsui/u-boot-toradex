@@ -175,14 +175,14 @@ void reset_cpu (ulong ignored)
 #ifdef CONFIG_USART1
 	AT91PS_USART us = AT91C_BASE_US1;
 #endif
-#ifdef CONFIG_AT91RM9200DK
+#if defined CONFIG_AT91RM9200DK || defined CONFIG_AT91RM9200EK
 	AT91PS_PIO pio = AT91C_BASE_PIOA;
 #endif
 
 	/*shutdown the console to avoid strange chars during reset */
 	us->US_CR = (AT91C_US_RSTRX | AT91C_US_RSTTX);
 
-#ifdef CONFIG_AT91RM9200DK
+#if defined CONFIG_AT91RM9200DK || defined CONFIG_AT91RM9200EK
 	/* Clear PA19 to trigger the hard reset */
 	pio->PIO_CODR = 0x00080000;
 	pio->PIO_OER  = 0x00080000;

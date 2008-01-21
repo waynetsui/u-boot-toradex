@@ -74,7 +74,7 @@ int board_late_init(void)
   DECLARE_GLOBAL_DATA_PTR;
   
   /* Fix Ethernet Initialization Bug when starting Linux from U-Boot */
-#if (CONFIG_COMMANDS & CFG_CMD_NET)
+#ifdef CONFIG_CMD_NET
   eth_init(gd->bd);
 #endif
 
@@ -128,7 +128,7 @@ int AT91F_Serial_Hardware_Init(void)
 
 
 #ifdef CONFIG_DRIVER_ETHER
-#if (CONFIG_COMMANDS & CFG_CMD_NET)
+#ifdef CONFIG_CMD_NET
 
 extern AT91PS_EMAC p_mac;
 
@@ -220,5 +220,5 @@ void AT91F_EMAC_Hardware_Init(void)
 #endif
 }
 
-#endif	/* CONFIG_COMMANDS & CFG_CMD_NET */
+#endif	/* CONFIG_CMD_NET */
 #endif	/* CONFIG_DRIVER_ETHER */

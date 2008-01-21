@@ -455,9 +455,14 @@ int flash_sect_erase (ulong addr_first, ulong addr_last)
 int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 #ifndef CFG_NO_FLASH
-	flash_info_t *info;
-	ulong bank, addr_first, addr_last;
-	int i, p, n, sect_first, sect_last;
+      flash_info_t *info;
+      ulong bank, addr_first, addr_last;
+      int i, p, n, sect_first, sect_last;     
+#else
+      ulong addr_first, addr_last;
+      int p;
+#endif
+
 #if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_JFFS2_CMDLINE)
 	struct mtd_device *dev;
 	struct part_info *part;

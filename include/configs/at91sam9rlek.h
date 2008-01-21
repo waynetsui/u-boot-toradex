@@ -75,24 +75,21 @@
 /* #define CONFIG_ENV_OVERWRITE  1 */
 #define BOARD_LATE_INIT		1
 
-#define CONFIG_COMMANDS		\
-		       ((CONFIG_CMD_DFL	| \
-                        CFG_CMD_ENV | \
-                        CFG_CMD_FLASH | \
-			CFG_CMD_NAND | \
-			CFG_CMD_AUTOSCRIPT | \
-                        CFG_CMD_FAT ) & \
-		      ~(CFG_CMD_BDI | \
-                        CFG_CMD_NET | \
-                        CFG_CMD_USB | \
-			CFG_CMD_IMLS | \
-			CFG_CMD_IMI | \
-			CFG_CMD_FPGA | \
-			CFG_CMD_MISC | \
-			CFG_CMD_LOADS))
+#include <config_cmd_default.h>
 
-/* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
-#include <cmd_confdefs.h>
+#define CONFIG_CMD_ENV
+#define CONFIG_CMD_FLASH
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_AUTOSCRIPT
+#define CONFIG_CMD_FAT
+#undef CONFIG_CMD_BDI
+#undef CONFIG_CMD_NET
+#undef CONFIG_CMD_USB
+#undef CONFIG_CMD_IMLS
+#undef CONFIG_CMD_IMI
+#undef CONFIG_CMD_FPGA
+#undef CONFIG_CMD_MISC
+#undef CONFIG_CMD_LOADS
 
 #define NAND_MAX_CHIPS		       1	/* Max number of NAND devices	*/
 #define CFG_MAX_NAND_DEVICE            1	/* Max number of NAND devices	*/

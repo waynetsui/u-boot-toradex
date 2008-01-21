@@ -25,13 +25,12 @@
 #ifndef CONFIG_DRIVER_DM9000	/* SAM9261EK uses DM9000 Phy */
 
 #ifdef CONFIG_DRIVER_ETHER
-#if (CONFIG_COMMANDS & CFG_CMD_NET)
+#ifdef CONFIG_CMD_NET
 
 #include <net.h>
 #include <at91_net.h>
 #include <miiphy.h>
 #include <dm9161.h>
-
 
 /* ----- Ethernet Buffer definitions ----- */
  
@@ -254,10 +253,10 @@ int AT91F_EMACInit(bd_t * bd,
 	
 	if (tick == AT91C_ETH_TIMEOUT)
 	{
-		printf ("-E- Autonegociation Timeout\n\r");
+		printf ("-E- Autonegotiation Timeout\n\r");
 		return 1;
 	} else
-		printf ("End of Autonegociation\n\r");
+		printf ("End of Autonegotiation\n\r");
     
 	/* the sequence write EMAC_SA1L and write EMAC_SA1H must be respected */
 	p_mac->EMAC_SA1L = (bd->bi_enetaddr[3] << 24) | (bd->bi_enetaddr[2] << 16)
@@ -449,6 +448,6 @@ void eth_halt (void)
 {
 };
 
-#endif	/* CONFIG_COMMANDS & CFG_CMD_NET */
+#endif	/* CONFIG_CMD_NET */
 #endif  /* CONFIG_DRIVER_DM9000 */
 #endif	/* CONFIG_DRIVER_ETHER */

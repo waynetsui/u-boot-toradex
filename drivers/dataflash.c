@@ -61,6 +61,7 @@ dataflash_protect_t area_list[NB_DATAFLASH_AREA] = {
 	{0x38000, 0x1fffff, FLAG_PROTECT_CLEAR},	/* data area size to tune */
 };
 #endif
+#elif
 #elif defined(CONFIG_NEW_PARTITION)
 /*define the area offsets*/
 /* Invalid partitions should be defined with start > end */
@@ -110,6 +111,7 @@ int AT91F_DataflashInit (void)
 	AT91F_SpiInit ();
 
 	for (i = 0; i < CFG_MAX_DATAFLASH_BANKS; i++) {
+		part = 0;
 		found[i] = 0;
 		dataflash_info[i].Desc.state = IDLE;
 		dataflash_info[i].id = 0;

@@ -26,8 +26,7 @@
 #include <dm9161.h>
 
 #ifdef CONFIG_DRIVER_ETHER
-
-#if (CONFIG_COMMANDS & CFG_CMD_NET)
+#ifdef CONFIG_CMD_NET
 
 /*
  * Name:
@@ -97,7 +96,7 @@ static uchar dm9161a_GetLinkSpeed (AT91PS_EMAC p_mac)
 		return TRUE;
 	}
 
-	if ((stat1 & DM9161_100BASE_T4_HD) && (stat2 & DM9161_100HDX)) {
+	if ((stat1 & DM9161_100BASE_TX_HD) && (stat2 & DM9161_100HDX)) {
 		/*set MII for 100BaseTX and Half Duplex  */
 		p_mac->EMAC_NCFGR = (p_mac->EMAC_NCFGR &
 				~(AT91C_EMAC_SPD | AT91C_EMAC_FD))
@@ -295,7 +294,6 @@ void at91_GetPhyInterface(AT91PS_PhyOps p_phyops)
 	p_phyops->Reset          = dm9161a_ResetPhy;
 }
 
-#endif	/* CONFIG_COMMANDS & CFG_CMD_NET */
-
+#endif	/* CONFIG_CMD_NET */
 #endif	/* CONFIG_DRIVER_ETHER */
 

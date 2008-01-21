@@ -23,7 +23,7 @@
 #include <common.h>
 #include <asm/arch/hardware.h>
 
-#if (CONFIG_COMMANDS & CFG_CMD_NAND)
+#ifdef CONFIG_CMD_NAND
 
 #include <nand.h>
 
@@ -95,7 +95,7 @@ static int at91sam9260ek_nand_ready(struct mtd_info *mtd)
 	return (*AT91C_PIOC_PDSR & AT91C_PIO_PC13);
 }
 
-void board_nand_init(struct nand_chip *nand)
+int board_nand_init(struct nand_chip *nand)
 {
 	nand->eccmode = NAND_ECC_SOFT;
 	nand->hwcontrol = at91sam9260ek_nand_hwcontrol;
@@ -103,5 +103,7 @@ void board_nand_init(struct nand_chip *nand)
 	nand->chip_delay = 18;
 	
 	at91sam9260ek_nand_init(nand);
+
+	return 0;
 }
-#endif
+#endif	/* CONFIG_CMD_NAND */

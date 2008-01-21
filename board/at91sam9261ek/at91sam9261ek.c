@@ -130,8 +130,8 @@ int board_late_init(void)
   DECLARE_GLOBAL_DATA_PTR;
   
   /* Fix Ethernet Initialization Bug when starting Linux from U-Boot */
-#if (CONFIG_COMMANDS & CFG_CMD_NET)
-#ifdef  CONFIG_DRIVER_DM9000
+#ifdef CONFIG_CMD_NET
+#ifdef CONFIG_DRIVER_DM9000
   /* configure SMC's NCS2 to use it with DM9000 chip */
   at91sam9261ek_dm9000_init();
 #endif

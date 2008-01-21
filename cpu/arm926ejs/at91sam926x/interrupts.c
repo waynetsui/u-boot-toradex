@@ -54,7 +54,7 @@
 
 ulong get_timer_masked (void);
 
-AT91PS_PITC p_pitc;
+volatile AT91PS_PITC p_pitc;
 
 static ulong timestamp;
 static ulong lastinc;
@@ -147,7 +147,7 @@ ulong get_timer_masked (void)
 
   lastinc = now;
   
-  return timestamp * CFG_HZ;
+  return timestamp;
 }
 
 /* waits specified delay value and resets timestamp */

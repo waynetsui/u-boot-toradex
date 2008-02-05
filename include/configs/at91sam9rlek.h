@@ -141,8 +141,8 @@
 #define CFG_SPI_WRITE_TOUT		(50*CFG_HZ)
 
 /* AC Characteristics */
-#define DATAFLASH_TCSS	(0x1c << 16)
-#define DATAFLASH_TCHS	(0x1 << 24)
+#define DATAFLASH_TCSS	(0x1f << 16)
+#define DATAFLASH_TCHS	(0x2 << 24)
 
 #define CFG_MAX_DATAFLASH_BANKS 	1
 #define CFG_MAX_DATAFLASH_PAGES 	16384

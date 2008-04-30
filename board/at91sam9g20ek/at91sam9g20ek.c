@@ -1,7 +1,6 @@
 /*
- * (C) Copyright 2006
- * M. Amine SAYA ATMEL Rousset, France.
- * Added AT91SAM9260EK support.
+ * (C) Copyright 2008
+ * ATMEL Corporation
  *
  * (C) Copyright 2002
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
@@ -49,8 +48,8 @@ int board_init (void)
   /* memory and cpu-speed are setup before relocation */
   /* so we do _nothing_ here */  
 
-  /* arch number of AT91SAM9260EK-Board */
-  gd->bd->bi_arch_number = MACH_TYPE_AT91SAM9260EK;
+  /* arch number of AT91SAM9G20EK-Board */
+  gd->bd->bi_arch_number = MACH_TYPE_AT91SAM9G20EK;
   /* adress of boot parameters */
   gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
   

@@ -741,6 +741,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_AT91SAM9260EK       1099
 #define MACH_TYPE_AT91SAM9263EK       1202
 #define MACH_TYPE_AT91SAM9RLEK        1326
+#define MACH_TYPE_AT91SAM9G20EK       1624
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -9452,6 +9453,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_at91sam9rlek()	(machine_arch_type == MACH_TYPE_AT91SAM9RLEK)
 #else
 # define machine_is_at91sam9rlek()	(0)
+#endif
+
+#ifdef CONFIG_MACH_AT91SAM9G20EK
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_AT91SAM9G20EK
+# endif
+# define machine_is_at91sam9g20ek()	(machine_arch_type == MACH_TYPE_AT91SAM9G20EK)
+#else
+# define machine_is_at91sam9g20ek()	(0)
 #endif
 
 /*

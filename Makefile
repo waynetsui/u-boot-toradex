@@ -2020,6 +2020,9 @@ at91sam9260ek_config	:	unconfig
 at91sam9xeek_config	:	unconfig
 	@./mkconfig -n at91sam9xeek at91sam9260ek arm arm926ejs at91sam9260ek NULL at91sam926x
 
+at91sam9g20ek_config	:	unconfig
+	@./mkconfig $(@:_config=) arm arm926ejs at91sam9g20ek NULL at91sam926x
+
 at91sam9261ek_config	:	unconfig
 	@./mkconfig $(@:_config=) arm arm926ejs at91sam9261ek NULL at91sam926x
 

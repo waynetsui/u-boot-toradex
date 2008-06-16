@@ -2355,18 +2355,21 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 			busw = nand_flash_ids[i].options & NAND_BUSWIDTH_16;
 		}
 
+		/* Try to identify manufacturer */
+		for (j = 0; nand_manuf_ids[j].id != 0x0; j++) {
+			if (nand_manuf_ids[j].id == nand_maf_id)
+				break;
+		}
+
 		/* Check, if buswidth is correct. Hardware drivers should set
 		 * this correct ! */
-		printk (KERN_INFO "NAND device: Manufacturer ID:"
-			" 0x%02x, Chip ID: 0x%02x (%s %s)\n", nand_maf_id, nand_dev_id,
-			nand_manuf_ids[i].name , mtd->name);
-		printk(KERN_INFO "NAND: Pagesize: %u, Blocksize: %uK, OOBsize: %u\n",
-				mtd->oobblock, mtd->erasesize/1024, mtd->oobsize);
-		if (busw != (this->options & NAND_BUSWIDTH_16)) {
-/* 			printk (KERN_WARNING */
-/* 				"NAND bus width %d instead %d bit\n", */
-/* 					(this->options & NAND_BUSWIDTH_16) ? 16 : 8, */
-/* 					busw ? 16 : 8); */
+		if (busw == (this->options & NAND_BUSWIDTH_16)) {
+			printk (KERN_INFO "NAND device: Manufacturer ID:"
+				" 0x%02x, Chip ID: 0x%02x (%s %s)\n", nand_maf_id, nand_dev_id,
+				nand_manuf_ids[j].name , mtd->name);
+			printk(KERN_INFO "NAND: Pagesize: %u, Blocksize: %uK, OOBsize: %u\n",
+					mtd->oobblock, mtd->erasesize/1024, mtd->oobsize);
+		} else {
 			this->select_chip(mtd, -1);
 			return 1;
 		}

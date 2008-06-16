@@ -1,7 +1,6 @@
 /*
- * (C) Copyright 2006
- * M. Amine SAYA ATMEL Rousset, France.
- * Added AT91SAM9260EK support.
+ * (C) Copyright 2008
+ * ATMEL Corporation
  *
  * (C) Copyright 2002
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
@@ -49,8 +48,8 @@ int board_init (void)
   /* memory and cpu-speed are setup before relocation */
   /* so we do _nothing_ here */  
 
-  /* arch number of AT91SAM9260EK-Board */
-  gd->bd->bi_arch_number = MACH_TYPE_AT91SAM9260EK;
+  /* arch number of AT91SAM9G20EK-Board */
+  gd->bd->bi_arch_number = MACH_TYPE_AT91SAM9G20EK;
   /* adress of boot parameters */
   gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
   
@@ -73,7 +72,7 @@ int board_late_init(void)
   DECLARE_GLOBAL_DATA_PTR;
   
   /* Fix Ethernet Initialization Bug when starting Linux from U-Boot */
-#ifdef CONFIG_CMD_NET
+#if (CONFIG_COMMANDS & CFG_CMD_NET)
   eth_init(gd->bd);
 #endif
 
@@ -110,7 +109,7 @@ int AT91F_Serial_Hardware_Init(void)
 
 
 #ifdef CONFIG_DRIVER_ETHER
-#ifdef CONFIG_CMD_NET
+#if (CONFIG_COMMANDS & CFG_CMD_NET)
 
 extern AT91PS_EMAC p_mac;
 
@@ -195,5 +194,5 @@ int AT91F_EMAC_Hardware_Init(void)
 	AT91C_BASE_PIOA->PIO_PDR = (periphAEnable | periphBEnable);
 }
 
-#endif	/* CONFIG_CMD_NET */
+#endif	/* CONFIG_COMMANDS & CFG_CMD_NET */
 #endif	/* CONFIG_DRIVER_ETHER */

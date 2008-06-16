@@ -53,12 +53,14 @@ void at91sam9RLek_nand_init (struct nand_chip *nand)
   AT91C_BASE_SMC->SMC_CTRL3 = (AT91C_SMC_READMODE | AT91C_SMC_WRITEMODE | AT91C_SMC_NWAITM_NWAIT_DISABLE |
                                 AT91C_SMC_DBW_WIDTH_EIGTH_BITS | AT91C_SM_TDF);
   
-  /* Clock PIOD */
-  AT91C_BASE_PMC->PMC_PCER = 1 << AT91C_ID_PIOD;
+  /* Clock PIOD & PIOB */
+  AT91C_BASE_PMC->PMC_PCER = (1 << AT91C_ID_PIOD);
+  AT91C_BASE_PMC->PMC_PCER = (1 << AT91C_ID_PIOB);
 
   /* Configure Ready/Busy signal */
   AT91C_BASE_PIOD->PIO_ODR  = AT91C_PIO_PD17;
   AT91C_BASE_PIOD->PIO_PER  = AT91C_PIO_PD17;
+
   /* Configure pull-up */
   AT91C_BASE_PIOD->PIO_PPUER = AT91C_PIO_PD17;
   
@@ -80,8 +82,8 @@ static void at91sam9RLek_nand_hwcontrol(struct mtd_info *mtd, int cmd)
 	switch (cmd) {
 		case NAND_CTL_SETCLE: IO_ADDR_W |= MASK_CLE; break;
 		case NAND_CTL_SETALE: IO_ADDR_W |= MASK_ALE; break;
-		case NAND_CTL_CLRNCE: *AT91C_PIOC_SODR = AT91C_PIO_PC14; break;
-		case NAND_CTL_SETNCE: *AT91C_PIOC_CODR = AT91C_PIO_PC14; break;
+		case NAND_CTL_CLRNCE: *AT91C_PIOB_SODR = AT91C_PIO_PB6; break;
+		case NAND_CTL_SETNCE: *AT91C_PIOB_CODR = AT91C_PIO_PB6; break;
 	}
 	this->IO_ADDR_W = (void *) IO_ADDR_W;
 }

@@ -824,12 +824,16 @@ static void *lcd_logo (void)
 	sprintf (info, "%s %s", U_BOOT_VERSION, __DATE__);
 	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y, info, strlen(info));
 	
+	sprintf (info, "(C) 2008 TimeSys Corp");
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 2,
+		       info, strlen(info));
+
 	sprintf (info, "(C) 2006 ATMEL Corp");
-	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT,
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 3,
 		       info, strlen(info));
 	
 	sprintf (info, "at91support@atmel.com");
-	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 2,
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 4,
 		       info, strlen(info));
 
 #ifdef CONFIG_LCD_INFO_BELOW_LOGO
@@ -841,12 +845,12 @@ static void *lcd_logo (void)
 #elif CONFIG_AT91SAM9RLEK
 	sprintf (info, "AT91SAM9RL CPU at %s MHz", "200");
 #endif
-	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 3,
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 5,
 		       info, strlen(info));
 	sprintf (info, "%ld MB SDRAM,%ld MB NandFlash",
 		 64,
 		 256);
-	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 4,
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 6,
 		       info, strlen(info));
 #else
 	/* leave one blank line */
@@ -866,7 +870,7 @@ static void *lcd_logo (void)
 		64,
 		256);
 #endif
-	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 4,
+	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 7,
 					info, strlen(info));
 
 #endif  /* CONFIG_LCD_INFO_BELOW_LOGO */

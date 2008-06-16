@@ -1,10 +1,10 @@
 /*
- * (C) Copyright 2007
- * ATMEL Rousset, France.
+ * (C) Copyright 2008
+ * ATMEL Corporation.
  *
  * Rick Bronson <rick@efn.org>
  *
- * Configuation settings for the AT91SAM9RLEK board.
+ * Configuation settings for the AT91SAM9260EK board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -34,13 +34,14 @@
  */
 
 /* ARM asynchronous clock */
-#define AT91C_MAIN_CLOCK	200000000	/* from 12.000 MHz crystal (12000000 / 3 * 50) */
-#define AT91C_MASTER_CLOCK	100000000	/* peripheral clock (AT91C_MAIN_CLOCK / 2) */
+#define AT91C_MASTER_CLOCK	132096000	/* peripheral clock */
 
-#define CFG_HZ 1000
+#define AT91_SLOW_CLOCK		32768	/* slow clock */
 
-#define CONFIG_AT91SAM9RLEK		1	/* on an AT91SAM9RLEK Board	 */
-#undef  CONFIG_USE_IRQ			        /* we don't need IRQ/FIQ stuff */
+#define CFG_HZ 			1000
+
+#define CONFIG_AT91SAM9260EK		1	/* on an AT91SAM9260EK Board	 */
+#undef  CONFIG_USE_IRQ				/* we don't need IRQ/FIQ stuff */
 #define CONFIG_CMDLINE_TAG	        1	/* enable passing of ATAGs	*/
 #define CONFIG_SETUP_MEMORY_TAGS        1
 #define CONFIG_INITRD_TAG	        1
@@ -75,25 +76,29 @@
 /* #define CONFIG_ENV_OVERWRITE  1 */
 #define BOARD_LATE_INIT		1
 
-#include <config_cmd_default.h>
+#define CONFIG_COMMANDS		\
+		       ((CONFIG_CMD_DFL	| \
+                        CFG_CMD_NET | \
+			CFG_CMD_PING | \
+                        CFG_CMD_ENV | \
+                        CFG_CMD_USB | \
+                        CFG_CMD_FLASH | \
+			CFG_CMD_NAND | \
+			CFG_CMD_AUTOSCRIPT | \
+                        CFG_CMD_FAT ) & \
+		      ~(CFG_CMD_BDI | \
+			CFG_CMD_IMLS | \
+			CFG_CMD_IMI | \
+			CFG_CMD_FPGA | \
+			CFG_CMD_MISC | \
+			CFG_CMD_LOADS))
 
-#define CONFIG_CMD_ENV
-#define CONFIG_CMD_FLASH
-#define CONFIG_CMD_NAND
-#define CONFIG_CMD_AUTOSCRIPT
-#define CONFIG_CMD_FAT
-#undef CONFIG_CMD_BDI
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_USB
-#undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_IMI
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_MISC
-#undef CONFIG_CMD_LOADS
+/* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
+#include <cmd_confdefs.h>
 
 #define NAND_MAX_CHIPS		       1	/* Max number of NAND devices	*/
 #define CFG_MAX_NAND_DEVICE            1	/* Max number of NAND devices	*/
-#define CFG_NAND_BASE           0x40000000
+#define CFG_NAND_BASE                  0x40000000
 #define CONFIG_NEW_NAND_CODE
 
 #define ADDR_COLUMN                    1
@@ -104,24 +109,25 @@
 #define NAND_MAX_FLOORS                1
 #undef  CFG_NAND_WP
 
+
+
 /* These timings are specific to MT29F2G16AAB 256Mb (Micron) 
  * at MCK = 100 MHZ
  */
-
-#define AT91C_SM_NWE_SETUP	(1 << 0)
+#define AT91C_SM_NWE_SETUP	(2 << 0)
 #define AT91C_SM_NCS_WR_SETUP	(0 << 8)
-#define AT91C_SM_NRD_SETUP	(1 << 16)
+#define AT91C_SM_NRD_SETUP	(2 << 16)
 #define AT91C_SM_NCS_RD_SETUP	(0 << 24)
   
-#define AT91C_SM_NWE_PULSE 	(3 << 0)
-#define AT91C_SM_NCS_WR_PULSE	(3 << 8)
-#define AT91C_SM_NRD_PULSE	(3 << 16)
-#define AT91C_SM_NCS_RD_PULSE	(3 << 24)
+#define AT91C_SM_NWE_PULSE 	(4 << 0)
+#define AT91C_SM_NCS_WR_PULSE	(4 << 8)
+#define AT91C_SM_NRD_PULSE	(4 << 16)
+#define AT91C_SM_NCS_RD_PULSE	(4 << 24)
   
-#define AT91C_SM_NWE_CYCLE 	(5 << 0)
-#define AT91C_SM_NRD_CYCLE	(5 << 16)
+#define AT91C_SM_NWE_CYCLE 	(7 << 0)
+#define AT91C_SM_NRD_CYCLE	(7 << 16)
 
-#define AT91C_SM_TDF	        (2 << 16)		
+#define AT91C_SM_TDF	        (3 << 16)		
 
 
 
@@ -130,77 +136,66 @@
 #define PHYS_SDRAM_SIZE                 0x4000000  /* 64 megs */
 
 #define CFG_MEMTEST_START		PHYS_SDRAM
-//#define CFG_MEMTEST_END			CFG_MEMTEST_START + PHYS_SDRAM_SIZE - 262144
-#define CFG_MEMTEST_END			(CFG_LOAD_ADDR - 0xf00000 + 0x140000)
+#define CFG_MEMTEST_END			CFG_MEMTEST_START + PHYS_SDRAM_SIZE - 262144
 
+#define CONFIG_DRIVER_ETHER             1
+#define CONFIG_AT91C_USE_RMII		1
+#define AT91C_PHY_ADDR			0
+#define AT91C_ETH_TIMEOUT		120000
+#define CONFIG_NET_RETRY_COUNT		5000
+#define CONFIG_TFTP_TIMEOUT             2500
 
 #define CONFIG_HAS_DATAFLASH		1
 #define CFG_SPI_WRITE_TOUT		(50*CFG_HZ)
 
 /* AC Characteristics */
-#define DATAFLASH_TCSS	(0x1f << 16)
-#define DATAFLASH_TCHS	(0x2 << 24)
+/* DLYBS = tCSS = 250ns min and DLYBCT = tCSH = 250ns */
+#define DATAFLASH_TCSS	(0x22 << 16)
+#define DATAFLASH_TCHS	(0x1 << 24)
 
-#define CFG_MAX_DATAFLASH_BANKS 	1
+#define CFG_MAX_DATAFLASH_BANKS 	2
 #define CFG_MAX_DATAFLASH_PAGES 	16384
 #define CFG_DATAFLASH_LOGIC_ADDR_CS0	0xC0000000	/* Logical adress for CS0 */
+#define CFG_DATAFLASH_LOGIC_ADDR_CS1	0xD0000000	/* Logical adress for CS1 */
 
 #define CFG_NO_FLASH			1
 #define PHYS_FLASH_1			0x10000000
-#define PHYS_FLASH_SIZE			0x800000  /* 2 megs main flash */
+#define PHYS_FLASH_SIZE			0x800000  	/* 2 megs main flash */
 #define CFG_FLASH_BASE			PHYS_FLASH_1
 #define CFG_MAX_FLASH_BANKS		1
 #define CFG_MAX_FLASH_SECT		256
 #define CFG_FLASH_ERASE_TOUT		(2*CFG_HZ) /* Timeout for Flash Erase */
 #define CFG_FLASH_WRITE_TOUT		(2*CFG_HZ) /* Timeout for Flash Write */
 
-#ifdef CFG_ENV_IS_IN_DATAFLASH
-#define CFG_ENV_OFFSET			0x4000
-#define CFG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CFG_ENV_OFFSET)
-#define CFG_ENV_SIZE			0x4000  /* 0x8000 */
-#endif
-
 #ifdef CFG_ENV_IS_IN_NAND
 #define CFG_ENV_OFFSET		0x60000		/* environment starts here  */
 #define	CFG_ENV_OFFSET_REDUND	0x80000		/* redundant environment starts here */
-#define CFG_ENV_SIZE    	0x20000 	/* 1 sector = 128kB */
+#define CFG_ENV_SIZE		0x20000 	/* 1 sector = 128kB */
+#endif
+
+#ifdef CFG_ENV_IS_IN_DATAFLASH
+#define CFG_ENV_OFFSET			0x4000
+#define CFG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS1 + CFG_ENV_OFFSET)
+#define CFG_ENV_SIZE			0x4000  /* 0x8000 */
 #endif
 
 #ifdef CFG_ENV_IS_IN_FLASH
-#ifdef CONFIG_BOOTBINFUNC
-#define CFG_ENV_ADDR			(PHYS_FLASH_1 + 0x60000)  /* after u-boot.bin */
-#define CFG_ENV_SIZE			0x10000 /* sectors are 64K here */
-#else
 #define CFG_ENV_ADDR			(PHYS_FLASH_1 + 0xe000)  /* between boot.bin and u-boot.bin.gz */
 #define CFG_ENV_SIZE			0x2000  /* 0x8000 */
 #endif
-#endif
-
-/* Add LCD stuff */
-#define  CONFIG_LCD
-/* #undef  CONFIG_LCD_LOGO */
-#define CONFIG_LCD_LOGO
-#undef LCD_TEST_PATTERN
-#define CONFIG_LCD_INFO
-#define CONFIG_LCD_INFO_BELOW_LOGO
-#define CFG_WHITE_ON_BLACK
 
 /* Add USB stuff */
-//#define CONFIG_USB_STORAGE		1
+#define CONFIG_USB_OHCI			1
+#define CONFIG_USB_STORAGE		1
 #define CONFIG_DOS_PARTITION	        1
 #define LITTLEENDIAN 			1
 
 #define CFG_LOAD_ADDR		0x23f00000  /* default load address */
 
-#ifdef CONFIG_BOOTBINFUNC
-#define CFG_BOOT_SIZE		0x00 /* 0 KBytes */
-#define CFG_U_BOOT_BASE		PHYS_FLASH_1
-#define CFG_U_BOOT_SIZE		0x60000 /* 384 KBytes */
-#else
 #define CFG_BOOT_SIZE		0x6000 /* 24 KBytes */
 #define CFG_U_BOOT_BASE		(PHYS_FLASH_1 + 0x10000)
 #define CFG_U_BOOT_SIZE		0x10000 /* 64 KBytes */
-#endif
+
 
 #define CFG_BAUDRATE_TABLE	{115200 , 19200, 38400, 57600, 9600 }
 #define CFG_CONSOLE_IS_SERIAL

@@ -32,26 +32,19 @@
  * If we are developing, we might want to start armboot from ram
  * so we MUST NOT initialize critical regs like mem-timing ...
  */
-#undef  CONFIG_INIT_CRITICAL		/* undef for developing */
 
 /* ARM asynchronous clock */
 #define	CRYSTAL_16_36766MHZ	1
 
 #ifdef CRYSTAL_16_36766MHZ
-
-#define AT91C_MAIN_CLOCK	199919000	/* from 16.367 MHz crystal (16367000 / 14 * 171) */
-#define AT91C_MASTER_CLOCK	(199919000/2)	/* peripheral clock (AT91C_MAIN_CLOCK / 2) */
-
+	#define AT91C_MAIN_CLOCK	199919000	/* from 16.367 MHz crystal (16367000 / 14 * 171) */
+	#define AT91C_MASTER_CLOCK	(199919000/2)	/* peripheral clock (AT91C_MAIN_CLOCK / 2) */
 #endif
 
 #ifdef CRYSTAL_18_432MHZ
-
-#define AT91C_MAIN_CLOCK	198656000	/* from 16.367 MHz crystal (16367000 / 5 * 61) */
-#define AT91C_MASTER_CLOCK	(198656000/2)	/* peripheral clock (AT91C_MAIN_CLOCK / 2) */
-
+	#define AT91C_MAIN_CLOCK	198656000	/* from 16.367 MHz crystal (16367000 / 5 * 61) */
+	#define AT91C_MASTER_CLOCK	(198656000/2)	/* peripheral clock (AT91C_MAIN_CLOCK / 2) */
 #endif
-
-/* #define AT91C_MASTER_CLOCK	48000000 */
 
 #define AT91_SLOW_CLOCK		32768	/* slow clock */
 
@@ -70,7 +63,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN		(CFG_ENV_SIZE + 128*1024)
+#define CFG_MALLOC_LEN		(3*CFG_ENV_SIZE + 128*1024)
 #define CFG_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 #define CONFIG_BAUDRATE         115200
@@ -110,9 +103,9 @@
 #undef CONFIG_CMD_MISC
 #undef CONFIG_CMD_LOADS
 
-#define NAND_MAX_CHIPS		       1	/* Max number of NAND devices	*/
-#define CFG_MAX_NAND_DEVICE            1	/* Max number of NAND devices	*/
-#define CFG_NAND_BASE           0x40000000
+#define NAND_MAX_CHIPS		1	/* Max number of NAND devices	*/
+#define CFG_MAX_NAND_DEVICE	1	/* Max number of NAND devices	*/
+#define CFG_NAND_BASE		0x40000000
 #define CONFIG_NEW_NAND_CODE
 
 #define ADDR_COLUMN                    1
@@ -121,7 +114,7 @@
 
 #define NAND_ChipID_UNKNOWN	       0
 #define NAND_MAX_FLOORS                1
-#define NAND_MAX_CHIPS                 1
+#undef  CFG_NAND_WP
 
 /* SMC Chip select 0 timings for NorFlash S29JL032H
    for MASTER_CLOCK = 100 MHZ.
@@ -139,108 +132,25 @@
 #define AT91C_FLASH_NWE_CYCLE 	        (7 << 0)		
 #define AT91C_FLASH_NRD_CYCLE	        (7 << 16)		
 
-
-/* SMC Chip select 0 timings for NorFlash S29JL032H
-   for MASTER_CLOCK = 48 MHZ.
-*/
-/*#define AT91C_FLASH_NWE_SETUP	        (1 << 0)		
-#define AT91C_FLASH_NCS_WR_SETUP	(0 << 8)		
-#define AT91C_FLASH_NRD_SETUP	        (0 << 16)		
-#define AT91C_FLASH_NCS_RD_SETUP	(0 << 24)		
-  
-#define AT91C_FLASH_NWE_PULSE 	        (2 << 0)		
-#define AT91C_FLASH_NCS_WR_PULSE	(5 << 8)		
-#define AT91C_FLASH_NRD_PULSE	        (4 << 16)		
-#define AT91C_FLASH_NCS_RD_PULSE	(4 << 24)		
-  
-#define AT91C_FLASH_NWE_CYCLE 	        (5 << 0)		
-#define AT91C_FLASH_NRD_CYCLE	        (4 << 16)		
-*/
 #define AT91C_FLASH_TDF	                (7 << 16)
 
-
-
-
-/* SMC Chip Select 3 Timings for NandFlash K9F1216U0A (samsung)
-   for MASTER_CLOCK = 48000000. They were generated according to 
-   K9F1216U0A timings and for MASTER_CLOCK = 48000000.
-   Please refer to SMC section in AT91SAM9263 datasheet to learn how 
-   to generate these values.
-*/
-/*
-#define AT91C_SM_NWE_SETUP	(0 << 0)		
-#define AT91C_SM_NCS_WR_SETUP	(0 << 8)		
-#define AT91C_SM_NRD_SETUP	(0 << 16)		
-#define AT91C_SM_NCS_RD_SETUP	(0 << 24)		
-  
-#define AT91C_SM_NWE_PULSE 	(2 << 0)		
-#define AT91C_SM_NCS_WR_PULSE	(3 << 8)		
-#define AT91C_SM_NRD_PULSE	(2 << 16)		
-#define AT91C_SM_NCS_RD_PULSE	(4 << 24)		
-  
-#define AT91C_SM_NWE_CYCLE 	(3 << 0)		
-#define AT91C_SM_NRD_CYCLE	(5 << 16)		
-  
-#define AT91C_SM_TDF	        (1 << 16)		
-*/
-
-/* SMC Chip Select 3 Timings for NandFlash K9F1216U0A (samsung)
- for MASTER_CLOCK = 100000000. They were generated according to 
- K9F1216U0A timings and for MASTER_CLOCK = 100000000.
- Please refer to SMC section in AT91SAM9263 datasheet to learn how 
- to generate these values.
-
- These timings are specific to K9F1216U0A (samsung)
-*/
-/*
-#define AT91C_SM_NWE_SETUP	(0 << 0)		
-#define AT91C_SM_NCS_WR_SETUP	(0 << 8)		
-#define AT91C_SM_NRD_SETUP	(0 << 16)		
-#define AT91C_SM_NCS_RD_SETUP	(0 << 24)		
-  
-#define AT91C_SM_NWE_PULSE 	(3 << 0)		
-#define AT91C_SM_NCS_WR_PULSE	(3 << 8)		
-#define AT91C_SM_NRD_PULSE	(4 << 16)		
-#define AT91C_SM_NCS_RD_PULSE	(4 << 24)		
-  
-#define AT91C_SM_NWE_CYCLE 	(5 << 0)		
-#define AT91C_SM_NRD_CYCLE	(5 << 16)		
-*/
-
-/* These timings are specific to TC58DVG02AFT1 (Toshiba) 
-   at MCK = 100 MHZ
-*/
-#define AT91C_SM_NWE_SETUP	(0 << 0)
+/* These timings are specific to 256Mb (Micron) 
+ * at MCK = 100 MHZ
+ */
+#define AT91C_SM_NWE_SETUP	(1 << 0)
 #define AT91C_SM_NCS_WR_SETUP	(0 << 8)
-#define AT91C_SM_NRD_SETUP	(5 << 16)
+#define AT91C_SM_NRD_SETUP	(1 << 16)
 #define AT91C_SM_NCS_RD_SETUP	(0 << 24)
   
 #define AT91C_SM_NWE_PULSE 	(3 << 0)
-#define AT91C_SM_NCS_WR_PULSE	(6 << 8)
-#define AT91C_SM_NRD_PULSE	(4 << 16)
-#define AT91C_SM_NCS_RD_PULSE	(11 << 24)
+#define AT91C_SM_NCS_WR_PULSE	(3 << 8)
+#define AT91C_SM_NRD_PULSE	(3 << 16)
+#define AT91C_SM_NCS_RD_PULSE	(3 << 24)
   
-#define AT91C_SM_NWE_CYCLE 	(6 << 0)
-#define AT91C_SM_NRD_CYCLE	(11 << 16)
+#define AT91C_SM_NWE_CYCLE 	(5 << 0)
+#define AT91C_SM_NRD_CYCLE	(5 << 16)
 
-/* These timings are specific to TC58DVG02AFT1 (Toshiba) 
-   at MCK = 48 MHZ
-*/
-/*#define AT91C_SM_NWE_SETUP	(0 << 0)
-#define AT91C_SM_NCS_WR_SETUP	(0 << 8)
-#define AT91C_SM_NRD_SETUP	(3 << 16)
-#define AT91C_SM_NCS_RD_SETUP	(0 << 24)
-  
-#define AT91C_SM_NWE_PULSE 	(2 << 0)
-#define AT91C_SM_NCS_WR_PULSE	(4 << 8)
-#define AT91C_SM_NRD_PULSE	(2 << 16)
-#define AT91C_SM_NCS_RD_PULSE	(6 << 24)
-  
-#define AT91C_SM_NWE_CYCLE 	(4 << 0)
-#define AT91C_SM_NRD_CYCLE	(6 << 16)
-*/
-#define AT91C_SM_TDF	        (1 << 16)		
-
+#define AT91C_SM_TDF	        (2 << 16)	
 
 #define CONFIG_NR_DRAM_BANKS            1
 #define PHYS_SDRAM                      0x20000000
@@ -281,15 +191,17 @@
 #define CFG_FLASH_ERASE_TOUT		(1000*CFG_HZ) /* Timeout for Flash Erase */
 #define CFG_FLASH_WRITE_TOUT		(2*CFG_HZ) /* Timeout for Flash Write */
 
-#undef CFG_ENV_IS_IN_FLASH
-#define CFG_ENV_IS_IN_DATAFLASH         1
+#ifdef CFG_ENV_IS_IN_NAND
+#define CFG_ENV_OFFSET		0x60000		/* environment starts here  */
+#define	CFG_ENV_OFFSET_REDUND	0x80000		/* redundant environment starts here */
+#define CFG_ENV_SIZE    	0x20000 	/* 1 sector = 128kB */
+#endif
 
 #ifdef CFG_ENV_IS_IN_DATAFLASH
 #define CFG_ENV_OFFSET			0x4000
 #define CFG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CFG_ENV_OFFSET)
 #define CFG_ENV_SIZE			0x4000  /* 0x8000 */
 #endif
-
 
 #ifdef CFG_ENV_IS_IN_FLASH
 #define CFG_ENV_ADDR			(PHYS_FLASH_1 + 0xe000)  /* between boot.bin and u-boot.bin.gz */

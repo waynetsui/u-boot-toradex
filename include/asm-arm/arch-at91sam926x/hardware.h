@@ -23,7 +23,7 @@
 
 #include <asm/sizes.h>
 
-#ifdef CONFIG_AT91SAM9260EK
+#if defined(CONFIG_AT91SAM9260EK) || defined(CONFIG_AT91SAM9G20EK)
 #ifndef __ASSEMBLY__
 #include <asm/arch/at91sam9260.h>
 #else

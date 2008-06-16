@@ -2013,24 +2013,77 @@ zylonite_config :
 #########################################################################
 ## ARM926EJS Systems
 #########################################################################
-
+at91sam9260ek_nandflash_config \
+at91sam9260ek_dataflash_config \
 at91sam9260ek_config	:	unconfig
-	@./mkconfig $(@:_config=) arm arm926ejs at91sam9260ek NULL at91sam926x
-
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_ENV_IS_IN_NAND 1"		>>$(obj)include/config.h ; \
+		echo "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_ENV_IS_IN_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		echo "... with environment variable in SPI DATAFLASH CS1" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9260ek arm arm926ejs at91sam9260ek NULL at91sam926x
+ 
+at91sam9xeek_nandflash_config \
+at91sam9xeek_dataflash_config \
 at91sam9xeek_config	:	unconfig
-	@./mkconfig -n at91sam9xeek at91sam9260ek arm arm926ejs at91sam9260ek NULL at91sam926x
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_ENV_IS_IN_NAND 1"		>>$(obj)include/config.h ; \
+		echo "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_ENV_IS_IN_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		echo "... with environment variable in SPI DATAFLASH CS1" ; \
+	fi;
+	@$(MKCONFIG) -n at91sam9xeek -a at91sam9260ek arm arm926ejs at91sam9260ek NULL at91sam926x
 
+at91sam9g20ek_nandflash_config \
+at91sam9g20ek_dataflash_config \
 at91sam9g20ek_config	:	unconfig
-	@./mkconfig $(@:_config=) arm arm926ejs at91sam9g20ek NULL at91sam926x
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_ENV_IS_IN_NAND 1"		>>$(obj)include/config.h ; \
+		echo "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_ENV_IS_IN_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		echo "... with environment variable in SPI DATAFLASH CS1" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9g20ek arm arm926ejs at91sam9g20ek NULL at91sam926x
 
+at91sam9261ek_nandflash_config \
+at91sam9261ek_dataflash_config \
 at91sam9261ek_config	:	unconfig
-	@./mkconfig $(@:_config=) arm arm926ejs at91sam9261ek NULL at91sam926x
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_ENV_IS_IN_NAND 1"		>>$(obj)include/config.h ; \
+		echo "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_ENV_IS_IN_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		echo "... with environment variable in SPI DATAFLASH CS0" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9261ek arm arm926ejs at91sam9261ek NULL at91sam926x
 
+at91sam9rlek_nandflash_config \
+at91sam9rlek_dataflash_config \
 at91sam9rlek_config	:	unconfig
-	@./mkconfig $(@:_config=) arm arm926ejs at91sam9rlek NULL at91sam926x
-
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_ENV_IS_IN_NAND 1"		>>$(obj)include/config.h ; \
+		echo "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_ENV_IS_IN_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		echo "... with environment variable in SPI DATAFLASH CS0" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9rlek arm arm926ejs at91sam9rlek NULL at91sam926x
+	
+at91sam9263ek_nandflash_config \
+at91sam9263ek_dataflash_config \
 at91sam9263ek_config	:	unconfig
-	@./mkconfig $(@:_config=) arm arm926ejs at91sam9263ek NULL at91sam926x
+	@if [ "$(findstring _nandflash,$@)" ] ; then \
+		echo "#define CFG_ENV_IS_IN_NAND 1"		>>$(obj)include/config.h ; \
+		echo "... with environment variable in NAND FLASH" ; \
+	else \
+		echo "#define CFG_ENV_IS_IN_DATAFLASH 1"	>>$(obj)include/config.h ; \
+		echo "... with environment variable in SPI DATAFLASH CS0" ; \
+	fi;
+	@$(MKCONFIG) -a at91sam9263ek arm arm926ejs at91sam9263ek NULL at91sam926x
 
 #########################################################################
 ## ARM1136 Systems

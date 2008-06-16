@@ -51,7 +51,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN	(CFG_ENV_SIZE + 128*1024)
+#define CFG_MALLOC_LEN	(3*CFG_ENV_SIZE + 128*1024)
 #define CFG_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 #define CONFIG_BAUDRATE         115200
@@ -111,20 +111,20 @@
  * at MCK = 100 MHZ
  */
 
-#define AT91C_SM_NWE_SETUP	(0 << 0)
+#define AT91C_SM_NWE_SETUP	(1 << 0)
 #define AT91C_SM_NCS_WR_SETUP	(0 << 8)
-#define AT91C_SM_NRD_SETUP	(0 << 16)
+#define AT91C_SM_NRD_SETUP	(1 << 16)
 #define AT91C_SM_NCS_RD_SETUP	(0 << 24)
   
-#define AT91C_SM_NWE_PULSE 	(4 << 0)
-#define AT91C_SM_NCS_WR_PULSE	(6 << 8)
+#define AT91C_SM_NWE_PULSE 	(3 << 0)
+#define AT91C_SM_NCS_WR_PULSE	(3 << 8)
 #define AT91C_SM_NRD_PULSE	(3 << 16)
-#define AT91C_SM_NCS_RD_PULSE	(5 << 24)
+#define AT91C_SM_NCS_RD_PULSE	(3 << 24)
   
-#define AT91C_SM_NWE_CYCLE 	(6 << 0)
+#define AT91C_SM_NWE_CYCLE 	(5 << 0)
 #define AT91C_SM_NRD_CYCLE	(5 << 16)
 
-#define AT91C_SM_TDF	        (1 << 16)		
+#define AT91C_SM_TDF	        (2 << 16)		
 
 
 
@@ -157,13 +157,16 @@
 #define CFG_FLASH_ERASE_TOUT		(2*CFG_HZ) /* Timeout for Flash Erase */
 #define CFG_FLASH_WRITE_TOUT		(2*CFG_HZ) /* Timeout for Flash Write */
 
-#define	CFG_ENV_IS_IN_DATAFLASH         1
-#undef  CFG_ENV_IS_IN_FLASH
-
 #ifdef CFG_ENV_IS_IN_DATAFLASH
 #define CFG_ENV_OFFSET			0x4000
 #define CFG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CFG_ENV_OFFSET)
 #define CFG_ENV_SIZE			0x4000  /* 0x8000 */
+#endif
+
+#ifdef CFG_ENV_IS_IN_NAND
+#define CFG_ENV_OFFSET		0x60000		/* environment starts here  */
+#define	CFG_ENV_OFFSET_REDUND	0x80000		/* redundant environment starts here */
+#define CFG_ENV_SIZE    	0x20000 	/* 1 sector = 128kB */
 #endif
 
 #ifdef CFG_ENV_IS_IN_FLASH

@@ -98,7 +98,10 @@ void AT91F_SpiInit(void) {
 
   /* Reset the SPI */
   AT91C_BASE_SPI0->SPI_CR = AT91C_SPI_SWRST;
-  
+#ifdef CONFIG_AT91SAM9263EK
+  AT91C_BASE_SPI0->SPI_CR = AT91C_SPI_SWRST;
+#endif
+
   /* Configure SPI in Master Mode with No CS selected !!! */
   AT91C_BASE_SPI0->SPI_MR = AT91C_SPI_MSTR | AT91C_SPI_MODFDIS | AT91C_SPI_PCS;
   

@@ -52,7 +52,7 @@ void at91sam9260ek_nand_init (struct nand_chip *nand)
   
   if ((nand->options & NAND_BUSWIDTH_16) == NAND_BUSWIDTH_16)
   {
-  	AT91C_BASE_SMC->SMC_CTRL3 = (AT91C_SMC_READMODE | AT91C_SMC_WRITEMODE | AT91C_SMC_NWAITM_NWAIT_DISABLE |
+	AT91C_BASE_SMC->SMC_CTRL3 = (AT91C_SMC_READMODE | AT91C_SMC_WRITEMODE | AT91C_SMC_NWAITM_NWAIT_DISABLE |
 				       AT91C_SMC_DBW_WIDTH_SIXTEEN_BITS | AT91C_SM_TDF);
   } else {
     	AT91C_BASE_SMC->SMC_CTRL3 = (AT91C_SMC_READMODE | AT91C_SMC_WRITEMODE | AT91C_SMC_NWAITM_NWAIT_DISABLE |
@@ -65,8 +65,9 @@ void at91sam9260ek_nand_init (struct nand_chip *nand)
   AT91C_BASE_PIOC->PIO_ODR  = AT91C_PIO_PC13;
   AT91C_BASE_PIOC->PIO_PER  = AT91C_PIO_PC13;
 
-  AT91C_BASE_PIOC->PIO_PPUER = AT91C_PIO_PC13;   /* Enable pull-up */
-    
+  /* Enable pull-up */
+  AT91C_BASE_PIOC->PIO_PPUER = AT91C_PIO_PC13;     
+
   /* Enable NandFlash */
   AT91C_BASE_PIOC->PIO_PER = AT91C_PIO_PC14;
   AT91C_BASE_PIOC->PIO_OER = AT91C_PIO_PC14;
@@ -97,6 +98,19 @@ static int at91sam9260ek_nand_ready(struct mtd_info *mtd)
 
 void board_nand_init(struct nand_chip *nand)
 {
+	/* Init due to switch 8/16 bits mode */
+
+	if (nand->write_byte)
+		nand->write_byte = NULL;
+	if (nand->read_byte)
+		nand->read_byte = NULL;
+	if (nand->write_buf)
+		nand->write_buf = NULL;
+	if (nand->read_buf)
+		nand->read_buf = NULL;
+	if (nand->verify_buf)
+		nand->verify_buf = NULL;
+
 	nand->eccmode = NAND_ECC_SOFT;
 	nand->hwcontrol = at91sam9260ek_nand_hwcontrol;
 	nand->dev_ready = at91sam9260ek_nand_ready;

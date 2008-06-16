@@ -36,7 +36,6 @@
 /* ARM asynchronous clock */
 #define AT91C_MASTER_CLOCK	132096000	/* peripheral clock */
 
-
 #define AT91_SLOW_CLOCK		32768	/* slow clock */
 
 #define CFG_HZ 			1000
@@ -115,21 +114,20 @@
 /* These timings are specific to MT29F2G16AAB 256Mb (Micron) 
  * at MCK = 100 MHZ
  */
-
-#define AT91C_SM_NWE_SETUP	(0 << 0)
+#define AT91C_SM_NWE_SETUP	(2 << 0)
 #define AT91C_SM_NCS_WR_SETUP	(0 << 8)
-#define AT91C_SM_NRD_SETUP	(0 << 16)
+#define AT91C_SM_NRD_SETUP	(2 << 16)
 #define AT91C_SM_NCS_RD_SETUP	(0 << 24)
   
 #define AT91C_SM_NWE_PULSE 	(4 << 0)
-#define AT91C_SM_NCS_WR_PULSE	(6 << 8)
-#define AT91C_SM_NRD_PULSE	(3 << 16)
-#define AT91C_SM_NCS_RD_PULSE	(5 << 24)
+#define AT91C_SM_NCS_WR_PULSE	(4 << 8)
+#define AT91C_SM_NRD_PULSE	(4 << 16)
+#define AT91C_SM_NCS_RD_PULSE	(4 << 24)
   
-#define AT91C_SM_NWE_CYCLE 	(6 << 0)
-#define AT91C_SM_NRD_CYCLE	(5 << 16)
+#define AT91C_SM_NWE_CYCLE 	(7 << 0)
+#define AT91C_SM_NRD_CYCLE	(7 << 16)
 
-#define AT91C_SM_TDF	        (1 << 16)		
+#define AT91C_SM_TDF	        (3 << 16)		
 
 
 
@@ -168,10 +166,6 @@
 #define CFG_MAX_FLASH_SECT		256
 #define CFG_FLASH_ERASE_TOUT		(2*CFG_HZ) /* Timeout for Flash Erase */
 #define CFG_FLASH_WRITE_TOUT		(2*CFG_HZ) /* Timeout for Flash Write */
-
-#undef	CFG_ENV_IS_IN_FLASH
-#define	CFG_ENV_IS_IN_DATAFLASH         1
-#undef CFG_ENV_IS_IN_NAND              
 
 #ifdef CFG_ENV_IS_IN_NAND
 #define CFG_ENV_OFFSET		0x60000		/* environment starts here  */

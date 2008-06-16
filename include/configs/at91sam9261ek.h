@@ -82,6 +82,7 @@
 #define CONFIG_COMMANDS		\
 		       ((CONFIG_CMD_DFL	| \
                         CFG_CMD_NET | \
+			CFG_CMD_PING | \
                         CFG_CMD_ENV | \
                         CFG_CMD_USB | \
                         CFG_CMD_FLASH | \
@@ -111,71 +112,23 @@
 #define NAND_MAX_FLOORS                1
 #undef  CFG_NAND_WP
 
-/* SMC Chip Select 3 Timings for NandFlash K9F1216U0A (samsung)
- * for MASTER_CLOCK = 48000000. They were generated according to 
- * K9F1216U0A timings and for MASTER_CLOCK = 48000000.
- * Please refer to SMC section in AT91SAM9261 datasheet to learn how 
- * to generate these values.
- */
- 
-/*
-#define AT91C_SM_NWE_SETUP	(0 << 0)		
-#define AT91C_SM_NCS_WR_SETUP	(0 << 8)		
-#define AT91C_SM_NRD_SETUP	(0 << 16)		
-#define AT91C_SM_NCS_RD_SETUP	(0 << 24)		
-  
-#define AT91C_SM_NWE_PULSE 	(2 << 0)		
-#define AT91C_SM_NCS_WR_PULSE	(3 << 8)		
-#define AT91C_SM_NRD_PULSE	(2 << 16)		
-#define AT91C_SM_NCS_RD_PULSE	(4 << 24)		
-  
-#define AT91C_SM_NWE_CYCLE 	(3 << 0)		
-#define AT91C_SM_NRD_CYCLE	(5 << 16)		
-  
-#define AT91C_SM_TDF	        (1 << 16)		
-*/
-
-/* SMC Chip Select 3 Timings for NandFlash K9F1216U0A (samsung)
- * for MASTER_CLOCK = 100000000. They were generated according to 
- * K9F1216U0A timings and for MASTER_CLOCK = 100000000.
- * Please refer to SMC section in AT91SAM9261 datasheet to learn how 
- * to generate these values.
- */
-
-/* These timing are specific to K9F1216U0A (samsung) */
-/*
-#define AT91C_SM_NWE_SETUP	(0 << 0)		
-#define AT91C_SM_NCS_WR_SETUP	(0 << 8)		
-#define AT91C_SM_NRD_SETUP	(0 << 16)		
-#define AT91C_SM_NCS_RD_SETUP	(0 << 24)		
-  
-#define AT91C_SM_NWE_PULSE 	(3 << 0)		
-#define AT91C_SM_NCS_WR_PULSE	(3 << 8)		
-#define AT91C_SM_NRD_PULSE	(4 << 16)		
-#define AT91C_SM_NCS_RD_PULSE	(4 << 24)		
-  
-#define AT91C_SM_NWE_CYCLE 	(5 << 0)		
-#define AT91C_SM_NRD_CYCLE	(5 << 16)		
-*/
-
 /* These timings are specific to MT29F2G16AAB 256Mb (Micron) 
  * at MCK = 100 MHZ
  */
-
-#define AT91C_SM_NWE_SETUP	(0 << 0)
+#define AT91C_SM_NWE_SETUP	(1 << 0)
 #define AT91C_SM_NCS_WR_SETUP	(0 << 8)
-#define AT91C_SM_NRD_SETUP	(0 << 16)
+#define AT91C_SM_NRD_SETUP	(1 << 16)
 #define AT91C_SM_NCS_RD_SETUP	(0 << 24)
   
-#define AT91C_SM_NWE_PULSE 	(4 << 0)
-#define AT91C_SM_NCS_WR_PULSE	(6 << 8)
+#define AT91C_SM_NWE_PULSE 	(3 << 0)
+#define AT91C_SM_NCS_WR_PULSE	(3 << 8)
 #define AT91C_SM_NRD_PULSE	(3 << 16)
-#define AT91C_SM_NCS_RD_PULSE	(5 << 24)
+#define AT91C_SM_NCS_RD_PULSE	(3 << 24)
   
-#define AT91C_SM_NWE_CYCLE 	(6 << 0)
+#define AT91C_SM_NWE_CYCLE 	(5 << 0)
 #define AT91C_SM_NRD_CYCLE	(5 << 16)
 
-#define AT91C_SM_TDF	        (1 << 16)		
+#define AT91C_SM_TDF	        (2 << 16)		
 
 
 
@@ -271,13 +224,16 @@
 #define CFG_FLASH_ERASE_TOUT		(2*CFG_HZ) /* Timeout for Flash Erase */
 #define CFG_FLASH_WRITE_TOUT		(2*CFG_HZ) /* Timeout for Flash Write */
 
-#define	CFG_ENV_IS_IN_DATAFLASH         1
-#undef  CFG_ENV_IS_IN_FLASH
-
 #ifdef CFG_ENV_IS_IN_DATAFLASH
 #define CFG_ENV_OFFSET			0x4000
 #define CFG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CFG_ENV_OFFSET)
 #define CFG_ENV_SIZE			0x4000  /* 0x8000 */
+#endif
+
+#ifdef CFG_ENV_IS_IN_NAND
+#define CFG_ENV_OFFSET		0x60000		/* environment starts here  */
+#define	CFG_ENV_OFFSET_REDUND	0x80000		/* redundant environment starts here */
+#define CFG_ENV_SIZE    	0x20000 	/* 1 sector = 128kB */
 #endif
 
 #ifdef CFG_ENV_IS_IN_FLASH

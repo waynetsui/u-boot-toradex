@@ -23,7 +23,7 @@
 #include <common.h>
 #include <asm/arch/hardware.h>
 
-#if (CONFIG_CMD_NAND)
+#if defined(CONFIG_CMD_NAND)
 
 #include <nand.h>
 

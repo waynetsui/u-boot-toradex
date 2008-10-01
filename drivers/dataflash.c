@@ -61,7 +61,6 @@ dataflash_protect_t area_list[NB_DATAFLASH_AREA] = {
 	{0x38000, 0x1fffff, FLAG_PROTECT_CLEAR},	/* data area size to tune */
 };
 #endif
-#elif
 #elif defined(CONFIG_NEW_PARTITION)
 /*define the area offsets*/
 /* Invalid partitions should be defined with start > end */

@@ -2487,6 +2487,9 @@ shannon_config	:	unconfig
 at91rm9200dk_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t at91rm9200dk atmel at91rm9200
 
+at91rm9200ek_config	:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm920t at91rm9200ek atmel at91rm9200
+
 at91sam9261ek_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9261ek atmel at91
 

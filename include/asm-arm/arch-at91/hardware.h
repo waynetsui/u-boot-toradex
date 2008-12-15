@@ -18,7 +18,7 @@
 
 #if defined(CONFIG_AT91RM9200)
 #include <asm/arch/at91rm9200.h>
-#elif defined(CONFIG_AT91SAM9260)
+#elif defined(CONFIG_AT91SAM9260) || defined(CONFIG_AT91SAM9G20EK)
 #include <asm/arch/at91sam9260.h>
 #define AT91_BASE_EMAC	AT91SAM9260_BASE_EMAC
 #define AT91_BASE_SPI	AT91SAM9260_BASE_SPI0

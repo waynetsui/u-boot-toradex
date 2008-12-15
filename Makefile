@@ -2524,6 +2524,9 @@ at91cap9adk_config	:	unconfig
 at91sam9260ek_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9260ek atmel at91
 
+at91sam9g20ek_config	:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs at91sam9g20ek atmel at91
+
 ########################################################################
 ## ARM Integrator boards - see doc/README-integrator for more info.
 integratorap_config	\

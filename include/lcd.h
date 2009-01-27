@@ -223,7 +223,7 @@ void lcd_show_board_info(void);
 #define LCD_COLOR16	4
 
 /*----------------------------------------------------------------------*/
-#if defined(CONFIG_LCD_INFO_BELOW_LOGO)
+#if defined(CONFIG_LCD_LOGO) && defined(CONFIG_LCD_INFO_BELOW_LOGO)
 # define LCD_INFO_X		0
 # define LCD_INFO_Y		(BMP_LOGO_HEIGHT + VIDEO_FONT_HEIGHT)
 #elif defined(CONFIG_LCD_LOGO)

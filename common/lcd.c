@@ -444,7 +444,7 @@ static int lcd_init (void *lcdbase)
 
 	/* Initialize the console */
 	console_col = 0;
-#ifdef CONFIG_LCD_INFO_BELOW_LOGO
+#if defined(CONFIG_LCD_LOGO) && defined(CONFIG_LCD_INFO_BELOW_LOGO)
 	console_row = 7 + BMP_LOGO_HEIGHT / VIDEO_FONT_HEIGHT;
 #else
 	console_row = 1;	/* leave 1 blank line below logo */

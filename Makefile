@@ -2570,8 +2570,15 @@ shannon_config	:	unconfig
 ## Atmel AT91RM9200 Systems
 #########################################################################
 
+at91rm9200ek_config \
 at91rm9200dk_config	:	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm920t at91rm9200dk atmel at91rm9200
+	@mkdir -p $(obj)include
+	@if [ "$(findstring ek_,$@)" ] ; then \
+		echo "#define CONFIG_AT91RM9200EK 1"	>>$(obj)include/config.h ; \
+	else \
+		echo "#define CONFIG_AT91RM9200DK 1"	>>$(obj)include/config.h ; \
+	fi;
+	@$(MKCONFIG) -a at91rm9200dk arm arm920t at91rm9200dk atmel at91rm9200
 
 cmc_pu2_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t cmc_pu2 NULL at91rm9200

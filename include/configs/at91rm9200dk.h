@@ -34,7 +34,7 @@
 
 #define CONFIG_ARM920T		1	/* This is an ARM920T Core	*/
 #define CONFIG_AT91RM9200	1	/* It's an Atmel AT91RM9200 SoC	*/
-#define CONFIG_AT91RM9200DK	1	/* on an AT91RM9200DK Board	*/
+/*#define CONFIG_AT91RM9200DK	1 */	/* on an AT91RM9200EK Board (determined by make config	*/
 #undef  CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 #define USE_920T_MMU		1
 

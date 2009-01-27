@@ -41,12 +41,12 @@ LIBFDT_OBJ_FILES	= $(obj)fdt.o $(obj)fdt_ro.o $(obj)fdt_rw.o $(obj)fdt_strerror.
 
 LOGO_H	= $(OBJTREE)/include/bmp_logo.h
 
-ifeq ($(LOGO_BMP),)
+#ifeq ($(LOGO_BMP),)
 LOGO_BMP= logos/denx.bmp
-endif
-ifeq ($(VENDOR),atmel)
-LOGO_BMP= logos/atmel.bmp
-endif
+#endif
+#ifeq ($(VENDOR),atmel)
+LOGO_BMP= logos/timesys.bmp
+#endif
 
 
 #-------------------------------------------------------------------------

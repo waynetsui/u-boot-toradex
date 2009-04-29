@@ -172,8 +172,10 @@
   "rootfsaddr=0x81200000\0" \
   "consoledev=ttyS0\0" \
   "rootpath=/opt/nfs-exports/ltib-omap\0" \
-  "nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath} ip=dhcp;tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
-  "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=23000;tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0"
+  "ramdisksize=45000\0" \
+  "nfsoptions=,wsize=1500,rsize=1500\0" \
+  "nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp;tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
+  "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0"
 #endif
 #else
 #define CONFIG_BOOTARGS "console=ttyS0,115200n8 root=/dev/nfs rw nfsroot=192.168.3.5:/opt/nfs-exports/ltib-omap ip=dhcp"
@@ -287,11 +289,20 @@
 # define CFG_ENV_IS_IN_FLASH	1
 #endif
 
-#define SMNAND_ENV_OFFSET	0xc0000 /* environment starts here  */
+#define SMNAND_ENV_OFFSET	(8<<20) /* environment starts here
+					    (64MB point) */
 
 #define CFG_ENV_SECT_SIZE	boot_flash_sec
 #define CFG_ENV_OFFSET		boot_flash_off
 #define CFG_ENV_ADDR		boot_flash_env_addr
+
+#define CONFIG_CMDLINE_EDITING
+
+#ifdef CONFIG_CMDLINE_EDITING
+#undef CONFIG_AUTO_COMPLETE
+#else
+#define CONFIG_AUTO_COMPLETE
+#endif
 
 
 /*-----------------------------------------------------------------------

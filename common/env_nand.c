@@ -149,9 +149,13 @@ int saveenv(void)
 		puts ("Writing to Nand... ");
 		ret = nand_write(&nand_info[0], CFG_ENV_OFFSET, &total,
 				 (u_char*) env_ptr);
+		if (ret || total != CFG_ENV_SIZE)
+		  printf("%s:%d ret %d, total %d size %d\n", __FUNCTION__, __LINE__, ret, total, CFG_ENV_SIZE);
 	}
-	if (ret || total != CFG_ENV_SIZE)
+	if (ret || total != CFG_ENV_SIZE) {
+	  printf("%s:%d\n", __FUNCTION__);
 		return 1;
+	}
 
 	puts ("done\n");
 	gd->env_valid = (gd->env_valid == 2 ? 1 : 2);
@@ -167,6 +171,31 @@ int saveenv(void)
 	ulong total;
 	int ret = 0;
 
+#if defined(CONFIG_OMAP)
+	extern void omap_nand_switch_ecc(nand_info_t *nand, int hardware);
+	extern int omap_nand_get_ecc(nand_info_t *nand);
+
+	int mode;
+
+	// Switch to soft ECC for environment
+	mode = omap_nand_get_ecc(&nand_info[0]);
+	omap_nand_switch_ecc(&nand_info[0], 0);
+
+#if defined(CONFIG_3430LV_SOM)
+	// Unlock the entire NAND chip
+	{
+		struct nand_chip *this;
+		this = (struct nand_chip *)nand_info[0].priv;
+		puts("Unlocking NAND...");
+		ret = nand_unlock(&nand_info[0], 0, this->chipsize);
+
+		if (ret) {
+			printk("NAND unlock of entire chip failed\n");
+		}
+	}
+#endif
+#endif
+
 	puts ("Erasing Nand...");
 	if (nand_erase(&nand_info[0], CFG_ENV_OFFSET, CFG_ENV_SIZE))
 		return 1;
@@ -174,6 +203,13 @@ int saveenv(void)
 	puts ("Writing to Nand... ");
 	total = CFG_ENV_SIZE;
 	ret = nand_write(&nand_info[0], CFG_ENV_OFFSET, &total, (u_char*)env_ptr);
+	if (ret || total != CFG_ENV_SIZE)
+		printf("%s:%d ret %d, total %d size %d\n", __FUNCTION__, __LINE__, ret, total, CFG_ENV_SIZE);
+
+#if defined(CONFIG_OMAP)
+	omap_nand_switch_ecc(&nand_info[0], mode);
+#endif
+
 	if (ret || total != CFG_ENV_SIZE)
 		return 1;
 
@@ -255,6 +291,7 @@ void env_relocate_spec (void)
 	ulong total;
 	int ret;
 
+	// printf("%s: off 0x%x size 0x%x read %p\n", __FUNCTION__, CFG_ENV_OFFSET, CFG_ENV_SIZE, nand_info[0].read);
 	total = CFG_ENV_SIZE;
 	ret = nand_read(&nand_info[0], CFG_ENV_OFFSET, &total, (u_char*)env_ptr);
   	if (ret || total != CFG_ENV_SIZE)

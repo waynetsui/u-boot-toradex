@@ -40,6 +40,7 @@ static ulong base_address[CFG_MAX_NAND_DEVICE] = CFG_NAND_BASE_LIST;
 static const char default_nand_name[] = "nand";
 
 extern void board_nand_init(struct mtd_info *mtd);
+extern void board_post_nand_init(struct mtd_info *mtd);
 
 static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			   ulong base_addr)
@@ -54,7 +55,7 @@ static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			mtd->name = (char *)default_nand_name;
 	} else
 		mtd->name = NULL;
-
+	board_post_nand_init(mtd);
 }
 
 void nand_init(void)

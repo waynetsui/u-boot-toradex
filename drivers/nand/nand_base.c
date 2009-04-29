@@ -1662,8 +1662,10 @@ static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 	this->select_chip(mtd, chipnr);
 
 	/* Check, if it is write protected */
-	if (nand_check_wp(mtd))
+	if (nand_check_wp(mtd)) {
+	  printf("%s:%d\n", __FUNCTION__, __LINE__);
 		goto out;
+	}
 
 	/* if oobsel is NULL, use chip defaults */
 	if (oobsel == NULL)
@@ -1704,6 +1706,7 @@ static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 		ret = nand_write_page (mtd, this, page, &oobbuf[oob], oobsel, (--numpages > 0));
 		if (ret) {
 			DEBUG (MTD_DEBUG_LEVEL0, "nand_write_ecc: write_page failed %d\n", ret);
+			printf("%s:%d\n", __FUNCTION__);
 			goto out;
 		}
 		/* Next oob page */
@@ -1728,6 +1731,7 @@ static int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 				oobbuf, oobsel, chipnr, (eccbuf != NULL));
 			if (ret) {
 				DEBUG (MTD_DEBUG_LEVEL0, "nand_write_ecc: verify_pages failed %d\n", ret);
+			printf("%s:%d\n", __FUNCTION__);
 				goto out;
 			}
 			*retlen = written;
@@ -1758,8 +1762,10 @@ cmp:
 		oobbuf, oobsel, chipnr, (eccbuf != NULL));
 	if (!ret)
 		*retlen = written;
-	else
+	else {
 		DEBUG (MTD_DEBUG_LEVEL0, "nand_write_ecc: verify_pages failed %d\n", ret);
+			printf("%s:%d\n", __FUNCTION__);
+	}
 
 out:
 	/* Deselect and wake up anyone waiting on the device */

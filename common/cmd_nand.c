@@ -130,6 +130,7 @@ arg_off_size(int argc, char *argv[], ulong *off, ulong *size, ulong totsize)
 }
 #if defined(CONFIG_OMAP) && (defined(CONFIG_3430LABRADOR) || defined(CONFIG_3430LV_SOM))
 extern void omap_nand_switch_ecc(nand_info_t *nand, int hardware);
+extern int omap_nand_get_ecc(nand_info_t *nand);
 extern int nand_unlock(nand_info_t *nand, ulong off, ulong size);
 #else
 #define omap_nand_switch_ecc(x, y) do {} while(0) 
@@ -239,7 +240,18 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 	}
 	if (strncmp(cmd, "ecc", 3) == 0) {
-		if (argc < 3)
+		if (argc < 3) {
+#if defined(CONFIG_3430LV_SOM)
+			int ecc;
+			ecc = omap_nand_get_ecc(nand);
+			if (ecc)
+				printf("Hardware ECC\n");
+			else
+				printf("Software ECC\n");
+#else
+			goto usage;
+#endif
+		} else if (argc > 4)
 			goto usage;
 		if (strncmp(argv[2], "hw", 2) == 0)
 			omap_nand_switch_ecc(nand, 1);

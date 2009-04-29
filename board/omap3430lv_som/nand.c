@@ -48,16 +48,29 @@ extern int debug_nand_actions;
 int nand_unlock(struct mtd_info *mtd, unsigned long off, unsigned long size)
 {
 	register struct nand_chip *this = mtd->priv;
-	int start_page, end_page;
+	unsigned int start_block, end_block;
 	u8 val;
 	int ret = 0;
 	int block;
+	int pages_per_block;
 
 	debug_nand_actions = 0;
-	start_page = (int) (off >> this->page_shift);
-	end_page = (int) ((off + size) >> this->page_shift);
 
-	printk("\nUnlocking %x - %x. locking rest..\n", off, off + size);
+	start_block = (int) (off >> this->page_shift);
+	end_block = (int) ((off + size - 1) >> this->page_shift);
+
+	// printk("start_block 0x%x end_block 0x%x\n", start_block, end_block);
+
+	// printk("phys_erase_shift %d page_shift %d\n", this->phys_erase_shift, this->page_shift);
+
+	// Calculate pages in each block
+	pages_per_block = 1 << (this->phys_erase_shift - this->page_shift);
+
+	// printk("Pages per block %d\n", pages_per_block);
+
+	// Shift up into position
+	start_block *= pages_per_block;
+	end_block *= pages_per_block;
 
 	// First reset the chip, read status
 	this->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
@@ -65,17 +78,18 @@ int nand_unlock(struct mtd_info *mtd, unsigned long off, unsigned long size)
 	this->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
 	ndelay (100);
 	val = this->read_byte(mtd);
-	printk("%s: Status after reset %02x\n", __FUNCTION__, val);
+	// printk("%s: Status after reset %02x\n", __FUNCTION__, val);
 
-	this->cmdfunc(mtd, 0x23, -1, start_page);
-	this->cmdfunc(mtd, 0x24, -1, end_page);
+	this->cmdfunc(mtd, 0x23, -1, start_block);
+	this->cmdfunc(mtd, 0x24, -1, end_block);
 	ndelay (100);
+
 	// Now scan the same block range looking for lock status
-	for (block = start_page; block <= end_page; block+=(1<<6)) {
+	for (block = start_block; block <= end_block; block+= pages_per_block) {
 		this->cmdfunc(mtd, 0x7a, -1, block);
 		val = this->read_byte(mtd);
 		if (!(val & 0x4)) {
-			printk("%s: Block %d didn't unlock(%02x)\n", __FUNCTION__, block, val);
+				printk("NAND block %d didn't unlock(status %02x)\n", block/pages_per_block, val);
 			ret = -1;
 			goto exit;
 		}
@@ -386,6 +400,16 @@ static struct nand_oobinfo sw_nand_oob_64 = {
 	.oobfree = { {2, 38} }
 };
 
+// Return 0 if soft nand ecc, !0 if hardware nand ecc
+int omap_nand_get_ecc(struct mtd_info *mtd)
+{
+	struct nand_chip *nand = mtd->priv;
+
+	if (nand->eccmode == NAND_ECC_SOFT)
+	  return 0;
+	return !0;
+}
+
 void omap_nand_switch_ecc(struct mtd_info *mtd, int hardware)
 {
 	struct nand_chip *nand = mtd->priv;
@@ -498,6 +522,17 @@ void board_nand_init(struct mtd_info *mtd)
 
 }
 
+void board_post_nand_init(struct mtd_info *mtd)
+{
+	register struct nand_chip *this = mtd->priv;
+
+	if (!mtd->name)
+		return;  // No NAND chip?
+
+	// Set u-boot environment offset as *last* block in NAND
+	boot_flash_off = this->chipsize - (1<<this->phys_erase_shift);
+
+}
 
 #endif /* (CONFIG_COMMANDS & CFG_CMD_NAND) */
 

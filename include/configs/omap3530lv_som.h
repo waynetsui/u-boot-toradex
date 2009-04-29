@@ -162,12 +162,18 @@
 
 #if 1
 #if 1
-#define CONFIG_BOOTARGS "console=ttyS0,115200n8 root=/dev/ram rw ramdisk_size=22629"
+#define CONFIG_BOOTARGS "display=logic_4.3 console=ttyS0,115200n8 root=/dev/ram rw ramdisk_size=22629"
 #if 0
 #define CONFIG_BOOTCOMMAND "tftpboot 0x81000000 uImage;tftpboot 0x81200000 rootfs.ext2.gz.uboot;bootm 0x81000000 0x81200000"
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS \
-  "ramboot=tftpboot 0x81000000 uImage;tftpboot 0x81200000 rootfs.ext2.gz.uboot;bootm 0x81000000 0x81200000\0"
+  "display=logic_4.3\0" \
+  "loadaddr=0x81000000\0"\
+  "rootfsaddr=0x81200000\0" \
+  "consoledev=ttyS0\0" \
+  "rootpath=/opt/nfs-exports/ltib-omap\0" \
+  "nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath} ip=dhcp;tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
+  "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=23000;tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0"
 #endif
 #else
 #define CONFIG_BOOTARGS "console=ttyS0,115200n8 root=/dev/nfs rw nfsroot=192.168.3.5:/opt/nfs-exports/ltib-omap ip=dhcp"

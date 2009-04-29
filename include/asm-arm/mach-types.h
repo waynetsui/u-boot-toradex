@@ -740,6 +740,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_PDNB3               1002
 #define MACH_TYPE_OMAP_3430SDP        1138
 #define MACH_TYPE_OMAP_3430LV_SOM     1684
+#define MACH_TYPE_OMAP3530_LV_SOM      1773
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -9439,6 +9440,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_mp2usb()	(machine_arch_type == MACH_TYPE_MP2USB)
 #else
 # define machine_is_mp2usb()	(0)
+#endif
+
+#ifdef CONFIG_MACH_OMAP3530_LV_SOM
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_OMAP3530_LV_SOM
+# endif
+# define machine_is_omap3530_lv_som()	(machine_arch_type == MACH_TYPE_OMAP3530_LV_SOM)
+#else
+# define machine_is_omap3530_lv_som()	(0)
 #endif
 
 /*

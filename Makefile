@@ -1829,6 +1829,9 @@ omap3430labrador_config :    unconfig
 omap3430lv_som_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430lv_som
 
+omap3530lv_som_config :    unconfig
+	@./mkconfig $(@:_config=) arm omap3 omap3430lv_som
+
 #========================================================================
 # i386
 #========================================================================

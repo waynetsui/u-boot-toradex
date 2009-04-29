@@ -181,7 +181,7 @@
 #endif
 #endif
 
-#define CONFIG_NETMASK           255.255.255.0
+// #define CONFIG_NETMASK           255.255.255.0
 #define CONFIG_IPADDR            192.168.3.18
 #define CONFIG_SERVERIP          192.168.3.5
 #define CONFIG_ETHADDR           00:08:ee:01:f6:98

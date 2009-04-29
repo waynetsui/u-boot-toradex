@@ -52,7 +52,11 @@ int board_init(void)
 	DECLARE_GLOBAL_DATA_PTR;
 
 	gpmc_init();		/* in SRAM or SDRAM, finish GPMC */
+#if 1
+	gd->bd->bi_arch_number = MACH_TYPE_OMAP3530_LV_SOM; /* board id for Linux */
+#else
 	gd->bd->bi_arch_number = MACH_TYPE_OMAP_3430LV_SOM; /* board id for Linux */
+#endif
 	gd->bd->bi_boot_params = (OMAP34XX_SDRC_CS0 + 0x100); /* boot param addr */
 
 	return 0;

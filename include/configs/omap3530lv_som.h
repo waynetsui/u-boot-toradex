@@ -175,7 +175,8 @@
   "ramdisksize=45000\0" \
   "nfsoptions=,wsize=1500,rsize=1500\0" \
   "nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp;tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
-  "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0"
+  "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
+  "xipboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize};bootm ${loadaddr} ${rootfsaddr}\0"
 #endif
 #else
 #define CONFIG_BOOTARGS "console=ttyS0,115200n8 root=/dev/nfs rw nfsroot=192.168.3.5:/opt/nfs-exports/ltib-omap ip=dhcp"

@@ -31,7 +31,7 @@
 static u32 i2c_base = I2C_DEFAULT_BASE;
 static u32 i2c_speed = CFG_I2C_SPEED;
 
-//#define DEBUG
+// #define DEBUG 1
 
 #if DEBUG
 
@@ -450,7 +450,7 @@ int i2c_write(uchar chip, uint addr, int alen, uchar * buffer, int len)
 
 	for (i = 0; i < len; i++) {
 		if (i2c_write_byte(chip, addr + i, buffer[i])) {
-			printf("I2C read: I/O error\n");
+			printf("I2C write: I/O error\n");
 			i2c_init(i2c_speed, CFG_I2C_SLAVE);
 			return 1;
 		}

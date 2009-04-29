@@ -266,6 +266,36 @@ int misc_init_r(void)
 #ifdef CONFIG_DRIVER_OMAP34XX_I2C
 	i2c_init(CFG_I2C_SPEED, CFG_I2C_SLAVE);
 #endif
+
+#ifdef CONFIG_DRIVER_OMAP34XX_I2C
+
+	{
+		unsigned char data;
+		unsigned short msg;
+
+		// Need to turn on VAUX1 to 3.0v to driver level
+		// shifters and power the production data chip as well
+		// as the TSC2004 touch controller
+
+		// Select the output voltage
+		data = 0x04;
+		i2c_write(I2C_TRITON2, 0x72, 1, &data, 1);
+		// Select the Processor resource group
+		data = 0x20;
+		i2c_write(I2C_TRITON2, 0x72, 1, &data, 1);
+		// Enable I2C access to the Power bus
+		data = 0x02;
+		i2c_write(I2C_TRITON2, 0x4a, 1, &data, 1);
+		// Send message MSB
+		msg = (1<<13) | (1<<4) | (0xd<<0); // group(process_grp1):resource(vaux1):res_active;
+		data = msg >> 8;
+		i2c_write(I2C_TRITON2, 0x4b, 1, &data, 1);
+		// Send message LSB
+		data = msg & 0xff;
+		i2c_write(I2C_TRITON2, 0x4c, 1, &data, 1);
+	}
+#endif
+
 	ether_init();	/* better done here so timers are init'ed */
 	return (0);
 }
@@ -358,6 +388,7 @@ int dram_init(void)
 	/* fixme... dont know why this func is crashing in ZeBu */
 	display_board_info(btype);
 #endif
+
     /* If a second bank of DDR is attached to CS1 this is 
      * where it can be started.  Early init code will init
      * memory on CS0.
@@ -372,6 +403,8 @@ int dram_init(void)
 	gd->bd->bi_dram[0].size = size0;
 	gd->bd->bi_dram[1].start = PHYS_SDRAM_1+size0;
 	gd->bd->bi_dram[1].size = size1;
+
+
 
 	return 0;
 }

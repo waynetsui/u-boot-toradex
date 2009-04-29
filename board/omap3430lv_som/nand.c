@@ -532,6 +532,8 @@ void board_post_nand_init(struct mtd_info *mtd)
 	// Set u-boot environment offset as *last* block in NAND
 	boot_flash_off = this->chipsize - (1<<this->phys_erase_shift);
 
+	printk("%s: boot_flash_off 0x%x\n", __FUNCTION__, boot_flash_off);
+
 }
 
 #endif /* (CONFIG_COMMANDS & CFG_CMD_NAND) */

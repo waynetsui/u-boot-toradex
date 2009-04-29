@@ -258,7 +258,7 @@ void display_board_info(u32 btype)
 
 	printf("OMAP%s-%s rev %d, CPU-OPP%s L3-%sMHz\n", cpu_s, sec_s, rev, p_cpu, 
 		   p_l3);
-	printf("OMAP3430LAB %s Version + %s (Boot %s)\n", db_s,
+	printf("OMAP3430LV_SOM %s Version + %s (Boot %s)\n", db_s,
 	       mem_s, bootmode[2]);
 }
 

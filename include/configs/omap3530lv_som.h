@@ -100,21 +100,8 @@
 #define C_MSK (CFG_CMD_IMLS | CFG_CMD_FLASH)
 #endif
 
-#if 1  // PWB!!!
-#if 1
-/* Add NAND in*/
 #define CONFIG_COMMANDS          (( CFG_CMD_I2C | CONFIG_CMD_DFL | CFG_CMD_DHCP \
-					| CFG_CMD_NAND | CFG_CMD_PING ) & ~(C_MSK))
-#else
-/* Config CMD*/
-#define CONFIG_COMMANDS          (( CFG_CMD_I2C | CONFIG_CMD_DFL | CFG_CMD_DHCP \
-					| CFG_CMD_PING ) & ~(C_MSK))
-#endif
-#else
-/* Config CMD*/
-#define CONFIG_COMMANDS          (( CFG_CMD_I2C | CONFIG_CMD_DFL | CFG_CMD_DHCP \
-					| CFG_CMD_NAND) & ~(C_MSK))
-#endif
+					| CFG_CMD_NAND | CFG_CMD_PING | CFG_CMD_ASKENV ) & ~(C_MSK))
 
 #define CONFIG_BOOTP_MASK        CONFIG_BOOTP_DEFAULT
 
@@ -158,7 +145,7 @@
 #define NAND_NO_RB               1
 #define CFG_NAND_WP
 
-#define CONFIG_BOOTDELAY         3
+#define CONFIG_BOOTDELAY         6
 
 #if 1
 #if 1
@@ -190,10 +177,24 @@
 #endif
 #endif
 
+#define CONFIG_PREBOOT \
+   "echo ======================NOTICE============================;"    \
+   "echo This is the first time that you boot up this board. You are;"  \
+   "echo required to set a valid MAC address for your Ethernet interface.;"\
+   "echo MAKE SURE YOUR MAC ADDRESS IS CORRECTLY ENTERED!;"      \
+   "echo You can always change it by using setenv ethaddr {MAC address};" \
+   "echo to change it again.;"                                         \
+   "askenv ethaddr 'Please enter your MAC address:' 17;"               \
+   "setenv preboot;"                                                   \
+   "printenv ethaddr;" \
+   "saveenv;"
+
+#define CONFIG_BOOTCOMMAND "run xipboot"
+
 // #define CONFIG_NETMASK           255.255.255.0
-#define CONFIG_IPADDR            192.168.3.18
-#define CONFIG_SERVERIP          192.168.3.5
-#define CONFIG_ETHADDR           00:08:ee:01:f6:98
+// #define CONFIG_IPADDR            192.168.3.18
+// #define CONFIG_SERVERIP          192.168.3.5
+// #define CONFIG_ETHADDR           00:08:ee:01:f6:98
 // #define CONFIG_BOOTFILE          "uImage"
 #define CONFIG_AUTO_COMPLETE     1
 /*
@@ -203,7 +204,7 @@
 
 #define CFG_LONGHELP             /* undef to save memory */
 #define CFG_PROMPT               V_PROMPT
-#define CFG_CBSIZE               256  /* Console I/O Buffer Size */
+#define CFG_CBSIZE               512  /* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CFG_PBSIZE               (CFG_CBSIZE+sizeof(CFG_PROMPT)+16)
 #define CFG_MAXARGS              16          /* max number of command args */

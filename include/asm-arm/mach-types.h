@@ -739,6 +739,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_OMAP_2430SDP         900
 #define MACH_TYPE_PDNB3               1002
 #define MACH_TYPE_OMAP_3430SDP        1138
+#define MACH_TYPE_OMAP_3430LV_SOM     1684
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -6846,6 +6847,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_omap_3430SDP()	(machine_arch_type == MACH_TYPE_OMAP_3430SDP)
 #else
 # define machine_is_omap_3430SDP()	(0)
+#endif
+
+#ifdef CONFIG_MACH_OMAP_3430LV_SOM
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_OMAP_3430LV_SOM
+# endif
+# define machine_is_omap_3430lv_som()	(machine_arch_type == MACH_TYPE_OMAP_3430LV_SOM)
+#else
+# define machine_is_omap_3430lv_som()	(0)
 #endif
 
 #ifdef CONFIG_MACH_N10

@@ -1816,7 +1816,7 @@ omap2430sdp_config :    unconfig
 		echo "Configuring for GDP and .. "; \
 	fi;
 	@./mkconfig -a $(call xtract_omap2430,$@) arm arm1136 omap2430sdp
-	
+
 #########################################################################
 ## ARM CORTEX Systems
 #########################################################################
@@ -1825,6 +1825,9 @@ omap3430sdp_config :    unconfig
 
 omap3430labrador_config :    unconfig
 	@./mkconfig $(@:_config=) arm omap3 omap3430labrador
+
+omap3430lv_som_config :    unconfig
+	@./mkconfig $(@:_config=) arm omap3 omap3430lv_som
 
 #========================================================================
 # i386

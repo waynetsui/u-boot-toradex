@@ -80,7 +80,7 @@ typedef enum {
 #define SDP_SDRC_DLLAB_CTRL ((DLL_ENADLL << 3) | \
     (DLL_LOCKDLL << 2) | (DLL_DLLPHASE_90 << 1))   
 
-#ifdef CONFIG_3430LABRADOR
+#if defined(CONFIG_3430LABRADOR) || defined(CONFIG_3430LV_SOM)
 /* Micron part of 3430 LABRADOR (133MHz optimized) ~ 7.5ns
  *	TDAL = Twr/Tck + Trp/tck = 15/7.5 + 22.5/7.5 = 2 + 3 = 5
  *	TDPL =  15/7.5   = 2

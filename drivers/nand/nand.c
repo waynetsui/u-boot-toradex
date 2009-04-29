@@ -39,7 +39,7 @@ static ulong base_address[CFG_MAX_NAND_DEVICE] = CFG_NAND_BASE_LIST;
 
 static const char default_nand_name[] = "nand";
 
-extern void board_nand_init(struct nand_chip *nand);
+extern void board_nand_init(struct mtd_info *mtd);
 
 static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			   ulong base_addr)
@@ -47,7 +47,7 @@ static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 	mtd->priv = nand;
 
 	nand->IO_ADDR_R = nand->IO_ADDR_W = (void  __iomem *)base_addr;
-	board_nand_init(nand);
+	board_nand_init(mtd);
 
 	if (nand_scan(mtd, 1) == 0) {
 		if (!mtd->name)

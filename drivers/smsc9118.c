@@ -583,6 +583,7 @@ lan9118_open(bd_t *bis)
 cleanup:
 	  if (txbp != NULL) {
 			free(txbp);
+			txbp = NULL;
 	  }
 
 done:
@@ -595,6 +596,7 @@ lan9118_close(void)
 	  // Release the TX buffer.
 	  if (txbp != NULL) {
 			free(txbp);
+			txbp = NULL;
 	  }
 }
 

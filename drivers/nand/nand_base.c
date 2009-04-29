@@ -49,6 +49,8 @@
  *
  */
 
+int debug_nand_actions;
+
 /* XXX U-BOOT XXX */
 #if 0
 #include <linux/delay.h>
@@ -218,6 +220,8 @@ static u_char nand_read_byte(struct mtd_info *mtd)
 static void nand_write_byte(struct mtd_info *mtd, u_char byte)
 {
 	struct nand_chip *this = mtd->priv;
+	if (debug_nand_actions)
+	printk("%s: %02x\n", __FUNCTION__, byte);
 	writeb(byte, this->IO_ADDR_W);
 }
 
@@ -231,7 +235,12 @@ static void nand_write_byte(struct mtd_info *mtd, u_char byte)
 static u_char nand_read_byte16(struct mtd_info *mtd)
 {
 	struct nand_chip *this = mtd->priv;
-	return (u_char) cpu_to_le16(readw(this->IO_ADDR_R));
+	u_char ret;
+
+	ret = (u_char) cpu_to_le16(readw(this->IO_ADDR_R));
+	if (debug_nand_actions)
+	printk("%s: %02x\n", __FUNCTION__, ret);
+	return ret;
 }
 
 /**
@@ -245,6 +254,8 @@ static u_char nand_read_byte16(struct mtd_info *mtd)
 static void nand_write_byte16(struct mtd_info *mtd, u_char byte)
 {
 	struct nand_chip *this = mtd->priv;
+	if (debug_nand_actions)
+	printk("%s: %02x\n", __FUNCTION__, byte);
 	writew(le16_to_cpu((u16) byte), this->IO_ADDR_W);
 }
 
@@ -258,7 +269,12 @@ static void nand_write_byte16(struct mtd_info *mtd, u_char byte)
 static u16 nand_read_word(struct mtd_info *mtd)
 {
 	struct nand_chip *this = mtd->priv;
-	return readw(this->IO_ADDR_R);
+	u16 ret;
+
+	ret = readw(this->IO_ADDR_R);
+	if (debug_nand_actions)
+	printk("%s: %04x\n", __FUNCTION__, ret);
+	return ret;
 }
 
 /**
@@ -272,6 +288,8 @@ static u16 nand_read_word(struct mtd_info *mtd)
 static void nand_write_word(struct mtd_info *mtd, u16 word)
 {
 	struct nand_chip *this = mtd->priv;
+	if (debug_nand_actions)
+	printk("%s: %04x\n", __FUNCTION__, word);
 	writew(word, this->IO_ADDR_W);
 }
 
@@ -2147,18 +2165,18 @@ int nand_erase_nand (struct mtd_info *mtd, struct erase_info *instr, int allowbb
 	instr->state = MTD_ERASING;
 
 	while (len) {
+		/* Invalidate the page cache, if we erase the block which contains
+		   the current cached page */
+		if (page <= this->pagebuf && this->pagebuf < (page + pages_per_block))
+			this->pagebuf = -1;
 #ifndef NAND_ALLOW_ERASE_ALL
 		/* Check if we have a bad block, we do not erase bad blocks ! */
 		if (nand_block_checkbad(mtd, ((loff_t) page) << this->page_shift, 0, allowbbt)) {
 			printk (KERN_WARNING "nand_erase: attempt to erase a bad block at page 0x%08x\n", page);
 			instr->state = MTD_ERASE_FAILED;
-			goto erase_exit;
+			goto skip_bad_block;
 		}
 #endif
-		/* Invalidate the page cache, if we erase the block which contains
-		   the current cached page */
-		if (page <= this->pagebuf && this->pagebuf < (page + pages_per_block))
-			this->pagebuf = -1;
 
 		this->erase_cmd (mtd, page & this->pagemask);
 
@@ -2172,6 +2190,10 @@ int nand_erase_nand (struct mtd_info *mtd, struct erase_info *instr, int allowbb
 			goto erase_exit;
 		}
 
+#ifndef NAND_ALLOW_ERASE_ALL
+	skip_bad_block:
+		;
+#endif
 		/* Increment page address and decrement length */
 		len -= (1 << this->phys_erase_shift);
 		page += pages_per_block;
@@ -2309,6 +2331,12 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 
 	/* Select the device */
 	this->select_chip(mtd, 0);
+
+#if 1
+	/* Reset the chip to wake it up... */
+	this->cmdfunc (mtd, NAND_CMD_RESET, -1, -1);
+	udelay (100);
+#endif
 
 	/* Send the command for reading device ID */
 	this->cmdfunc (mtd, NAND_CMD_READID, 0x00, -1);

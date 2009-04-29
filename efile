@@ -1,0 +1,56 @@
+omap3430sdp.c:116: warning: function declaration isn't a prototype
+omap3430sdp.c:145: warning: function declaration isn't a prototype
+omap3430sdp.c:170: warning: function declaration isn't a prototype
+omap3430sdp.c: In function 'try_unlock_memory':
+omap3430sdp.c:185: warning: implicit declaration of function 'get_boot_type'
+omap3430sdp.c: In function 's_init':
+omap3430sdp.c:212: warning: implicit declaration of function 'v7_flush_dcache_all'
+omap3430sdp.c:236: warning: implicit declaration of function 'l2cache_enable'
+mem.c: In function 'gpmc_init':
+mem.c:347: warning: unused variable 'i'
+mem.c:346: warning: unused variable 'config_sel'
+mem.c: At top level:
+mem.c:98: warning: 'gpmc_stnor' defined but not used
+clock.c:46: warning: function declaration isn't a prototype
+clock.c:47: warning: function declaration isn't a prototype
+clock.c:48: warning: function declaration isn't a prototype
+clock.c:49: warning: function declaration isn't a prototype
+clock.c: In function 'prcm_init':
+clock.c:130: warning: 'sil_index' may be used uninitialized in this function
+/home/a0384864/LAB_BOOT/src/u-boot/include/asm/arch/sys_proto.h:40: warning: 'get_sysboot_value' declared inline after being called
+/home/a0384864/LAB_BOOT/src/u-boot/include/asm/arch/sys_proto.h:40: warning: previous declaration of 'get_sysboot_value' was here
+nand.c: In function 'board_nand_init':
+nand.c:439: warning: assignment makes pointer from integer without a cast
+nand.c:440: warning: assignment makes pointer from integer without a cast
+nand.c: At top level:
+nand.c:125: warning: 'omap_nand_dev_ready' defined but not used
+nand.c:249: warning: 'omap_compare_ecc' defined but not used
+cpu.c: In function 'cleanup_before_linux':
+cpu.c:131: warning: implicit declaration of function 'arm_cache_flush'
+cpu.c:134: warning: implicit declaration of function 'l2cache_disable'
+cpu.c:136: warning: implicit declaration of function 'get_boot_type'
+cpu.c:137: warning: implicit declaration of function 'v7_flush_dcache_all'
+cpu.c:137: warning: implicit declaration of function 'get_device_type'
+cpu.c: At top level:
+cpu.c:174: warning: function declaration isn't a prototype
+cpu.c: In function 'l2cache_enable':
+cpu.c:180: warning: implicit declaration of function 'get_cpu_rev'
+cpu.c:175: warning: unused variable 'reg'
+cpu.c: At top level:
+cpu.c:204: warning: function declaration isn't a prototype
+cpu.c:204: warning: conflicting types for 'l2cache_disable'
+cpu.c:134: warning: previous implicit declaration of 'l2cache_disable' was here
+cpu.c: In function 'l2cache_disable':
+cpu.c:205: warning: unused variable 'reg'
+smsc9118.c: In function 'lan9118_open':
+smsc9118.c:410: warning: pointer targets in assignment differ in signedness
+smsc9118.c: At top level:
+smsc9118.c:603: warning: function declaration isn't a prototype
+smsc9118.c: In function 'lan9118_read':
+smsc9118.c:660: warning: unused variable 'tmp'
+smsc9118.c: In function 'lan9118_write':
+smsc9118.c:802: warning: pointer targets in passing argument 1 of 'sendToNet' differ in signedness
+cmd_i2c.c: In function 'do_i2c_bus':
+cmd_i2c.c:888: warning: implicit declaration of function 'select_bus'
+env_common.c: In function 'env_complete':
+env_common.c:280: warning: pointer targets in assignment differ in signedness

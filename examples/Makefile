@@ -42,7 +42,7 @@ LOAD_ADDR = 0x00800000 -L $(gcclibdir)/m32 -T nios.lds
 endif
 
 ifeq ($(ARCH),nios2)
-LOAD_ADDR = 0x00800000 -L $(gcclibdir) -T nios2.lds
+LOAD_ADDR = 0x02000000 -L $(gcclibdir) -T nios2.lds
 endif
 
 ifeq ($(ARCH),m68k)
@@ -51,6 +51,10 @@ endif
 
 ifeq ($(ARCH),microblaze)
 LOAD_ADDR = 0x80F00000
+endif
+
+ifeq ($(ARCH),blackfin)
+LOAD_ADDR = 0x1000
 endif
 
 include $(TOPDIR)/config.mk
@@ -71,6 +75,11 @@ endif
 ifeq ($(ARCH),ppc)
 SREC   += sched.srec
 BIN    += sched.bin sched
+endif
+
+ifeq ($(ARCH),blackfin)
+SREC	+= smc91111_eeprom.srec
+BIN 	+= smc91111_eeprom.bin smc91111_eeprom
 endif
 
 # The following example is pretty 8xx specific...

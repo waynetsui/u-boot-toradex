@@ -104,6 +104,12 @@ FIQ_STACK_START:
  */
 
 reset:
+#if 1
+	/* L2 is enabled out of reset, disable it */
+	mrc p15, 0, r0, c1, c0, 1	/* Fetch Aux Control reg... */
+	bic	r0, r0, #2
+	mcr p15, 0, r0, c1, c0, 1	/* Set Aux Control reg... */
+#endif	
 	/*
 	 * set the cpu to SVC32 mode
 	 */

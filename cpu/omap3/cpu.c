@@ -131,7 +131,9 @@ int cleanup_before_linux (void)
 	arm_cache_flush();
 #ifndef CONFIG_L2_OFF	
 	/* turn off L2 cache */
+#if 0
 	l2cache_disable();
+#endif
 	/* invalidate L2 cache also */
 	external_boot = (get_boot_type() == 0x1F) ? 1 : 0;
 	v7_flush_dcache_all(get_device_type(), external_boot);

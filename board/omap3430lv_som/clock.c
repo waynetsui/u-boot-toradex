@@ -260,9 +260,11 @@ void prcm_init(void)
 	sr32(CM_CLKEN_PLL, 16, 3, PLL_LOCK);	/* lock mode */
 	wait_on_value(BIT1, 2, CM_IDLEST_CKGEN, LDELAY);
 
+#if 0
 	// Put DPLL5 into low-power stop mode
 	sr32(CM_CLKEN2_PLL, 0, 3, PLL_STOP);
 	wait_on_value(BIT0, 0, CM_IDLEST2_CKGEN, LDELAY);
+#endif
 	
 	/* Getting the base address to MPU DPLL param table*/
 	dpll_param_p = (dpll_param *)get_mpu_dpll_param();

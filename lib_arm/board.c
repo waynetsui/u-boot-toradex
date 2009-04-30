@@ -246,6 +246,9 @@ init_fnc_t *init_sequence[] = {
 #endif
 	dram_init,		/* configure available RAM banks */
 	display_dram_config,
+#if defined(CONFIG_3430LV_SOM)
+	init_vaux1_voltage,
+#endif
 	NULL,
 };
 
@@ -320,7 +323,7 @@ void start_armboot (void)
 	if (is_nand) 
 #endif
 	{
-		puts ("NAND:");
+		puts ("NAND:  ");
 		nand_init();		/* go init the NAND */
 	}
 #endif

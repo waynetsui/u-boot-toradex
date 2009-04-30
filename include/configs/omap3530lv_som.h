@@ -362,6 +362,9 @@ extern unsigned int pin_get_gpio_input(unsigned int pin);
 extern unsigned int pin_set_gpio_dataout(unsigned int pin, unsigned int set);
 extern unsigned int pin_init_gpio(unsigned int pin_num, unsigned int in_out);
 
+// Turn on VAUX1 voltage for Product ID
+extern void init_vaux1_voltage(void);
+
 // Set the enetaddr environment variable from production data
 extern int fetch_production_data(void);
 extern void board_get_nth_enetaddr (unsigned char *enetaddr, int which);

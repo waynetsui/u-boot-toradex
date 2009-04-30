@@ -62,6 +62,7 @@ static int gpio_i2c_clock_high_width, gpio_i2c_clock_low_width;
 static int gpio_i2c_coarse_delay;
 
 #define DEBUG_PRODUCTION_DATA 0
+#define DEBUG_PRODUCTION_DATA_BUF 0
 #define STATIC static
 
 
@@ -369,7 +370,7 @@ read_user_zone(unsigned char *buf, int len, int startoff)
   cmd[3] = len;
   ret = send_packet(cmd, sizeof(cmd), buf, len);
 
-  if (DEBUG_PRODUCTION_DATA) {
+  if (DEBUG_PRODUCTION_DATA_BUF) {
     char obuf[128];
     int i,j,offset;
     for (i = 0, offset=0; i<len; i+=16) {
@@ -477,7 +478,7 @@ int fetch_production_data(void)
   int err = 0;
   char buf[12];
 
-  gpio_i2c_init(115200);
+  gpio_i2c_init(50000);
 
 #ifdef CONFIG_FETCH_ONLY_MAC_ADDRESSES
   printf("Read default MAC addresses: ");

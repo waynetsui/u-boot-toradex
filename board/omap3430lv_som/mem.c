@@ -114,6 +114,18 @@ static u32 gpmc_m_nand[GPMC_MAX_REG] = {
 	M_NAND_GPMC_CONFIG6, 0
 };
 
+#if 1
+// Compact Flash setup
+static u32 gpmc_m_cf[GPMC_MAX_REG] = {
+	M_CF_GPMC_CONFIG1,
+	M_CF_GPMC_CONFIG2,
+	M_CF_GPMC_CONFIG3,
+	M_CF_GPMC_CONFIG4,
+	M_CF_GPMC_CONFIG5,
+	M_CF_GPMC_CONFIG6, 0
+};
+#endif
+
 /********** Functions ****/
 
 /* ENV Functions */
@@ -408,9 +420,17 @@ void gpmc_init(void)
 	f_sec = SZ_128K;
 	NOR_MAX_FLASH_BANKS = 2;
 	size = PISMO1_NOR_SIZE;
-	for(i=0; i < NOR_MAX_FLASH_BANKS; i++)
+	for(i=0; i < NOR_MAX_FLASH_BANKS; i++) {
 		NOR_FLASH_BANKS_LIST[i] = 
 		FLASH_BASE_SDPV1 + PHYS_FLASH_SIZE*i;
 	}
 #endif
+
+#if 1
+	/* CS 3 (CompactFlash)*/
+	gpmc_config = gpmc_m_cf;
+	gpmc_base = GPMC_CONFIG_CS0 + (3 * GPMC_CONFIG_WIDTH);	
+	enable_gpmc_config(gpmc_config, gpmc_base, 0x18000000, GPMC_SIZE_16M);
+#endif
+
 }

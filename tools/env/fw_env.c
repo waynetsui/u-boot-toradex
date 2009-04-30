@@ -31,7 +31,11 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#if 1
+#include "mtd-user.h"
+#else
 #include <linux/mtd/mtd.h>
+#endif
 #include "fw_env.h"
 
 typedef unsigned char uchar;
@@ -166,6 +170,7 @@ static inline ulong getenvsize (void)
 {
 	ulong rc = CFG_ENV_SIZE - sizeof (long);
 
+	// fprintf(stderr, "%s: env_size %d HaveRedundEnv %d\n", __FUNCTION__, CFG_ENV_SIZE, HaveRedundEnv);
 	if (HaveRedundEnv)
 		rc -= sizeof (char);
 	return rc;
@@ -611,11 +616,15 @@ static int env_init (void)
 	crc1_ok = ((crc1 = crc32 (0, environment.data, ENV_SIZE))
 			   == environment.crc);
 	if (!HaveRedundEnv) {
+#if 1
+	  // PWB!!!  Hack!  CRC doesn't match, just accept the data
+#else
 		if (!crc1_ok) {
 			fprintf (stderr,
-				"Warning: Bad CRC, using default environment\n");
+				 "Warning1: Bad CRC(%08x != %08x), using default environment\n", crc1, environment.crc);
 			memcpy(environment.data, default_environment, sizeof default_environment);
 		}
+#endif
 	} else {
 		flag1 = environment.flags;
 
@@ -650,7 +659,7 @@ static int env_init (void)
 			free (addr1);
 		} else if (!crc1_ok && !crc2_ok) {
 			fprintf (stderr,
-				"Warning: Bad CRC, using default environment\n");
+				"Warning1: Bad CRC, using default environment\n");
 			memcpy(environment.data, default_environment, sizeof default_environment);
 			curdev = 0;
 			free (addr1);

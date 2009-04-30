@@ -56,7 +56,7 @@ HOSTARCH := $(shell uname -m | \
 HOSTOS := $(shell uname -s | tr A-Z a-z | \
 	sed -e 's/\(cygwin\).*/cygwin/')
 
-TOOLSUBDIRS =
+TOOLSUBDIRS = env
 
 #
 # Mac OS X / Darwin's C preprocessor is Apple specific.  It
@@ -110,10 +110,10 @@ include $(TOPDIR)/config.mk
 # Use native tools and options
 #
 CPPFLAGS   = -idirafter ../include -DTEXT_BASE=$(TEXT_BASE) -DUSE_HOSTCC
-CFLAGS     = $(HOST_CFLAGS) $(CPPFLAGS) -O
-AFLAGS	   = -D__ASSEMBLY__ $(CPPFLAGS)
-CC	   = $(HOSTCC)
-STRIP	   = $(HOSTSTRIP)
+# CFLAGS     = $(HOST_CFLAGS) $(CPPFLAGS) -O
+# AFLAGS	   = -D__ASSEMBLY__ $(CPPFLAGS)
+# CC	   = $(HOSTCC)
+# STRIP	   = $(HOSTSTRIP)
 MAKEDEPEND = makedepend
 
 all:	.depend $(BINS) $(LOGO_H) subdirs

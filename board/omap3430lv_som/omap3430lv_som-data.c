@@ -387,34 +387,40 @@ read_user_zone(unsigned char *buf, int len, int startoff)
 
 
 #define LOGIC_HEADER_VERSION 0
-struct {
-  char header_version;
-  char part_number[11];
-  char revision;
-  char sn_week;
-  char sn_year;
-  char sn_site;
-  int sn_cnt;
-  char maturity;
-} product_zone_0;
+struct product_id_data {
+#define VALID_TAG1 0xfeedc001
+  unsigned int valid_tag1;
+  struct {
+    char header_version;
+    char part_number[11];
+    char revision;
+    char sn_week;
+    char sn_year;
+    char sn_site;
+    int sn_cnt;
+    char maturity;
+  } product_zone_0;
 
-struct {
-  char model_revision;
-  char model_number[31];
-} product_zone_1;
+  struct {
+    char model_revision;
+    char model_number[31];
+  } product_zone_1;
 
-struct {
-  unsigned char mac[4][3];
-  char nor0_size;
-  char nor1_size;
-  char nand0_size;
-  char nand1_size;
-  char sdram0_size;
-  char sdram1_size;
-  short processor_type;
-  int features;
-  int platform_bits;
-} product_zone_2;
+  struct {
+    unsigned char mac[4][3];
+    char nor0_size;
+    char nor1_size;
+    char nand0_size;
+    char nand1_size;
+    char sdram0_size;
+    char sdram1_size;
+    short processor_type;
+    int features;
+    int platform_bits;
+  } product_zone_2;
+#define VALID_TAG2 0xbabed00d
+  unsigned int valid_tag2;
+} product_id_data;
 
 #define XMK_STR(x)	#x
 #define MK_STR(x)	XMK_STR(x)
@@ -422,7 +428,7 @@ int production_data_valid;
 
 void board_get_nth_enetaddr (unsigned char *enetaddr, int which)
 {
-	unsigned char *mac = &product_zone_2.mac[which][0];
+	unsigned char *mac = &product_id_data.product_zone_2.mac[which][0];
 	char *s = NULL, *e;
 	int i;
 	char ethbuf[18];
@@ -490,33 +496,33 @@ int fetch_production_data(void)
 
 #ifdef CONFIG_FETCH_ONLY_MAC_ADDRESSES
   printf("Read default MAC addresses: ");
-  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_zone_2.mac, sizeof(product_zone_2.mac), 0)) {
+  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_id_data.product_zone_2.mac, sizeof(product_id_data.product_zone_2.mac), 0)) {
     printf("failed!\n");
     err = -4;
     goto out;
   }
 #else
   printf("Read production data: ");
-  if (set_user_zone(0) || read_user_zone((unsigned char *)&product_zone_0, sizeof(product_zone_0), 0)) {
+  if (set_user_zone(0) || read_user_zone((unsigned char *)&product_id_data.product_zone_0, sizeof(product_id_data.product_zone_0), 0)) {
     printf("failed!\n");
     err = -1;
     goto out;
   }
 
   // If the header doesn't match, we can't map any of the data
-  if (product_zone_0.header_version != LOGIC_HEADER_VERSION) {
+  if (product_id_data.product_zone_0.header_version != LOGIC_HEADER_VERSION) {
     err = -2;
     printf("failed - invalid header version!\n");
     goto out;
   }
 
-  if (set_user_zone(1) || read_user_zone((unsigned char *)&product_zone_1, sizeof(product_zone_1), 0)) {
+  if (set_user_zone(1) || read_user_zone((unsigned char *)&product_id_data.product_zone_1, sizeof(product_id_data.product_zone_1), 0)) {
     printf("failed!\n");
     err = -3;
     goto out;
   }
 
-  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_zone_2, sizeof(product_zone_2), 0)) {
+  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_id_data.product_zone_2, sizeof(product_id_data.product_zone_2), 0)) {
     printf("failed!\n");
     err = -4;
     goto out;
@@ -526,18 +532,18 @@ int fetch_production_data(void)
 
 #ifndef CONFIG_FETCH_ONLY_MAC_ADDRESSES
   // Correct endianess issues
-  product_zone_2.processor_type = le16_to_cpu(product_zone_2.processor_type);
-  product_zone_2.features = le32_to_cpu(product_zone_2.features);
-  product_zone_2.platform_bits = le32_to_cpu(product_zone_2.platform_bits);
+  product_id_data.product_zone_2.processor_type = le16_to_cpu(product_id_data.product_zone_2.processor_type);
+  product_id_data.product_zone_2.features = le32_to_cpu(product_id_data.product_zone_2.features);
+  product_id_data.product_zone_2.platform_bits = le32_to_cpu(product_id_data.product_zone_2.platform_bits);
 
     // Print out the name, model number, and set MAC addresses
-    strncpy(buf, product_zone_0.part_number, sizeof(product_zone_0.part_number));
-    buf[sizeof(product_zone_0.part_number)] = '\0';
+    strncpy(buf, product_id_data.product_zone_0.part_number, sizeof(product_id_data.product_zone_0.part_number));
+    buf[sizeof(product_id_data.product_zone_0.part_number)] = '\0';
     printf("Part Number: %s\n", buf);
-    printf("Model Name : %s\n", product_zone_1.model_number);
+    printf("Model Name : %s\n", product_id_data.product_zone_1.model_number);
     // printf("Maturity   : %d\n", product_zone_0.maturity);
-    printf("Model Rev  : %c\n", product_zone_1.model_revision);
-    printf("Serial #   : %02d%02d%c%05d\n", product_zone_0.sn_week, product_zone_0.sn_year, product_zone_0.sn_site, product_zone_0.sn_cnt);
+    printf("Model Rev  : %c\n", product_id_data.product_zone_1.model_revision);
+    printf("Serial #   : %02d%02d%c%05d\n", product_id_data.product_zone_0.sn_week, product_id_data.product_zone_0.sn_year, product_id_data.product_zone_0.sn_site, product_id_data.product_zone_0.sn_cnt);
 #endif
 
   out:
@@ -546,6 +552,10 @@ int fetch_production_data(void)
     // Restore pins back to their intended use
     gpio_i2c_restore_pins();
 
+    // Clone the production data into SRAM
+    product_id_data.valid_tag1 = VALID_TAG1;
+    product_id_data.valid_tag2 = VALID_TAG2;
+    *(struct product_id_data *)(SRAM_BASE) = product_id_data;
     return err;
 }
 

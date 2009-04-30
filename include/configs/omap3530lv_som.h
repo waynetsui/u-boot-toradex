@@ -149,12 +149,12 @@
 
 #if 1
 #if 1
-#define CONFIG_BOOTARGS "display=logic_4.3 console=ttyS0,115200n8 root=/dev/ram rw ramdisk_size=22629"
+#define CONFIG_BOOTARGS "display=15 console=ttyS0,115200n8 root=/dev/ram rw ramdisk_size=22629"
 #if 0
 #define CONFIG_BOOTCOMMAND "tftpboot 0x81000000 uImage;tftpboot 0x81200000 rootfs.ext2.gz.uboot;bootm 0x81000000 0x81200000"
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS \
-  "display=logic_4.3\0" \
+  "display=15\0" \
   "loadaddr=0x81000000\0"\
   "rootfsaddr=0x81200000\0" \
   "consoledev=ttyS0\0" \
@@ -187,6 +187,15 @@
    "askenv ethaddr 'Please enter your MAC address:' 17;"               \
    "setenv preboot;"                                                   \
    "printenv ethaddr;" \
+   "echo Enter the display number of the LCD panel(none for no LCD panel);" \
+   "echo Pick one of:;" \
+   "echo   3 == LQ036Q1DA01     TFT QVGA    (3.6)   Sharp w/ASIC;" \
+   "echo   5 == LQ064D343       TFT VGA     (6.4)   Sharp;" \
+   "echo   7 == LQ10D368        TFT VGA     (10.4)  Sharp;" \
+   "echo  15 == LQ043T1DG01     TFT WQVGA   (4.3)   Sharp;" \
+   "echo MAKE SURE YOUR DISPLAY IS CORRECTLY ENTERED!;" \
+   "askenv display 'Please enter your LCD display number:' 2;"               \
+   "printenv display;" \
    "saveenv;"
 
 #define CONFIG_BOOTCOMMAND "run xipboot"
@@ -204,7 +213,7 @@
 
 #define CFG_LONGHELP             /* undef to save memory */
 #define CFG_PROMPT               V_PROMPT
-#define CFG_CBSIZE               512  /* Console I/O Buffer Size */
+#define CFG_CBSIZE               1024  /* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CFG_PBSIZE               (CFG_CBSIZE+sizeof(CFG_PROMPT)+16)
 #define CFG_MAXARGS              16          /* max number of command args */

@@ -315,6 +315,19 @@
 #define CONFIG_AUTO_COMPLETE
 #endif
 
+// #define CONFIG_STATUS_LED	1	// Status LED enabled
+// #define CONFIG_BOARD_SPECIFIC_LED       /* version has board specific leds */
+
+#ifdef CONFIG_STATUS_LED
+#define	STATUS_LED_PAR		1	// makes status_led.h happy
+
+#define STATUS_LED_BIT		0x00000001	// bit 31 (led is logical 1/0)
+
+#define STATUS_LED_PERIOD	(CFG_HZ / 4)
+#define STATUS_LED_STATE	STATUS_LED_BLINKING
+#define STATUS_LED_ACTIVE       1       /* LED on for bit == 0  */
+#define STATUS_LED_BOOT         0       /* LED 0 used for boot status */
+#endif
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup

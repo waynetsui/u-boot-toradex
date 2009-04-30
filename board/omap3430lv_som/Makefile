@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(BOARD).a
 
-OBJS	:= omap3430lv_som.o mem.o clock.o syslib.o sys_info.o nand.o
+OBJS	:= omap3430lv_som.o omap3430lv_som-data.o omap3430lv_som-gpio.o mem.o clock.o syslib.o sys_info.o nand.o
 SOBJS	:= lowlevel_init.o
 
 $(LIB):	$(OBJS) $(SOBJS)

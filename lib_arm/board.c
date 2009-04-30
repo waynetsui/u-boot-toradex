@@ -355,13 +355,22 @@ void start_armboot (void)
 		char *s, *e;
 		char tmp[64];
 
-		i = getenv_r ("ethaddr", tmp, sizeof (tmp));
-		s = (i > 0) ? tmp : NULL;
+#if defined(CONFIG_3430LV_SOM)
+		if (1) {
+			fetch_production_data();  // Extract production data
+			board_get_nth_enetaddr(gd->bd->bi_enetaddr, 0);
+		} else
+#endif
+		{
+			i = getenv_r ("ethaddr", tmp, sizeof (tmp));
 
-		for (reg = 0; reg < 6; ++reg) {
-			gd->bd->bi_enetaddr[reg] = s ? simple_strtoul (s, &e, 16) : 0;
-			if (s)
-				s = (*e) ? e + 1 : e;
+			s = (i > 0) ? tmp : NULL;
+
+			for (reg = 0; reg < 6; ++reg) {
+				gd->bd->bi_enetaddr[reg] = s ? simple_strtoul (s, &e, 16) : 0;
+				if (s)
+					s = (*e) ? e + 1 : e;
+			}
 		}
 
 #ifdef CONFIG_HAS_ETH1
@@ -394,6 +403,7 @@ void start_armboot (void)
 	/* enable exceptions */
 	enable_interrupts ();
 
+
 	/* Perform network card initialisation if necessary */
 #ifdef CONFIG_DRIVER_CS8900
 	cs8900_get_enetaddr (gd->bd->bi_enetaddr);
@@ -418,12 +428,14 @@ void start_armboot (void)
 #ifdef BOARD_LATE_INIT
 	board_late_init ();
 #endif
+
 #if (CONFIG_COMMANDS & CFG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
 	puts ("Net:   ");
 #endif
 	eth_initialize(gd->bd);
 #endif
+
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {
 		main_loop ();

@@ -159,7 +159,7 @@
   "rootfsaddr=0x81200000\0" \
   "consoledev=ttyS0\0" \
   "rootpath=/opt/nfs-exports/ltib-omap\0" \
-  "ramdisksize=45000\0" \
+  "ramdisksize=85000\0" \
   "nfsoptions=,wsize=1500,rsize=1500\0" \
   "nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp;tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
   "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
@@ -180,13 +180,7 @@
 #define CONFIG_PREBOOT \
    "echo ======================NOTICE============================;"    \
    "echo This is the first time that you boot up this board. You are;"  \
-   "echo required to set a valid MAC address for your Ethernet interface.;"\
-   "echo MAKE SURE YOUR MAC ADDRESS IS CORRECTLY ENTERED!;"      \
-   "echo You can always change it by using setenv ethaddr {MAC address};" \
-   "echo to change it again.;"                                         \
-   "askenv ethaddr 'Please enter your MAC address:' 17;"               \
-   "setenv preboot;"                                                   \
-   "printenv ethaddr;" \
+   "echo required to set a valid display for your LCD panel.;" \
    "echo Enter the display number of the LCD panel(none for no LCD panel);" \
    "echo Pick one of:;" \
    "echo   3 == LQ036Q1DA01     TFT QVGA    (3.6)   Sharp w/ASIC;" \
@@ -196,6 +190,7 @@
    "echo MAKE SURE YOUR DISPLAY IS CORRECTLY ENTERED!;" \
    "askenv display 'Please enter your LCD display number:' 2;"               \
    "printenv display;" \
+   "setenv preboot;"                                                   \
    "saveenv;"
 
 #define CONFIG_BOOTCOMMAND "run xipboot"
@@ -361,6 +356,16 @@ extern volatile unsigned int boot_flash_env_addr;
 extern unsigned int boot_flash_off;
 extern unsigned int boot_flash_sec;
 extern unsigned int boot_flash_type;
+
+// GPIO
+extern unsigned int pin_get_gpio_input(unsigned int pin);
+extern unsigned int pin_set_gpio_dataout(unsigned int pin, unsigned int set);
+extern unsigned int pin_init_gpio(unsigned int pin_num, unsigned int in_out);
+
+// Set the enetaddr environment variable from production data
+extern int fetch_production_data(void);
+extern void board_get_nth_enetaddr (unsigned char *enetaddr, int which);
+
 #endif
 
 #define WRITE_NAND_COMMAND(d, adr) __raw_writew(d, (nand_cs_base + GPMC_NAND_CMD))
@@ -374,5 +379,6 @@ extern unsigned int boot_flash_type;
 #define NAND_DISABLE_CE(nand)
 #define NAND_ENABLE_CE(nand)
 #define NAND_WAIT_READY(nand)	udelay(10)
+
 
 #endif                           /* __CONFIG_H */

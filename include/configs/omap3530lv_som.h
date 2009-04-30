@@ -159,7 +159,7 @@
   "rootfsaddr=0x81200000\0" \
   "consoledev=ttyS0\0" \
   "rootpath=/opt/nfs-exports/ltib-omap\0" \
-  "ramdisksize=85000\0" \
+  "ramdisksize=89000\0" \
   "nfsoptions=,wsize=1500,rsize=1500\0" \
   "nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp;tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
   "ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \

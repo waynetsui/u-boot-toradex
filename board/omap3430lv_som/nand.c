@@ -45,7 +45,16 @@ volatile unsigned long gpmc_cs_base_add;
 #define ECC_P512_2048_O(val) (((val) & 0x0F000000)>>24)    /* Bit 24 to Bit 27 */
 extern int debug_nand_actions;
 
+// Since the 256MiB NAND can only unlock a range (and leave the rest
+// of the chip locked, then the "nand unlock" command won't work as
+// expected.  As a result, unlock the whole block on startup and fake
+// the unlock...
 int nand_unlock(struct mtd_info *mtd, unsigned long off, unsigned long size)
+{
+	return 0;
+}
+
+static int private_nand_unlock(struct mtd_info *mtd, unsigned long off, unsigned long size)
 {
 	register struct nand_chip *this = mtd->priv;
 	unsigned int start_block, end_block;
@@ -84,6 +93,7 @@ int nand_unlock(struct mtd_info *mtd, unsigned long off, unsigned long size)
 	this->cmdfunc(mtd, 0x24, -1, end_block);
 	ndelay (100);
 
+#if 0
 	// Now scan the same block range looking for lock status
 	for (block = start_block; block <= end_block; block+= pages_per_block) {
 		this->cmdfunc(mtd, 0x7a, -1, block);
@@ -96,6 +106,7 @@ int nand_unlock(struct mtd_info *mtd, unsigned long off, unsigned long size)
 	}
 
  exit:
+#endif
 	debug_nand_actions = 0;
 
 	return ret;
@@ -533,7 +544,13 @@ void board_post_nand_init(struct mtd_info *mtd)
 	boot_flash_off = this->chipsize - (1<<this->phys_erase_shift);
 
 	// printk("%s: boot_flash_off 0x%x\n", __FUNCTION__, boot_flash_off);
+	// puts("Unlocking *entire* NAND... ");
 
+	// Since the Micron NAND on the OMAP board comes up with
+	// blocks locked, *and* can only unlock a range of blocks,
+	// just unlock the whole thing and trust the user not to kill it
+	private_nand_unlock(mtd, 0x0, this->chipsize);
+	// puts("done\n");
 }
 
 #endif /* (CONFIG_COMMANDS & CFG_CMD_NAND) */

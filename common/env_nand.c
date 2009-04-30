@@ -181,7 +181,7 @@ int saveenv(void)
 	mode = omap_nand_get_ecc(&nand_info[0]);
 	omap_nand_switch_ecc(&nand_info[0], 0);
 
-#if defined(CONFIG_3430LV_SOM)
+#if 0 && defined(CONFIG_3430LV_SOM)
 	// Unlock the entire NAND chip
 	{
 		struct nand_chip *this;

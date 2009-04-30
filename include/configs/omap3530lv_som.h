@@ -183,6 +183,7 @@
    "echo required to set a valid display for your LCD panel.;" \
    "echo Enter the display number of the LCD panel(none for no LCD panel);" \
    "echo Pick one of:;" \
+   "echo   2 == LQ121S1DG31     TFT SVGA    (12.1)  Sharp;" \
    "echo   3 == LQ036Q1DA01     TFT QVGA    (3.6)   Sharp w/ASIC;" \
    "echo   5 == LQ064D343       TFT VGA     (6.4)   Sharp;" \
    "echo   7 == LQ10D368        TFT VGA     (10.4)  Sharp;" \

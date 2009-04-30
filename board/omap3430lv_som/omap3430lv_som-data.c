@@ -423,33 +423,41 @@ int production_data_valid;
 void board_get_nth_enetaddr (unsigned char *enetaddr, int which)
 {
 	unsigned char *mac = &product_zone_2.mac[which][0];
-	char *s, *e;
+	char *s = NULL, *e;
 	int i;
 	char ethbuf[18];
 	// If the data is bogus, or the MAC address is 00:00:00 or ff:ff:ff
 	// then blow zeros into the address.
 
+	// We only handle the first ethernet interface...
+	if (which)
+		return;
+
+#if 0
+	printf("%s:%d valid %d which %d %02x:%02x:%02x\n", __FUNCTION__, __LINE__, production_data_valid, which,
+	       mac[0], mac[1], mac[2]);
+#endif
+
+	memset(enetaddr, '\0', 6);
 	if (!production_data_valid ||
 	    (mac[0] == 0xff && mac[1] == 0xff && mac[2] == 0xff)
 	    || (mac[0] == 0x00 && mac[1] == 0x00 && mac[2] == 0x00)) {
-#ifdef CONFIG_ETHADDR
-		if (which == 0) {
-			s = MK_STR(CONFIG_ETHADDR);
-			for (i = 0; i < 6; ++i) {
-				enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-				if (s)
-					s = (*e) ? e + 1 : e;
-			}
-		} else
-#endif
-			memset(enetaddr, '\0', 6);
-		goto exit;
-	}
+		s = getenv("ethaddr");
 
-#if 0
-	printf("%s:%d which %d %x:%x:%x\n", __FUNCTION__, __LINE__, which,
-	       mac[0], mac[1], mac[2]);
+#ifdef CONFIG_ETHADDR
+		if (!s)
+			s = MK_STR(CONFIG_ETHADDR);
 #endif
+#if 1
+		printf("%s:%d %s\n", __FUNCTION__, __LINE__, s);
+#endif
+		for (i = 0; i < 6; ++i) {
+			enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
+			if (s)
+				s = (*e) ? e + 1 : e;
+		}
+		goto set_it;
+	}
 
 	// Use Logic's prefix
 	enetaddr[0] = 0x00;
@@ -459,7 +467,7 @@ void board_get_nth_enetaddr (unsigned char *enetaddr, int which)
 	enetaddr[4] = mac[1];
 	enetaddr[5] = mac[2];
 
- exit:
+ set_it:
 	if (which == 0) {
 		sprintf(ethbuf, "%02x:%02x:%02x:%02x:%02x:%02x", enetaddr[0], enetaddr[1], enetaddr[2], enetaddr[3], enetaddr[4], enetaddr[5]);
 		setenv("ethaddr", ethbuf);
@@ -498,6 +506,7 @@ int fetch_production_data(void)
   // If the header doesn't match, we can't map any of the data
   if (product_zone_0.header_version != LOGIC_HEADER_VERSION) {
     err = -2;
+    printf("failed - invalid header version!\n");
     goto out;
   }
 

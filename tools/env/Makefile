@@ -27,7 +27,7 @@ HEADERS := fw_env.h
 all:	fw_printenv
 
 fw_printenv:	$(SOURCES) $(HEADERS)
-	$(CROSS_COMPILE)gcc -Wall -DUSE_HOSTCC $(SOURCES) -o fw_printenv
+	$(CROSS_COMPILE)gcc -Wall -DUSE_HOSTCC -I../../include $(SOURCES) -o fw_printenv
 
 clean:
 	rm -f fw_printenv crc32.c

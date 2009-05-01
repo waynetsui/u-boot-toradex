@@ -21,9 +21,9 @@
 # MA 02111-1307 USA
 #
 
-BINS	= img2srec$(SFX) mkimage$(SFX) envcrc$(SFX) gen_eth_addr$(SFX) bmp_logo$(SFX)
+BINS	= 
 
-OBJS	= environment.o img2srec.o mkimage.o crc32.o envcrc.o gen_eth_addr.o bmp_logo.o
+OBJS	= environment.o img2srec.o crc32.o envcrc.o gen_eth_addr.o bmp_logo.o
 
 ifeq ($(ARCH),mips)
 BINS   += inca-swap-bytes$(SFX)
@@ -116,7 +116,7 @@ CPPFLAGS   = -idirafter ../include -DTEXT_BASE=$(TEXT_BASE) -DUSE_HOSTCC
 # STRIP	   = $(HOSTSTRIP)
 MAKEDEPEND = makedepend
 
-all:	.depend $(BINS) $(LOGO_H) subdirs
+all:	subdirs
 
 envcrc$(SFX):	envcrc.o crc32.o environment.o
 		$(CC) $(CFLAGS) -o $@ $^

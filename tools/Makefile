@@ -56,7 +56,7 @@ HOSTARCH := $(shell uname -m | \
 HOSTOS := $(shell uname -s | tr A-Z a-z | \
 	sed -e 's/\(cygwin\).*/cygwin/')
 
-TOOLSUBDIRS = env
+TOOLSUBDIRS = 
 
 #
 # Mac OS X / Darwin's C preprocessor is Apple specific.  It

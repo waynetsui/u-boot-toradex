@@ -88,22 +88,33 @@ u8 is_nand = 0;
 #endif
 
 static u32 gpmc_enet[GPMC_MAX_REG] = {
-	LAB_ENET_GPMC_CONFIG1,
-	LAB_ENET_GPMC_CONFIG2,
-	LAB_ENET_GPMC_CONFIG3,
-	LAB_ENET_GPMC_CONFIG4,
-	LAB_ENET_GPMC_CONFIG5,
-	LAB_ENET_GPMC_CONFIG6, 0
+	OMAP3530LV_SOM_ENET_GPMC_CONFIG1,
+	OMAP3530LV_SOM_ENET_GPMC_CONFIG2,
+	OMAP3530LV_SOM_ENET_GPMC_CONFIG3,
+	OMAP3530LV_SOM_ENET_GPMC_CONFIG4,
+	OMAP3530LV_SOM_ENET_GPMC_CONFIG5,
+	OMAP3530LV_SOM_ENET_GPMC_CONFIG6, 0
 };
 
-static u32 gpmc_stnor[GPMC_MAX_REG] = {
-        STNOR_GPMC_CONFIG1,
-        STNOR_GPMC_CONFIG2,
-        STNOR_GPMC_CONFIG3,
-        STNOR_GPMC_CONFIG4,
-        STNOR_GPMC_CONFIG5,
-        STNOR_GPMC_CONFIG6, 0
+#ifdef CFG_FIX_FLASH_SYNC
+static u32 gpmc_stnor_async[GPMC_MAX_REG] = {
+        OMAP3530LV_SOM_STNOR_ASYNC_CONFIG1,
+        OMAP3530LV_SOM_STNOR_ASYNC_CONFIG2,
+        OMAP3530LV_SOM_STNOR_ASYNC_CONFIG3,
+        OMAP3530LV_SOM_STNOR_ASYNC_CONFIG4,
+        OMAP3530LV_SOM_STNOR_ASYNC_CONFIG5,
+        OMAP3530LV_SOM_STNOR_ASYNC_CONFIG6, 0
 };
+
+static u32 gpmc_stnor_sync[GPMC_MAX_REG] = {
+        OMAP3530LV_SOM_STNOR_SYNC_CONFIG1,
+        OMAP3530LV_SOM_STNOR_SYNC_CONFIG2,
+        OMAP3530LV_SOM_STNOR_SYNC_CONFIG3,
+        OMAP3530LV_SOM_STNOR_SYNC_CONFIG4,
+        OMAP3530LV_SOM_STNOR_SYNC_CONFIG5,
+        OMAP3530LV_SOM_STNOR_SYNC_CONFIG6, 0
+};
+#endif
 
 static u32 gpmc_m_nand[GPMC_MAX_REG] = {
 	M_NAND_GPMC_CONFIG1,
@@ -114,7 +125,6 @@ static u32 gpmc_m_nand[GPMC_MAX_REG] = {
 	M_NAND_GPMC_CONFIG6, 0
 };
 
-#if 1
 // Compact Flash setup
 static u32 gpmc_m_cf[GPMC_MAX_REG] = {
 	M_CF_GPMC_CONFIG1,
@@ -124,7 +134,24 @@ static u32 gpmc_m_cf[GPMC_MAX_REG] = {
 	M_CF_GPMC_CONFIG5,
 	M_CF_GPMC_CONFIG6, 0
 };
-#endif
+
+/* These are bit definitions for the RCR register of the NOR flash       */
+/* 28FxxxP30 device.  This register sets the bus configration for reads. */
+/* settings, located on address pins A[15:0].                            */
+#define FLASH_28FxxxP30_RCR_RM    0x8000
+#define FLASH_28FxxxP30_RCR_R     0x4000
+#define FLASH_28FxxxP30_RCR_LC(x) ((x & 0x7) << 11)
+#define FLASH_28FxxxP30_RCR_WP    0x0400
+#define FLASH_28FxxxP30_RCR_DH    0x0200
+#define FLASH_28FxxxP30_RCR_WD    0x0100
+#define FLASH_28FxxxP30_RCR_BS    0x0080
+#define FLASH_28FxxxP30_RCR_CE    0x0040
+#define FLASH_28FxxxP30_RCR_BW    0x0008
+#define FLASH_28FxxxP30_RCR_BL(x) ((x & 0x7) << 0)
+#define FLASH_28FxxxP30_BL_4      0x1
+#define FLASH_28FxxxP30_BL_8      0x2
+#define FLASH_28FxxxP30_BL_16     0x3
+#define FLASH_28FxxxP30_BL_CONT   0x7
 
 /********** Functions ****/
 
@@ -340,6 +367,19 @@ void enable_gpmc_config(u32 * gpmc_config, u32 gpmc_base, u32 base, u32 size)
 	sdelay(2000);
 }
 
+void gpmc_dump_config(int cs)
+{
+  u32 gpmc_base = GPMC_CONFIG_CS0 + (cs * GPMC_CONFIG_WIDTH);
+
+  printf("CS %d: [%08x] %08x %08x %08x %08x %08x %08x %08x\n",
+	 cs, __raw_readl(GPMC_CONFIG),
+	 __raw_readl(GPMC_CONFIG1 + gpmc_base), __raw_readl(GPMC_CONFIG2 + gpmc_base), 
+	 __raw_readl(GPMC_CONFIG3 + gpmc_base), __raw_readl(GPMC_CONFIG4 + gpmc_base), 
+	 __raw_readl(GPMC_CONFIG5 + gpmc_base), __raw_readl(GPMC_CONFIG6 + gpmc_base), 
+	 __raw_readl(GPMC_CONFIG7 + gpmc_base));
+
+}
+
 /*****************************************************
  * gpmc_init(): init gpmc bus
  * Init GPMC for x16, MuxMode (SDRAM in x32).
@@ -356,6 +396,7 @@ void gpmc_init(void)
 	u32 f_off = CFG_MONITOR_LEN;
 	u32 f_sec = 0;
 	u32 config = 0;
+	u16 rcrval;
 	unsigned char *config_sel = NULL;
 	u32 i=0;
 	
@@ -368,7 +409,12 @@ void gpmc_init(void)
 	__raw_writel(0, GPMC_TIMEOUT_CONTROL);	/* timeout disable */
 
 	config = __raw_readl(GPMC_CONFIG);
+#if 1
+	config &= (~0xd00); // clear wait lines for all but WAIT1 as
+			    // used by NOR flash
+#else
 	config &= (~0xf00);
+#endif
 	__raw_writel(config, GPMC_CONFIG);
 
 	/* Disable the GPMC0 config set by ROM code
@@ -433,4 +479,57 @@ void gpmc_init(void)
 	enable_gpmc_config(gpmc_config, gpmc_base, 0x18000000, GPMC_SIZE_16M);
 #endif
 
+}
+
+void fix_flash_sync()
+{
+#ifdef CFG_FIX_FLASH_SYNC
+	u32 *gpmc_config = NULL;
+	u32 gpmc_base;
+	u32 config;
+	u16 rcrval;
+
+	/* CS 2 - Check if NOR is in sync, and if not, then put flash into
+	   sync mode, and GPMC into sync */
+	gpmc_dump_config(2);
+	gpmc_base = GPMC_CONFIG_CS0 + (2 * GPMC_CONFIG_WIDTH);	
+	config = __raw_readl(GPMC_CONFIG1 + gpmc_base);
+	if (!(config & TYPE_READTYPE)) {
+		// Its in async mode, we have to put it into sync.
+
+		puts ("FLASH: initialize in sync mode\n");
+
+		// clear WAIT1 polarity
+		__raw_writel(__raw_readl(GPMC_CONFIG) & ~0x200, GPMC_CONFIG);
+
+		// clear GPMC_TIMEOUT
+		__raw_writel(0x0, GPMC_TIMEOUT_CONTROL);
+
+		// First set the GPMC for async.
+		gpmc_config = gpmc_stnor_async;
+		enable_gpmc_config(gpmc_config, gpmc_base, FLASH_BASE, GPMC_SIZE_64M);
+		// Second, tell flash to go into sync mode.
+
+		gpmc_dump_config(2);
+
+		// 1st NOR cycle, send read config register setup 0x60
+		*(volatile u16 *)FLASH_BASE = 0x0060;
+
+		// 2nd NOR cycle, send 0x03 to latch in read
+		// configuration register setttings, located on A[15:0]
+		rcrval = FLASH_28FxxxP30_RCR_LC(4) | FLASH_28FxxxP30_RCR_WP |
+		  FLASH_28FxxxP30_RCR_BS | FLASH_28FxxxP30_RCR_CE |
+		  FLASH_28FxxxP30_RCR_BW | FLASH_28FxxxP30_RCR_BL(FLASH_28FxxxP30_BL_4);
+		*(volatile u16 *)(FLASH_BASE | (rcrval << 1)) = 0x0003;
+
+		// Third, set GPMC for sync.
+		gpmc_config = gpmc_stnor_sync;
+		enable_gpmc_config(gpmc_config, gpmc_base, FLASH_BASE, GPMC_SIZE_64M);
+		// And lastly, set the WAIT1 polarity high
+		__raw_writel(__raw_readl(GPMC_CONFIG) | 0x200, GPMC_CONFIG);
+
+		gpmc_dump_config(2);
+
+	}
+#endif
 }

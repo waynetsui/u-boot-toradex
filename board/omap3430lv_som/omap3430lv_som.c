@@ -508,9 +508,9 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(GPMC_nADV_ALE),  (IDIS | PTD | DIS | M0)); /*GPMC_nADV_ALE*/
 	MUX_VAL(CP(GPMC_nOE),       (IDIS | PTD | DIS | M0)); /*GPMC_nOE*/
 	MUX_VAL(CP(GPMC_nWE),       (IDIS | PTD | DIS | M0)); /*GPMC_nWE*/
-	MUX_VAL(CP(GPMC_nBE0_CLE),  (IDIS | PTD | DIS | M0)); /*GPMC_nBE0_CLE*/
-	MUX_VAL(CP(GPMC_nBE1),      (IEN  | PTD | DIS | M0)); /*GPMC_nBE1 lab*/
-	MUX_VAL(CP(GPMC_nWP),       (IEN  | PTD | DIS | M0)); /*GPMC_nWP*/
+	MUX_VAL(CP(GPMC_nBE0_CLE),  (IEN  | PTU | EN  | M0)); /*GPMC_nBE0_CLE*/
+	MUX_VAL(CP(GPMC_nBE1),      (IDIS | PTU | EN  | M0)); /*GPMC_nBE1 lab*/
+	MUX_VAL(CP(GPMC_nWP),       (IEN  | PTU | EN  | M0)); /*GPMC_nWP*/
 	MUX_VAL(CP(GPMC_WAIT0),     (IEN  | PTU | EN  | M0)); /*GPMC_WAIT0*/
 	MUX_VAL(CP(GPMC_WAIT1),     (IEN  | PTU | EN  | M0)); /*GPMC_WAIT1*/
 	MUX_VAL(CP(GPMC_WAIT2),     (IEN  | PTU | EN  | M0)); /*gpmc_nWait lab*/

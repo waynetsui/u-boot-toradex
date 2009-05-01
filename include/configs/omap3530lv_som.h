@@ -328,6 +328,7 @@
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup
  */
+#define CFG_FIX_FLASH_SYNC	// Fix the NOR flash/GPMC so its in 'sync' mode
 #ifndef CONFIG_OPTIONAL_NOR_POPULATED
 #define CFG_NO_FLASH	1            /* Disable NOR Flash support */
 #else

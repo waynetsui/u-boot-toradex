@@ -59,6 +59,8 @@
 #define TYPE_NOR		0x000
 #define TYPE_ONENAND		0x800
 
+#define TYPE_READTYPE		0x20000000  // Readtype, 1==sync
+
 #define WIDTH_8BIT		0x0000
 #define WIDTH_16BIT		0x1000	/* bit pos for 16 bit in gpmc */
 

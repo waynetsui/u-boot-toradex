@@ -318,6 +318,13 @@ void start_armboot (void)
 	/* armboot_start is defined in the board-specific linker script */
 	mem_malloc_init (_armboot_start - CFG_MALLOC_LEN);
 
+#ifdef CFG_FIX_FLASH_SYNC
+	{
+		extern void fix_flash_sync();
+		fix_flash_sync();
+	}
+#endif
+
 #if (CONFIG_COMMANDS & CFG_CMD_NAND)
 #ifdef ENV_IS_VARIABLE
 	if (is_nand) 

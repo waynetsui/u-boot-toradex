@@ -109,6 +109,8 @@
 #include <cmd_confdefs.h>
 
 #if (CONFIG_COMMANDS & CFG_CMD_NET)
+#define CONFIG_HAS_ETH0  // Wired LAN
+#define CONFIG_HAS_ETH1  // Really the WiFi
 /*
  * SMC91c96 Etherent
  */

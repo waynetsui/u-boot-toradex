@@ -345,6 +345,7 @@ lan9118_open(bd_t *bis)
 	  int RetVal = TRUE;
 	  int timeout;
 	  int i;
+	  ulong id_rev;
 
 	  printf("DRIVER_VERSION : %X, ", DRIVER_VERSION);
 	  printf("DATECODE : %s\r\n", BUILD_NUMBER);
@@ -362,12 +363,14 @@ lan9118_open(bd_t *bis)
 	  // the chip has completed reset and may have to implement the
 	  // workaround for Errata 5, stepping A0.	Therefore we need to
 	  // check the ID_REV in little endian, the reset default.
-	  if (((*ID_REV & ID_REV_ID_MASK) == ID_REV_CHIP_118) ||
-	  	  ((*ID_REV & ID_REV_ID_MASK) == ID_REV_CHIP_218) ||
-		  ((*ID_REV & ID_REV_ID_MASK) == ID_REV_CHIP_211) ||
-		  ((*ID_REV & ID_REV_ID_MASK) == ID_REV_CHIP_221))
+	  id_rev = *ID_REV;
+
+	  if (((id_rev & ID_REV_ID_MASK) == ID_REV_CHIP_118) ||
+	  	  ((id_rev & ID_REV_ID_MASK) == ID_REV_CHIP_218) ||
+		  ((id_rev & ID_REV_ID_MASK) == ID_REV_CHIP_211) ||
+		  ((id_rev & ID_REV_ID_MASK) == ID_REV_CHIP_221))
 	  {
-			printf("LAN9x18 (0x%08x) detected.\n", *ID_REV);
+			printf("LAN9x18 (0x%08x) detected.\n", id_rev);
 	  }
 	  else
 	  {

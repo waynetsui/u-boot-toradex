@@ -369,6 +369,9 @@ void start_armboot (void)
 		if (1) {
 			fetch_production_data();  // Extract production data
 			board_get_nth_enetaddr(gd->bd->bi_enetaddr, 0);
+#ifdef CONFIG_HAS_ETH1
+			board_get_nth_enetaddr(gd->bd->bi_enet1addr, 1);
+#endif
 		} else
 #endif
 		{

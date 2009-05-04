@@ -31,6 +31,7 @@
 #include <asm/arch/mem.h>
 #include <i2c.h>
 #include <asm/mach-types.h>
+#include "product_id.h"
 
 // GPIO i2c code to access at88 chip
 
@@ -385,58 +386,23 @@ read_user_zone(unsigned char *buf, int len, int startoff)
   return ret;
 }
 
-
-#define LOGIC_HEADER_VERSION 0
-struct product_id_data {
-#define VALID_TAG1 0xfeedc001
-  unsigned int valid_tag1;
-  struct {
-    char header_version;
-    char part_number[11];
-    char revision;
-    char sn_week;
-    char sn_year;
-    char sn_site;
-    int sn_cnt;
-    char maturity;
-  } product_zone_0;
-
-  struct {
-    char model_revision;
-    char model_number[31];
-  } product_zone_1;
-
-  struct {
-    unsigned char mac[4][3];
-    char nor0_size;
-    char nor1_size;
-    char nand0_size;
-    char nand1_size;
-    char sdram0_size;
-    char sdram1_size;
-    short processor_type;
-    int features;
-    int platform_bits;
-  } product_zone_2;
-#define VALID_TAG2 0xbabed00d
-  unsigned int valid_tag2;
-} product_id_data;
-
 #define XMK_STR(x)	#x
 #define MK_STR(x)	XMK_STR(x)
 int production_data_valid;
 
+struct product_id_data product_id_data;
+
 void board_get_nth_enetaddr (unsigned char *enetaddr, int which)
 {
-	unsigned char *mac = &product_id_data.product_zone_2.mac[which][0];
+	unsigned char *mac = &product_id_data.d.zone2.mac[which][0];
 	char *s = NULL, *e;
 	int i;
 	char ethbuf[18];
 	// If the data is bogus, or the MAC address is 00:00:00 or ff:ff:ff
 	// then blow zeros into the address.
 
-	// We only handle the first ethernet interface...
-	if (which)
+	// We only handle the first two interfaces (LAN/WiFi)...
+	if (which >= 2)
 		return;
 
 #if 0
@@ -445,10 +411,14 @@ void board_get_nth_enetaddr (unsigned char *enetaddr, int which)
 #endif
 
 	memset(enetaddr, '\0', 6);
-	if (!production_data_valid ||
+	if (!production_data_valid || 
 	    (mac[0] == 0xff && mac[1] == 0xff && mac[2] == 0xff)
 	    || (mac[0] == 0x00 && mac[1] == 0x00 && mac[2] == 0x00)) {
 		s = getenv("ethaddr");
+
+		// Skip the WiFi for rev 1 boards (no WiFi address)
+		if (which == 1)
+		  return;
 
 #ifdef CONFIG_ETHADDR
 		if (!s)
@@ -485,66 +455,132 @@ void board_get_nth_enetaddr (unsigned char *enetaddr, int which)
 	}
 }
 
-#undef CONFIG_FETCH_ONLY_MAC_ADDRESSES
+static int extract_product_id_part_number(struct product_id_data *p, char *buf, int buflen)
+{
+	int size;
+
+	buf[0] = '\0';
+	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_0) {
+		size = sizeof(p->d.u_zone0.pz_0r0.part_number);
+		if (buflen < sizeof(p->d.u_zone0.pz_0r0.part_number))
+			size = buflen;
+		strncpy(buf, p->d.u_zone0.pz_0r0.part_number, sizeof(p->d.u_zone0.pz_0r0.part_number));
+		buf[sizeof(p->d.u_zone0.pz_0r0.part_number)] = '\0';
+		return 0;
+	}
+
+	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_1) {
+		size = sizeof(p->d.u_zone0.pz_0r1.part_number);
+		if (buflen < sizeof(p->d.u_zone0.pz_0r1.part_number))
+			size = buflen;
+		strncpy(buf, p->d.u_zone0.pz_0r1.part_number, sizeof(p->d.u_zone0.pz_0r1.part_number));
+		buf[sizeof(p->d.u_zone0.pz_0r1.part_number)] = '\0';
+		return 0;
+	}
+
+	return -1;
+}
+
+
+static int extract_header_version(struct product_id_data *p, int *header_version)
+{
+	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_0) {
+		*header_version = p->d.u_zone0.pz_0r0.header_version;
+		return 0;
+	}
+
+	if (p->d.u_zone0.pz_0r1.header_version == LOGIC_HEADER_VERSION_1) {
+		*header_version = p->d.u_zone0.pz_0r1.header_version;
+		return 0;
+	}
+
+	*header_version = p->d.u_zone0.pz_0r0.header_version;
+	return -1;
+  
+}
+
+static int extract_serial_number(struct product_id_data *p, char *buf, int buflen)
+{
+	buf[0] = '\0';
+	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_0) {
+		sprintf(buf, "%02d%02d%c%05d", p->d.u_zone0.pz_0r0.sn_week,
+			 p->d.u_zone0.pz_0r0.sn_year, p->d.u_zone0.pz_0r0.sn_site,
+			 p->d.u_zone0.pz_0r0.sn_cnt);
+		return 0;
+	}
+	if (p->d.u_zone0.pz_0r1.header_version == LOGIC_HEADER_VERSION_1) {
+		sprintf(buf, "%02d%02d%c%05d", p->d.u_zone0.pz_0r1.sn_week,
+			 p->d.u_zone0.pz_0r1.sn_year, p->d.u_zone0.pz_0r1.sn_site,
+			 p->d.u_zone0.pz_0r1.sn_cnt);
+		return 0;
+	}
+	return -1;
+}
+
+static void extract_model_number_revision(struct product_id_data *p, char *buf, int buflen)
+{
+	int i;
+
+	strncpy(buf, product_id_data.d.zone1.model_number, buflen);
+	buf[buflen-1] = '\0';
+	i = strlen(buf);
+	if (i + 3 < buflen) {
+		buf[i] = '-';
+		buf[i+1] = product_id_data.d.zone1.model_revision;
+		buf[i+2] = '\0';
+	}
+}
 
 int fetch_production_data(void)
 {
   int err = 0;
-  char buf[12];
+  char buf[36];
+  int header_version;
+  int checksum;
 
   gpio_i2c_init(50000);
 
-#ifdef CONFIG_FETCH_ONLY_MAC_ADDRESSES
-  printf("Read default MAC addresses: ");
-  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_id_data.product_zone_2.mac, sizeof(product_id_data.product_zone_2.mac), 0)) {
-    printf("failed!\n");
-    err = -4;
-    goto out;
-  }
-#else
   printf("Read production data: ");
-  if (set_user_zone(0) || read_user_zone((unsigned char *)&product_id_data.product_zone_0, sizeof(product_id_data.product_zone_0), 0)) {
+  if (set_user_zone(0) || read_user_zone((unsigned char *)&product_id_data.d.u_zone0, sizeof(product_id_data.d.u_zone0), 0)) {
     printf("failed!\n");
     err = -1;
     goto out;
   }
 
   // If the header doesn't match, we can't map any of the data
-  if (product_id_data.product_zone_0.header_version != LOGIC_HEADER_VERSION) {
+  if (extract_header_version(&product_id_data, &header_version)) {
     err = -2;
-    printf("failed - invalid header version!\n");
+    printf("failed - invalid header version %d!\n", header_version);
     goto out;
   }
 
-  if (set_user_zone(1) || read_user_zone((unsigned char *)&product_id_data.product_zone_1, sizeof(product_id_data.product_zone_1), 0)) {
+  if (set_user_zone(1) || read_user_zone((unsigned char *)&product_id_data.d.zone1, sizeof(product_id_data.d.zone1), 0)) {
     printf("failed!\n");
     err = -3;
     goto out;
   }
 
-  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_id_data.product_zone_2, sizeof(product_id_data.product_zone_2), 0)) {
+  if (set_user_zone(2) || read_user_zone((unsigned char *)&product_id_data.d.zone2, sizeof(product_id_data.d.zone2), 0)) {
     printf("failed!\n");
     err = -4;
     goto out;
   }
-#endif
+
   printf("done\n");
 
-#ifndef CONFIG_FETCH_ONLY_MAC_ADDRESSES
   // Correct endianess issues
-  product_id_data.product_zone_2.processor_type = le16_to_cpu(product_id_data.product_zone_2.processor_type);
-  product_id_data.product_zone_2.features = le32_to_cpu(product_id_data.product_zone_2.features);
-  product_id_data.product_zone_2.platform_bits = le32_to_cpu(product_id_data.product_zone_2.platform_bits);
+  product_id_data.d.zone2.processor_type = le16_to_cpu(product_id_data.d.zone2.processor_type);
+  product_id_data.d.zone2.features = le32_to_cpu(product_id_data.d.zone2.features);
+  product_id_data.d.zone2.platform_bits = le32_to_cpu(product_id_data.d.zone2.platform_bits);
 
     // Print out the name, model number, and set MAC addresses
-    strncpy(buf, product_id_data.product_zone_0.part_number, sizeof(product_id_data.product_zone_0.part_number));
-    buf[sizeof(product_id_data.product_zone_0.part_number)] = '\0';
-    printf("Part Number: %s\n", buf);
-    printf("Model Name : %s\n", product_id_data.product_zone_1.model_number);
-    // printf("Maturity   : %d\n", product_zone_0.maturity);
-    printf("Model Rev  : %c\n", product_id_data.product_zone_1.model_revision);
-    printf("Serial #   : %02d%02d%c%05d\n", product_id_data.product_zone_0.sn_week, product_id_data.product_zone_0.sn_year, product_id_data.product_zone_0.sn_site, product_id_data.product_zone_0.sn_cnt);
-#endif
+  extract_product_id_part_number(&product_id_data, buf, sizeof(buf));
+
+    printf("Part Number  : %s\n", buf);
+    extract_model_number_revision(&product_id_data, buf, sizeof(buf));
+    printf("Model Name   : %s\n", buf);
+    extract_serial_number(&product_id_data, buf, sizeof(buf));
+    printf("Serial Number: %s\n", buf);
 
   out:
     production_data_valid = !err;
@@ -553,9 +589,10 @@ int fetch_production_data(void)
     gpio_i2c_restore_pins();
 
     // Clone the production data into SRAM
-    product_id_data.valid_tag1 = VALID_TAG1;
-    product_id_data.valid_tag2 = VALID_TAG2;
+    checksum = calculate_checksum(&product_id_data.d, sizeof(product_id_data.d));
+    product_id_data.checksum = checksum;
     *(struct product_id_data *)(SRAM_BASE) = product_id_data;
+
     return err;
 }
 

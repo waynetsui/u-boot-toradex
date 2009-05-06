@@ -379,16 +379,42 @@ void enable_gpmc_config(u32 * gpmc_config, u32 gpmc_base, u32 base, u32 size)
 void gpmc_dump_config(int cs)
 {
   u32 gpmc_base = GPMC_CONFIG_CS0 + (cs * GPMC_CONFIG_WIDTH);
+  u32 config7;
+  u32 base, len;
 
-  printf("CS %d: [%08x] %08x %08x %08x %08x %08x %08x %08x\n",
-	 cs, __raw_readl(GPMC_CONFIG),
+  config7 = __raw_readl(GPMC_CONFIG7 + gpmc_base);
+  if (config7 & (1<<6)) {
+    len = (((config7 >> 7 & 0xf) ^ 0xf) + 1) << 24;
+    base = (config7 & 0x3F) << 24;
+  printf("%d:%08x %08x %08x %08x %08x %08x %03x %08x-%08x\n",
+	 cs, 
 	 __raw_readl(GPMC_CONFIG1 + gpmc_base), __raw_readl(GPMC_CONFIG2 + gpmc_base), 
 	 __raw_readl(GPMC_CONFIG3 + gpmc_base), __raw_readl(GPMC_CONFIG4 + gpmc_base), 
 	 __raw_readl(GPMC_CONFIG5 + gpmc_base), __raw_readl(GPMC_CONFIG6 + gpmc_base), 
-	 __raw_readl(GPMC_CONFIG7 + gpmc_base));
-
+	 config7, base, base+len-1);
+  }
 }
 
+#if defined (CFG_OMAP_DUMP_GPMC)
+void do_dump_cs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
+{
+	int i;
+
+	printf("CS: GPMC_CONFIG [%08x]\n", __raw_readl(GPMC_CONFIG));
+	printf("CS: GPMC_IRQENABLE [%08x]\n", __raw_readl(GPMC_IRQENABLE));
+	printf("CS: GPMC_TIMEOUT_CONTROL [%08x]\n", __raw_readl(GPMC_TIMEOUT_CONTROL));
+	for (i=0; i<8; ++i)
+		gpmc_dump_config(i);
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	dump_cs,	1,	1,	do_dump_cs,
+	"dump_cs - display OMAP Chip Select registers\n",
+	"\n    - display active OMAP Chip Select registers\n"
+);
+#endif
 /*****************************************************
  * gpmc_init(): init gpmc bus
  * Init GPMC for x16, MuxMode (SDRAM in x32).
@@ -503,7 +529,7 @@ void fix_flash_sync()
 
 	/* CS 2 - Check if NOR is in sync, and if not, then put flash into
 	   sync mode, and GPMC into sync */
-	gpmc_dump_config(2);
+	// gpmc_dump_config(2);
 	gpmc_base = GPMC_CONFIG_CS0 + (2 * GPMC_CONFIG_WIDTH);	
 	config = __raw_readl(GPMC_CONFIG1 + gpmc_base);
 	if (!(config & TYPE_READTYPE)) {
@@ -522,7 +548,7 @@ void fix_flash_sync()
 		enable_gpmc_config(gpmc_config, gpmc_base, FLASH_BASE, GPMC_SIZE_64M);
 		// Second, tell flash to go into sync mode.
 
-		gpmc_dump_config(2);
+		// gpmc_dump_config(2);
 
 		// 1st NOR cycle, send read config register setup 0x60
 		*(volatile u16 *)FLASH_BASE = 0x0060;
@@ -540,7 +566,7 @@ void fix_flash_sync()
 		// And lastly, set the WAIT1 polarity high
 		__raw_writel(__raw_readl(GPMC_CONFIG) | 0x200, GPMC_CONFIG);
 
-		gpmc_dump_config(2);
+		// gpmc_dump_config(2);
 
 	}
 #endif

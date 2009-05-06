@@ -388,4 +388,7 @@ extern void board_get_nth_enetaddr (unsigned char *enetaddr, int which);
 #define NAND_WAIT_READY(nand)	udelay(10)
 
 
+// Extra CFGs for debug
+#define CFG_OMAP_DUMP_GPMC  // Add dump_gpmc
+
 #endif                           /* __CONFIG_H */

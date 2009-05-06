@@ -158,7 +158,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
   "display=15\0" \
   "loadaddr=0x81000000\0"\
-  "rootfsaddr=0x81200000\0" \
+  "rootfsaddr=0x81300000\0" \
   "consoledev=ttyS0\0" \
   "rootpath=/opt/nfs-exports/ltib-omap\0" \
   "ramdisksize=89000\0" \

@@ -504,7 +504,7 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(GPMC_nCS5),      (IDIS | PTD | DIS | M0)); /*GPMC_nCS5 lab*/
 	MUX_VAL(CP(GPMC_nCS6),      (IDIS | PTU | EN  | M0)); /*GPMC_nCS6 */
 	MUX_VAL(CP(GPMC_nCS7),      (IEN  | PTU | EN  | M1)); /*GPMC_IO_DIR lab*/
-	MUX_VAL(CP(GPMC_CLK),       (IDIS | PTD | DIS | M0)); /*GPMC_CLK*/
+	MUX_VAL(CP(GPMC_CLK),       (IEN  | PTD | DIS | M0)); /*GPMC_CLK*/
 	MUX_VAL(CP(GPMC_nADV_ALE),  (IDIS | PTD | DIS | M0)); /*GPMC_nADV_ALE*/
 	MUX_VAL(CP(GPMC_nOE),       (IDIS | PTD | DIS | M0)); /*GPMC_nOE*/
 	MUX_VAL(CP(GPMC_nWE),       (IDIS | PTD | DIS | M0)); /*GPMC_nWE*/

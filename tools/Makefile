@@ -21,9 +21,9 @@
 # MA 02111-1307 USA
 #
 
-BINS	= 
+BINS	= img2srec$(SFX) mkimage$(SFX) envcrc$(SFX) gen_eth_addr$(SFX) bmp_logo$(SFX)
 
-OBJS	= environment.o img2srec.o crc32.o envcrc.o gen_eth_addr.o bmp_logo.o
+OBJS	= environment.o img2srec.o mkimage.o crc32.o envcrc.o gen_eth_addr.o bmp_logo.o
 
 ifeq ($(ARCH),mips)
 BINS   += inca-swap-bytes$(SFX)
@@ -56,7 +56,7 @@ HOSTARCH := $(shell uname -m | \
 HOSTOS := $(shell uname -s | tr A-Z a-z | \
 	sed -e 's/\(cygwin\).*/cygwin/')
 
-TOOLSUBDIRS = 
+TOOLSUBDIRS =
 
 #
 # Mac OS X / Darwin's C preprocessor is Apple specific.  It
@@ -110,13 +110,13 @@ include $(TOPDIR)/config.mk
 # Use native tools and options
 #
 CPPFLAGS   = -idirafter ../include -DTEXT_BASE=$(TEXT_BASE) -DUSE_HOSTCC
-# CFLAGS     = $(HOST_CFLAGS) $(CPPFLAGS) -O
-# AFLAGS	   = -D__ASSEMBLY__ $(CPPFLAGS)
-# CC	   = $(HOSTCC)
-# STRIP	   = $(HOSTSTRIP)
+CFLAGS     = $(HOST_CFLAGS) $(CPPFLAGS) -O
+AFLAGS	   = -D__ASSEMBLY__ $(CPPFLAGS)
+CC	   = $(HOSTCC)
+STRIP	   = $(HOSTSTRIP)
 MAKEDEPEND = makedepend
 
-all:	subdirs
+all:	.depend $(BINS) $(LOGO_H) subdirs
 
 envcrc$(SFX):	envcrc.o crc32.o environment.o
 		$(CC) $(CFLAGS) -o $@ $^

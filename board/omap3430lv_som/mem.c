@@ -96,6 +96,15 @@ static u32 gpmc_enet[GPMC_MAX_REG] = {
 	OMAP3530LV_SOM_ENET_GPMC_CONFIG6, 0
 };
 
+static u32 gpmc_m_isp1760[GPMC_MAX_REG] = {
+	OMAP3530LV_SOM_ISP1760_GPMC_CONFIG1,
+	OMAP3530LV_SOM_ISP1760_GPMC_CONFIG2,
+	OMAP3530LV_SOM_ISP1760_GPMC_CONFIG3,
+	OMAP3530LV_SOM_ISP1760_GPMC_CONFIG4,
+	OMAP3530LV_SOM_ISP1760_GPMC_CONFIG5,
+	OMAP3530LV_SOM_ISP1760_GPMC_CONFIG6, 0
+};
+
 #ifdef CFG_FIX_FLASH_SYNC
 static u32 gpmc_stnor_async[GPMC_MAX_REG] = {
         OMAP3530LV_SOM_STNOR_ASYNC_CONFIG1,
@@ -472,13 +481,16 @@ void gpmc_init(void)
 	}
 #endif
 
-#if 1
+
 	/* CS 3 (CompactFlash)*/
 	gpmc_config = gpmc_m_cf;
 	gpmc_base = GPMC_CONFIG_CS0 + (3 * GPMC_CONFIG_WIDTH);	
 	enable_gpmc_config(gpmc_config, gpmc_base, 0x18000000, GPMC_SIZE_16M);
-#endif
 
+	/* CS 6 (ISP1760)*/
+	gpmc_config = gpmc_m_isp1760;
+	gpmc_base = GPMC_CONFIG_CS0 + (6 * GPMC_CONFIG_WIDTH);	
+	enable_gpmc_config(gpmc_config, gpmc_base, 0x1c000000, GPMC_SIZE_16M);
 }
 
 void fix_flash_sync()

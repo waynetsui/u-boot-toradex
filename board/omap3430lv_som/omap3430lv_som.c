@@ -502,7 +502,7 @@ void set_muxconf_regs(void)
 	  /* MUX_VAL(CP(GPMC_nCS3),      (IDIS | PTU | EN  | M0)); GPMC_nCS3*/ 
 	  /* MUX_VAL(CP(GPMC_nCS4),      (IDIS | PTU | EN  | M0)); GPMC_nCS4 lab*/ 
 	MUX_VAL(CP(GPMC_nCS5),      (IDIS | PTD | DIS | M0)); /*GPMC_nCS5 lab*/
-	MUX_VAL(CP(GPMC_nCS6),      (IEN  | PTD | DIS | M1)); /*sys_ndmareq1 lab*/
+	MUX_VAL(CP(GPMC_nCS6),      (IDIS | PTU | EN  | M0)); /*GPMC_nCS6 */
 	MUX_VAL(CP(GPMC_nCS7),      (IEN  | PTU | EN  | M1)); /*GPMC_IO_DIR lab*/
 	MUX_VAL(CP(GPMC_CLK),       (IDIS | PTD | DIS | M0)); /*GPMC_CLK*/
 	MUX_VAL(CP(GPMC_nADV_ALE),  (IDIS | PTD | DIS | M0)); /*GPMC_nADV_ALE*/
@@ -514,7 +514,7 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(GPMC_WAIT0),     (IEN  | PTU | EN  | M0)); /*GPMC_WAIT0*/
 	MUX_VAL(CP(GPMC_WAIT1),     (IEN  | PTU | EN  | M0)); /*GPMC_WAIT1*/
 	MUX_VAL(CP(GPMC_WAIT2),     (IEN  | PTU | EN  | M0)); /*gpmc_nWait lab*/
-	MUX_VAL(CP(GPMC_WAIT3),     (IEN  | PTU | EN  | M0)); /*gpmc_nWait lab*/
+	MUX_VAL(CP(GPMC_WAIT3),     (IEN  | PTU | EN  | M1)); /*uP_DREQ1 */
 	/*DSS*/
 	MUX_VAL(CP(DSS_PCLK),       (IDIS | PTD | DIS | M0)); /*DSS_PCLK*/
 	MUX_VAL(CP(DSS_HSYNC),      (IDIS | PTD | DIS | M0)); /*DSS_HSYNC*/

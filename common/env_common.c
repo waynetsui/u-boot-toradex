@@ -67,6 +67,21 @@ uchar default_environment[] = {
 #ifdef	CONFIG_RAMBOOTCOMMAND
 	"ramboot="	CONFIG_RAMBOOTCOMMAND		"\0"
 #endif
+#ifdef	CONFIG_HDBOOT
+	"usbhdboot=" CONFIG_HDBOOT			 "\0"
+#endif
+#ifdef	CONFIG_USB_EXT2_BOOT
+	"usbext2boot=" CONFIG_USB_EXT2_BOOT		 "\0"
+#endif
+#ifdef	CONFIG_USB_FAT_BOOT
+	"usbfatboot=" CONFIG_USB_FAT_BOOT		 "\0"
+#endif
+#ifdef	CONFIG_NANDBOOT
+	"nandboot=" CONFIG_NANDBOOT			 "\0"
+#endif
+#ifdef	CONFIG_NORBOOT
+	"norboot=" CONFIG_NORBOOT			 "\0"
+#endif
 #ifdef	CONFIG_NFSBOOTCOMMAND
 	"nfsboot="	CONFIG_NFSBOOTCOMMAND		"\0"
 #endif

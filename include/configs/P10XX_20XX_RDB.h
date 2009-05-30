@@ -656,6 +656,8 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
  "netdev=eth0\0"						\
  "uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
+ "loadaddr=2000000\0"			\
+ "bootfile=uImage"	\
  "tftpflash=tftpboot $loadaddr $uboot; "			\
 	"protect off " MK_STR(TEXT_BASE) " +$filesize; "	\
 	"erase " MK_STR(TEXT_BASE) " +$filesize; "		\
@@ -664,9 +666,16 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 	"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0"	\
  "consoledev=ttyS0\0"				\
  "ramdiskaddr=2000000\0"			\
- "ramdiskfile=p10xx_20xx_rdb/ramdisk.uboot\0"		\
+ "ramdiskfile=rootfs.ext2.gz.uboot\0"		\
  "fdtaddr=c00000\0"				\
- "fdtfile=p10xx_20xx_rdb/p10xx_20xx_rdb.dtb\0"		\
+ "fdtfile=p2020rdb.dtb\0"		\
+ "bdev=sda1\0"	\
+ "jffs2nor=mtdblock3\0"	\
+ "norbootaddr=ef080000\0"	\
+ "norfdtaddr=ef040000\0"	\
+ "jffs2nand=mtdblock10\0"	\
+ "nandbootaddr=100000\0"	\
+ "nandfdtaddr=80000\0"
 
 #define CONFIG_NFSBOOTCOMMAND		\
  "setenv bootargs root=/dev/nfs rw "	\
@@ -677,6 +686,41 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  "tftp $fdtaddr $fdtfile;"		\
  "bootm $loadaddr - $fdtaddr"
 
+#define CONFIG_HDBOOT			\
+ "setenv bootargs root=/dev/$bdev rw rootdelay=30 "	\
+ "console=$consoledev,$baudrate $othbootargs;"	\
+ "bootm $norbootaddr - $norfdtaddr"
+
+#define CONFIG_USB_FAT_BOOT		\
+ "setenv bootargs root=/dev/ram rw "	\
+ "console=$consoledev,$baudrate $othbootargs;"	\
+ "fatload usb 0:1 $loadaddr $bootfile;"		\
+ "fatload usb 0:1 $fdtaddr $fdtfile;"	\
+ "fatload usb 0:1 $ramdiskaddr $ramdiskfile;"	\
+ "bootm $loadaddr $ramdiskaddr $fdtaddr"
+
+#if 0
+#undef CONFIG_USB_EXT2_BOOT		\
+ "setenv bootargs root=/dev/ram rw "	\
+ "console=$consoledev,$baudrate $othbootargs;"	\
+ "ext2load usb 0:1 $loadaddr $bootfile;"		\
+ "ext2load usb 0:1 $fdtaddr $fdtfile;"	\
+ "ext2load usb 0:1 $ramdiskaddr $ramdiskfile;"	\
+ "bootm $loadaddr $ramdiskaddr $fdtaddr"
+#endif
+
+#define CONFIG_NORBOOT		\
+ "setenv bootargs root=/dev/$jffs2nor rw "	\
+ "console=$consoledev,$baudrate rootfstype=jffs2 $othbootargs;"	\
+ "bootm $norbootaddr - $norfdtaddr"
+
+#define CONFIG_NANDBOOT				\
+ "setenv bootargs root=/dev/$jffs2nand rw rootfstype=jffs2 "	\
+ "console=$consoledev,$baudrate $othbootargs;"	\
+ "nand read 2000000 100000 400000;"	\
+ "nand read 3000000 80000 80000;"	\
+ "bootm 2000000 - 3000000;"
+
 #define CONFIG_RAMBOOTCOMMAND		\
  "setenv bootargs root=/dev/ram rw "	\
  "console=$consoledev,$baudrate $othbootargs;"	\
@@ -685,6 +729,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  "tftp $fdtaddr $fdtfile;"		\
  "bootm $loadaddr $ramdiskaddr $fdtaddr"
 
-#define CONFIG_BOOTCOMMAND		CONFIG_RAMBOOTCOMMAND
+#define CONFIG_BOOTCOMMAND		CONFIG_HDBOOT
 
 #endif	/* __CONFIG_H */

@@ -68,6 +68,28 @@ unsigned long get_board_sys_clk(ulong dummy)
 		return SYSCLK_50;
 }
 
+unsigned long get_board_ddr_size(ulong dummy)
+{
+	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
+	u32 val, temp;
+	unsigned int ddr_size;
+
+	val = pgpio->gpdat;
+	temp = val & BOARDREV_MASK;
+
+	if(gd->cpu->soc_ver == SVR_P1020 ||
+	   gd->cpu->soc_ver == SVR_P1020_E)
+		ddr_size = 256 * 1024 * 1024;
+	if(gd->cpu->soc_ver == SVR_P2020 ||
+	   gd->cpu->soc_ver == SVR_P2020_E) {
+		if(temp == 0)
+			ddr_size = 512 * 1024 * 1024;
+		else
+			ddr_size = 1024 * 1024 * 1024;
+	}
+	return ddr_size;
+}
+
 int board_early_init_f (void)
 {
 #ifdef CONFIG_MMC
@@ -122,7 +144,7 @@ phys_size_t initdram(int board_type)
 	puts("Initializing....");
 
 #if defined(CONFIG_SDCARD_U_BOOT) || defined(CONFIG_NAND_U_BOOT)
-	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+	return CONFIG_SYS_SDRAM_SIZE;
 #endif
 
 #ifdef CONFIG_DDR_SPD
@@ -156,7 +178,6 @@ phys_size_t fixed_sdram (void)
 	int d_init, dbw;
 	u32 val, temp;
 	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
-	unsigned int ddr_size;
 	sys_info_t sysinfo;
 
 	ddr->cs0_bnds = CONFIG_SYS_DDR_CS0_BNDS;
@@ -173,16 +194,7 @@ phys_size_t fixed_sdram (void)
 	val = pgpio->gpdat;
 	temp = val & BOARDREV_MASK;
 	get_sys_info(&sysinfo);
-	if(gd->cpu->soc_ver == SVR_P1020 ||
-	   gd->cpu->soc_ver == SVR_P1020_E)
-		ddr_size = 256 * 1024 * 1024;
-	if(gd->cpu->soc_ver == SVR_P2020 ||
-	   gd->cpu->soc_ver == SVR_P2020_E) {
-		if(temp == 0)
-			ddr_size = 512 * 1024 * 1024;
-		else
-			ddr_size = 1024 * 1024 * 1024;
-	}
+
 	if(temp == 0) {
 		/* Rev A board*/
 		printf("configuring for Board REVA, freqDDR%d\n",\
@@ -219,7 +231,6 @@ phys_size_t fixed_sdram (void)
 	else if(sysinfo.freqDDRBus <= 534000000) {
 		printf("configuring for Board REVB, freqDDR%d\n", \
 				sysinfo.freqDDRBus);
-		ddr_size = 1024 *1024 *1024;
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_533_REVB;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_533_REVB;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_533_REVB;
@@ -236,7 +247,6 @@ phys_size_t fixed_sdram (void)
 	else if(sysinfo.freqDDRBus <= 667000000) {
 		printf("configuring for Board REVB, freqDDR%d\n",\
 			 sysinfo.freqDDRBus);
-		ddr_size = 1024 *1024 *1024;
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_667_REVB;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_667_REVB;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_667_REVB;
@@ -303,7 +313,7 @@ phys_size_t fixed_sdram (void)
 	udelay(500);
 #endif
 
-	return ddr_size;
+	return CONFIG_SYS_SDRAM_SIZE;
 }
 
 #endif

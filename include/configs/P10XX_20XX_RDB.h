@@ -65,6 +65,7 @@
 extern unsigned long get_board_sys_clk(unsigned long dummy);
 #endif
 #define CONFIG_SYS_CLK_FREQ	get_board_sys_clk(0) /*sysclk for P10xx20xxRDB */
+//#define CONFIG_SYS_CLK_FREQ	66666666 /*sysclk for P10xx20xxRDB */
 #define CONFIG_DDR_CLK_FREQ	66666666 /* DDRCLK on P10xx_p20xx RDB */
 
 /*
@@ -112,7 +113,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 #define CONFIG_MEM_INIT_VALUE	0xDeadBeef
 
-#define CONFIG_SYS_SDRAM_SIZE		512
+#define CONFIG_SYS_SDRAM_SIZE		get_board_ddr_size(0)	
 #define CONFIG_SYS_DDR_SDRAM_BASE	0x00000000
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_SDRAM_BASE
 

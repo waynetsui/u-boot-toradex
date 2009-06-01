@@ -327,7 +327,7 @@ law_entry:
 	.long (law_end-law_start)/8
 law_start:
 	.long	0
-	.long	LAWAR_EN | LAWAR_TRGT_IF_DDR1 | (LAWAR_SIZE & LAWAR_SIZE_512M)
+	.long	LAWAR_EN | LAWAR_TRGT_IF_DDR1 | (LAWAR_SIZE & LAWAR_SIZE_1G)
 
 	/* placeholder for LAWAR_TRGT_IF_DDR2 */
 	.long	0

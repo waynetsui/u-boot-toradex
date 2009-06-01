@@ -28,33 +28,72 @@
 
 #define udelay(x) {int i, j; for (i = 0; i < x; i++) for (j = 0; j < 10000; j++); }
 
+#define BOARDREV_MASK	0x00100000
+
 void initsdram(void)
 {
-	volatile ccsr_ddr_t *ddr = (void *)(CONFIG_SYS_MPC85xx_DDR_ADDR);
 
-	out_be32(&ddr->cs0_bnds, CONFIG_SYS_DDR_CS0_BNDS);
-	out_be32(&ddr->cs0_config, CONFIG_SYS_DDR_CS0_CONFIG);
+	volatile ccsr_ddr_t *ddr= (ccsr_ddr_t *)CONFIG_SYS_MPC85xx_DDR_ADDR;
+	int d_init, dbw;
+	u32 val, temp;
+	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
+	unsigned int ddr_size;
+	sys_info_t sysinfo;
 
-	out_be32(&ddr->timing_cfg_3, CONFIG_SYS_DDR_TIMING_3_REVA);
-	out_be32(&ddr->timing_cfg_0, CONFIG_SYS_DDR_TIMING_0_REVA);
-	out_be32(&ddr->timing_cfg_1, CONFIG_SYS_DDR_TIMING_1_REVA);
-	out_be32(&ddr->timing_cfg_2, CONFIG_SYS_DDR_TIMING_2_REVA);
-	out_be32(&ddr->sdram_mode, CONFIG_SYS_DDR_MODE_1_REVA);
-	out_be32(&ddr->sdram_mode_2, CONFIG_SYS_DDR_MODE_2_REVA);
-	out_be32(&ddr->sdram_interval, CONFIG_SYS_DDR_INTERVAL_REVA);
-	out_be32(&ddr->sdram_data_init, CONFIG_SYS_DDR_DATA_INIT);
-	out_be32(&ddr->sdram_clk_cntl, CONFIG_SYS_DDR_CLK_CTRL_REVA);
-	out_be32(&ddr->sdram_cfg_2, CONFIG_SYS_DDR_CONTROL2_REVA);
+	ddr->cs0_bnds = CONFIG_SYS_DDR_CS0_BNDS;
+	ddr->cs0_config = CONFIG_SYS_DDR_CS0_CONFIG;
+	ddr->cs0_config_2 = CONFIG_SYS_DDR_CS0_CONFIG_2;
+	ddr->sdram_data_init = CONFIG_SYS_DDR_DATA_INIT;
 
-#if defined(CONFIG_DDR_ECC)
-	out_be32(&ddr->err_int_en, CONFIG_SYS_DDR_ERR_INT_EN);
-	out_be32(&ddr->err_disable, CONFIG_SYS_DDR_ERR_DIS);
-	out_be32(&ddr->err_sbe, CONFIG_SYS_DDR_SBE);
+	/* On P2020/P1020 RDB boards DDR size varies as follows:
+	 * REV A board (512MB P2020 and 256MB P1020)
+	 * REV B board (1GB P2020 and 256MB P1020)
+	 * FIXME:: must also program cs0_bnds register accordingly.
+	 * currently CSO_BNDS is programmed for 1G.
+	 */
+	val = pgpio->gpdat;
+	temp = val & BOARDREV_MASK;
+	if(temp == 0) {
+		/* Rev A board*/
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_REVA;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_REVA;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_REVA;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_REVA;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_REVA;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_REVA;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_REVA;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_REVA;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_REVA;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_REVA;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_REVA;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_REVA;
+	}
+	else {
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_667_REVB;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_667_REVB;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_667_REVB;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_667_REVB;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_667_REVB;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_667_REVB;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_667_REVB;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_667_REVB;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_667_REVB;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_667_REVB;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_667_REVB;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_667_REVB;
+	}
+ 
+#if defined (CONFIG_DDR_ECC)
+	ddr->err_int_en = CONFIG_SYS_DDR_ERR_INT_EN;
+	ddr->err_disable = CONFIG_SYS_DDR_ERR_DIS;
+	ddr->err_sbe = CONFIG_SYS_DDR_SBE;
 #endif
 	asm("sync;isync");
 
-	udelay(200);
-	out_be32(&ddr->sdram_cfg, CONFIG_SYS_DDR_CONTROL_REVA);
+	udelay(500);
+
+	ddr->sdram_cfg |= 0x80000000;
+
 }
 
 void board_init_f_nand(void)
@@ -62,40 +101,16 @@ void board_init_f_nand(void)
 	u8 sysclk_ratio;
 	uint plat_ratio, bus_clk, sys_clk;
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+	u32 val, temp;
+	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
 
 	/* initialize selected port with appropriate baud rate */
-#if 0
-	sysclk_ratio = *((volatile unsigned char *)(PIXIS_BASE + PIXIS_SPD));
-	sysclk_ratio &= 0x7;
-	switch (sysclk_ratio) {
-	case 0:
-		sys_clk = 33333000;
-		break;
-	case 1:
-		sys_clk = 39999600;
-		break;
-	case 2:
-		sys_clk = 49999500;
-		break;
-	case 3:
-		sys_clk = 66666000;
-		break;
-	case 4:
-		sys_clk = 83332500;
-		break;
-	case 5:
-		sys_clk = 99999000;
-		break;
-	case 6:
-		sys_clk = 133332000;
-		break;
-	case 7:
-		sys_clk = 166665000;
-		break;
-	}
-#endif
-
-	sys_clk = 66666000;
+	val = pgpio->gpdat;
+	temp = val & BOARDREV_MASK;
+	if(temp == 0)
+		sys_clk = 66666666;
+	else
+		sys_clk = 50000000;
 	plat_ratio = (gur->porpllsr) & 0x0000003e;
 	plat_ratio >>= 1;
 	bus_clk = plat_ratio * sys_clk;

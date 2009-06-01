@@ -174,6 +174,11 @@ void init_laws(void)
 	gd->used_laws |= (1 << CONFIG_SYS_RESERVED_LAW0);
 #endif
 
+#ifdef CONFIG_NAND_U_BOOT
+	/* To protect DDR LAW */
+	gd->used_laws |= (1 << CONFIG_SYS_RESERVED_LAW1);
+#endif
+
 	for (i = 0; i < num_law_entries; i++) {
 		if (law_table[i].index == -1)
 			set_next_law(law_table[i].addr, law_table[i].size,

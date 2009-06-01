@@ -121,7 +121,7 @@ phys_size_t initdram(int board_type)
 
 	puts("Initializing....");
 
-#ifdef CONFIG_SDCARD_U_BOOT
+#if defined(CONFIG_SDCARD_U_BOOT) || defined(CONFIG_NAND_U_BOOT)
 	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
 #endif
 

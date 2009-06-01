@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 Freescale Semiconductor, Inc.
+ * Copyright (C) 2007-2009 Freescale Semiconductor, Inc. All rights reserved.
  *
  * Modified by Jason Jin, Jason.jin@freescale.com,
  * 	       Mingkai hu, Mingkai.hu@freescale.com
@@ -141,10 +141,12 @@ void cpu_init_early_f(void)
 	/* Clear initial global data */
 	memset ((void *) gd, 0, sizeof (gd_t));
 
+#ifndef CONFIG_NAND_U_BOOT
 	set_tlb(0, CONFIG_SYS_CCSRBAR, CONFIG_SYS_CCSRBAR_PHYS,
 		MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
 		1, 0, BOOKE_PAGESZ_4K, 0);
 
+#endif
 	/* set up CCSR if we want it moved */
 #if (CONFIG_SYS_CCSRBAR_DEFAULT != CONFIG_SYS_CCSRBAR_PHYS)
 	{
@@ -163,7 +165,10 @@ void cpu_init_early_f(void)
 #endif
 
 	init_laws();
+#ifndef CONFIG_NAND_U_BOOT
+/* To protect DDR TLB from getting invalid */
 	invalidate_tlb(0);
+#endif
 	init_tlbs();
 }
 
@@ -258,8 +263,10 @@ void cpu_init_f (void)
 		out_be32(&ecm->eebpcr, in_be32(&ecm->eebpcr) | (1 << 16));
 #endif
 
+#ifndef CONFIG_NAND_U_BOOT
 	disable_tlb(14);
 	disable_tlb(15);
+#endif
 
 #ifdef CONFIG_CPM2
 	config_8560_ioports((ccsr_cpm_t *)CONFIG_SYS_MPC85xx_CPM_ADDR);

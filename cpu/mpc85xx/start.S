@@ -1,5 +1,5 @@
 /*
- * Copyright 2004, 2007 Freescale Semiconductor.
+ * Copyright (C) 2004-2009 Freescale Semiconductor, Inc. All rights reserved.
  * Copyright (C) 2003  Motorola,Inc.
  *
  * See file CREDITS for list of people who contributed to this
@@ -185,6 +185,7 @@ _start_e500:
 #endif
 
 #if !defined(CONFIG_SDCARD_U_BOOT)
+#ifndef CONFIG_NAND_U_BOOT
 	/* create a temp mapping in AS=1 to the 4M boot window */
 	lis     r6,FSL_BOOKE_MAS0(1, 15, 0)@h
 	ori     r6,r6,FSL_BOOKE_MAS0(1, 15, 0)@l
@@ -236,6 +237,7 @@ _start_e500:
 	mtspr	SPRN_SRR0,r7
 	mtspr	SPRN_SRR1,r6
 	rfi
+#endif
 
 switch_as:
 /* L1 DCache is used for initial RAM */

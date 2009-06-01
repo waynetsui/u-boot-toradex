@@ -223,7 +223,11 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_RESERVED_LAW0	0
 #endif
 
+#ifdef CONFIG_NAND_SPL
+#define CONFIG_SYS_NAND_BASE		0xfff00000
+#else
 #define CONFIG_SYS_NAND_BASE		0xffa00000
+#endif
 #define CONFIG_SYS_NAND_BASE_PHYS	CONFIG_SYS_NAND_BASE
 #define CONFIG_SYS_NAND_BASE_LIST	{CONFIG_SYS_NAND_BASE}
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -232,6 +236,16 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_CMD_NAND	1
 #define CONFIG_NAND_FSL_ELBC	1
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(16 * 1024)
+#define CONFIG_SYS_NAND_SPL_SIZE     0x1000
+#define CONFIG_SYS_NAND_U_BOOT_SIZE  ((512 << 10) + CONFIG_SYS_NAND_SPL_SIZE)
+#define CONFIG_SYS_NAND_U_BOOT_DST   (0x01000000 - CONFIG_SYS_NAND_SPL_SIZE)
+#define CONFIG_SYS_NAND_U_BOOT_START 0x01000000
+#define CONFIG_SYS_NAND_U_BOOT_OFFS  (0)
+#define CONFIG_SYS_NAND_U_BOOT_RELOC 0x00010000
+
+#ifdef CONFIG_NAND_U_BOOT
+	#define CONFIG_SYS_RESERVED_LAW1  1
+#endif
 
 /* NAND flash config */
 #define CONFIG_NAND_BR_PRELIM	(CONFIG_SYS_NAND_BASE_PHYS \
@@ -248,10 +262,17 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 				| OR_FCM_TRLX \
 				| OR_FCM_EHTR)
 
-#define CONFIG_SYS_BR0_PRELIM  CONFIG_FLASH_BR_PRELIM  /* NOR Base Address */
-#define CONFIG_SYS_OR0_PRELIM  CONFIG_FLASH_OR_PRELIM  /* NOR Options */
-#define CONFIG_SYS_BR1_PRELIM  CONFIG_NAND_BR_PRELIM  /* NAND Base Address */
-#define CONFIG_SYS_OR1_PRELIM  CONFIG_NAND_OR_PRELIM  /* NAND Options */
+#ifdef CONFIG_NAND_U_BOOT
+  #define CONFIG_SYS_BR0_PRELIM  CONFIG_NAND_BR_PRELIM  /* NAND Base Address */
+  #define CONFIG_SYS_OR0_PRELIM  CONFIG_NAND_OR_PRELIM  /* NAND Options */
+  #define CONFIG_SYS_BR1_PRELIM  CONFIG_FLASH_BR_PRELIM  /* NOR Base Address */
+  #define CONFIG_SYS_OR1_PRELIM  CONFIG_FLASH_OR_PRELIM  /* NOR Options */
+#else
+  #define CONFIG_SYS_BR0_PRELIM  CONFIG_FLASH_BR_PRELIM  /* NOR Base Address */
+  #define CONFIG_SYS_OR0_PRELIM  CONFIG_FLASH_OR_PRELIM  /* NOR Options */
+  #define CONFIG_SYS_BR1_PRELIM  CONFIG_NAND_BR_PRELIM  /* NAND Base Address */
+  #define CONFIG_SYS_OR1_PRELIM  CONFIG_NAND_OR_PRELIM  /* NAND Options */
+#endif
 
 #define CONFIG_SYS_VSC7385_BASE	0xffb00000
 
@@ -460,7 +481,11 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 /*
  * Environment
  */
-#if !defined(CONFIG_SDCARD_U_BOOT)
+#if defined(CONFIG_NAND_U_BOOT)
+#define CONFIG_ENV_IS_IN_NAND	1
+#define CONFIG_ENV_SIZE		CONFIG_SYS_NAND_BLOCK_SIZE
+#define CONFIG_ENV_OFFSET	((512 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)
+#elif !defined(CONFIG_SDCARD_U_BOOT)
 #define CONFIG_ENV_IS_IN_FLASH	1
 #if CONFIG_SYS_MONITOR_BASE > 0xfff80000
 #define CONFIG_ENV_ADDR		0xfff80000

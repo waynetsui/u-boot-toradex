@@ -402,7 +402,7 @@ static int esdhc_init(struct mmc *mmc)
 	int timeout = 1000;
 
 	/* Enable cache snooping */
-	out_be32(&regs->scr, 0x00000040);
+	out_be32(&regs->scr, 0x00000040 | in_be32(&regs->scr));
 	out_be32(&regs->sysctl, SYSCTL_HCKEN | SYSCTL_IPGEN);
 
 	/* Set the initial clock speed */

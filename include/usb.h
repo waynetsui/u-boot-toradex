@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -29,15 +29,15 @@
 #include <usb_defs.h>
 
 /* Everything is aribtrary */
-#define USB_ALTSETTINGALLOC		4
-#define USB_MAXALTSETTING		128	/* Hard limit */
+#define USB_ALTSETTINGALLOC 	4
+#define USB_MAXALTSETTING		128 /* Hard limit */
 
 #define USB_MAX_DEVICE			32
 #define USB_MAXCONFIG			8
 #define USB_MAXINTERFACES		8
 #define USB_MAXENDPOINTS		16
-#define USB_MAXCHILDREN			8	/* This is arbitrary */
-#define USB_MAX_HUB			16
+#define USB_MAXCHILDREN 		8	/* This is arbitrary */
+#define USB_MAX_HUB 		16
 
 #define USB_CNTL_TIMEOUT 100 /* 100ms timeout */
 
@@ -131,18 +131,19 @@ struct usb_config_descriptor {
 
 
 struct usb_device {
-	int devnum;			/* Device number on USB bus */
+	int devnum; 		/* Device number on USB bus */
 	int slow;			/* Slow device? */
+	int high;			/* High speed device? */
 	char mf[32];			/* manufacturer */
 	char prod[32];			/* product */
 	char serial[32];		/* serial number */
 
 	int maxpacketsize;		/* Maximum packet size; encoded as 0,1,2,3 = 8,16,32,64 */
-	unsigned int toggle[2];		/* one bit for each endpoint ([0] = IN, [1] = OUT) */
-	unsigned int halted[2];		/* endpoint halts; one bit per endpoint # & direction; */
-			    /* [0] = IN, [1] = OUT */
+	unsigned int toggle[2]; 	/* one bit for each endpoint ([0] = IN, [1] = OUT) */
+	unsigned int halted[2]; 	/* endpoint halts; one bit per endpoint # & direction; */
+				/* [0] = IN, [1] = OUT */
 	int epmaxpacketin[16];		/* INput endpoint specific maximums */
-	int epmaxpacketout[16];		/* OUTput endpoint specific maximums */
+	int epmaxpacketout[16]; 	/* OUTput endpoint specific maximums */
 
 	int configno;			/* selected config number */
 	struct usb_device_descriptor descriptor; /* Device Descriptor */
@@ -155,7 +156,7 @@ struct usb_device {
 	int irq_act_len;		/* transfered bytes */
 	void *privptr;
 	/*
-	 * Child devices -  if this is a hub device
+	 * Child devices -	if this is a hub device
 	 * Each instance needs its own set of data structures.
 	 */
 	unsigned long status;
@@ -171,7 +172,7 @@ struct usb_device {
 
 #if defined(CONFIG_USB_UHCI) || defined(CONFIG_USB_OHCI) || \
 	defined(CONFIG_USB_OHCI_NEW) || defined (CONFIG_USB_SL811HS) || \
-	defined(CONFIG_USB_ISP116X_HCD)
+	defined(CONFIG_USB_ISP116X_HCD) || defined(CONFIG_USB_DA8XX)
 
 int usb_lowlevel_init(void);
 int usb_lowlevel_stop(void);
@@ -184,7 +185,7 @@ void usb_event_poll(void);
 
 /* Defines */
 #define USB_UHCI_VEND_ID 0x8086
-#define USB_UHCI_DEV_ID	 0x7112
+#define USB_UHCI_DEV_ID  0x7112
 
 #else
 #error USB Lowlevel not defined
@@ -243,8 +244,8 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate);
 	({ unsigned long x_ = (unsigned long)x; \
 	 (unsigned long)( \
 		((x_ & 0x000000FFUL) << 24) | \
-		((x_ & 0x0000FF00UL) <<	 8) | \
-		((x_ & 0x00FF0000UL) >>	 8) | \
+		((x_ & 0x0000FF00UL) <<  8) | \
+		((x_ & 0x00FF0000UL) >>  8) | \
 		((x_ & 0xFF000000UL) >> 24) ); \
 	})
 
@@ -260,13 +261,13 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate);
  * Calling this entity a "pipe" is glorifying it. A USB pipe
  * is something embarrassingly simple: it basically consists
  * of the following information:
- *  - device number (7 bits)
- *  - endpoint number (4 bits)
- *  - current Data0/1 state (1 bit)
- *  - direction (1 bit)
- *  - speed (1 bit)
- *  - max packet size (2 bits: 8, 16, 32 or 64)
- *  - pipe type (2 bits: control, interrupt, bulk, isochronous)
+ *	- device number (7 bits)
+ *	- endpoint number (4 bits)
+ *	- current Data0/1 state (1 bit)
+ *	- direction (1 bit)
+ *	- speed (1 bit)
+ *	- max packet size (2 bits: 8, 16, 32 or 64)
+ *	- pipe type (2 bits: control, interrupt, bulk, isochronous)
  *
  * That's 18 bits. Really. Nothing more. And the USB people have
  * documented these eighteen bits as some kind of glorious
@@ -275,13 +276,13 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate);
  * Let's not fall in that trap. We'll just encode it as a simple
  * unsigned int. The encoding is:
  *
- *  - max size:		bits 0-1	(00 = 8, 01 = 16, 10 = 32, 11 = 64)
- *  - direction:	bit 7		(0 = Host-to-Device [Out], 1 = Device-to-Host [In])
- *  - device:		bits 8-14
- *  - endpoint:		bits 15-18
- *  - Data0/1:		bit 19
- *  - speed:		bit 26		(0 = Full, 1 = Low Speed)
- *  - pipe type:	bits 30-31	(00 = isochronous, 01 = interrupt, 10 = control, 11 = bulk)
+ *	- max size: 	bits 0-1	(00 = 8, 01 = 16, 10 = 32, 11 = 64)
+ *	- direction:	bit 7		(0 = Host-to-Device [Out], 1 = Device-to-Host [In])
+ *	- device:		bits 8-14
+ *	- endpoint: 	bits 15-18
+ *	- Data0/1:		bit 19
+ *	- speed:		bit 26		(0 = Full, 1 = Low Speed)
+ *	- pipe type:	bits 30-31	(00 = isochronous, 01 = interrupt, 10 = control, 11 = bulk)
  *
  * Why? Because it's arbitrary, and whatever encoding we select is really
  * up to us. This one happens to share a lot of bit positions with the UHCI
@@ -301,12 +302,12 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate);
 #define usb_rcvbulkpipe(dev,endpoint)	((PIPE_BULK << 30) | create_pipe(dev,endpoint) | USB_DIR_IN)
 #define usb_sndintpipe(dev,endpoint)	((PIPE_INTERRUPT << 30) | create_pipe(dev,endpoint))
 #define usb_rcvintpipe(dev,endpoint)	((PIPE_INTERRUPT << 30) | create_pipe(dev,endpoint) | USB_DIR_IN)
-#define usb_snddefctrl(dev)		((PIPE_CONTROL << 30) | default_pipe(dev))
-#define usb_rcvdefctrl(dev)		((PIPE_CONTROL << 30) | default_pipe(dev) | USB_DIR_IN)
+#define usb_snddefctrl(dev) 	((PIPE_CONTROL << 30) | default_pipe(dev))
+#define usb_rcvdefctrl(dev) 	((PIPE_CONTROL << 30) | default_pipe(dev) | USB_DIR_IN)
 
 /* The D0/D1 toggle bits */
 #define usb_gettoggle(dev, ep, out) (((dev)->toggle[out] >> ep) & 1)
-#define usb_dotoggle(dev, ep, out)  ((dev)->toggle[out] ^= (1 << ep))
+#define usb_dotoggle(dev, ep, out)	((dev)->toggle[out] ^= (1 << ep))
 #define usb_settoggle(dev, ep, out, bit) ((dev)->toggle[out] = ((dev)->toggle[out] & ~(1 << ep)) | ((bit) << ep))
 
 /* Endpoint halt control/status */

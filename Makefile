@@ -141,7 +141,7 @@ ifeq ($(ARCH),ppc)
 CROSS_COMPILE = ppc_8xx-
 endif
 ifeq ($(ARCH),arm)
-CROSS_COMPILE = arm-linux-
+CROSS_COMPILE = arm_v5t_le-
 endif
 ifeq ($(ARCH),i386)
 CROSS_COMPILE = i386-linux-
@@ -224,6 +224,7 @@ LIBS += drivers/mtd/libmtd.a
 LIBS += drivers/mtd/nand/libnand.a
 LIBS += drivers/mtd/nand_legacy/libnand_legacy.a
 LIBS += drivers/mtd/onenand/libonenand.a
+LIBS += drivers/mtd/spi/libspi_flash.a
 LIBS += drivers/net/libnet.a
 LIBS += drivers/net/sk98lin/libsk98lin.a
 LIBS += drivers/pci/libpci.a
@@ -390,6 +391,7 @@ TAG_SUBDIRS += drivers/mtd
 TAG_SUBDIRS += drivers/mtd/nand
 TAG_SUBDIRS += drivers/mtd/nand_legacy
 TAG_SUBDIRS += drivers/mtd/onenand
+TAG_SUBDIRS += drivers/mtd/spi
 TAG_SUBDIRS += drivers/net
 TAG_SUBDIRS += drivers/net/sk98lin
 TAG_SUBDIRS += drivers/pci
@@ -2410,6 +2412,12 @@ davinci_schmoogie_config :	unconfig
 
 davinci_sonata_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs sonata davinci davinci
+
+# TRAB default configuration:	8 MB Flash, 32 MB RAM
+xtract_da8xx = $(subst da830_omapl137,da8xx_evm,$(subst _config,,$1))
+
+da830_omapl137_config :	unconfig
+	@$(MKCONFIG) -a $(call xtract_da8xx,$@) arm arm926ejs da8xx-evm da8xx da8xx
 
 xtract_omap1610xxx = $(subst _cs0boot,,$(subst _cs3boot,,$(subst _cs_autoboot,,$(subst _config,,$1))))
 

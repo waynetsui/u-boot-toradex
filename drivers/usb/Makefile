@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,7 +23,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB 	:= $(obj)libusb.a
+LIB     := $(obj)libusb.a
 
 COBJS-y += isp116x-hcd.o
 COBJS-y += sl811_usb.o
@@ -32,14 +32,16 @@ COBJS-y += usbdcore.o
 COBJS-y += usbdcore_ep0.o
 COBJS-y += usbdcore_mpc8xx.o
 COBJS-y += usbdcore_omap1510.o
+COBJS-y += da8xx_usb.o
+COBJS-y += musbhdrc.o
 
-COBJS	:= $(COBJS-y)
-SRCS 	:= $(COBJS:.o=.c)
-OBJS 	:= $(addprefix $(obj),$(COBJS))
+COBJS   := $(COBJS-y)
+SRCS    := $(COBJS:.o=.c)
+OBJS    := $(addprefix $(obj),$(COBJS))
 
-all:	$(LIB)
+all:    $(LIB)
 
-$(LIB):	$(obj).depend $(OBJS)
+$(LIB): $(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 #########################################################################

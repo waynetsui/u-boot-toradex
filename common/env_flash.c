@@ -88,6 +88,13 @@ static ulong end_addr_new = CFG_ENV_ADDR_REDUND + CFG_ENV_SECT_SIZE - 1;
 extern uchar default_environment[];
 extern int default_environment_size;
 
+static env_t tmp_env;
+
+/* local functions */
+#if !defined(ENV_IS_EMBEDDED)
+static void use_default(void);
+#endif
+
 
 uchar env_get_char_spec (int index)
 {
@@ -248,15 +255,9 @@ Done:
 #else /* ! CFG_ENV_ADDR_REDUND */
 
 int  env_init(void)
-{
-	if (crc32(0, env_ptr->data, ENV_SIZE) == env_ptr->crc) {
-		gd->env_addr  = (ulong)&(env_ptr->data);
-		gd->env_valid = 1;
-		return(0);
-	}
-
+{	
 	gd->env_addr  = (ulong)&default_environment[0];
-	gd->env_valid = 0;
+	gd->env_valid = 1;
 	return (0);
 }
 
@@ -336,6 +337,28 @@ int saveenv(void)
 
 void env_relocate_spec (void)
 {
+
+	flash_info_t *info;
+	int count = CFG_ENV_SIZE;	
+	u_char *src = (u_char*) flash_addr, *dst = (u_char*)env_ptr;
+	
+	if(!(info = addr2info(flash_addr))) {
+		return;			
+	}
+
+	while (count--) {
+		*dst++ = info->read8(src++);
+	}
+
+	if (crc32(0, env_ptr->data, ENV_SIZE) == env_ptr->crc) {
+		gd->env_addr  = (ulong)&(env_ptr->data);
+		gd->env_valid = 1;
+		return(0);
+	} else {
+		return use_default();
+	}
+		
+		
 #if !defined(ENV_IS_EMBEDDED) || defined(CFG_ENV_ADDR_REDUND)
 #ifdef CFG_ENV_ADDR_REDUND
 	if (gd->env_addr != (ulong)&(flash_addr->data)) {
@@ -383,5 +406,24 @@ void env_relocate_spec (void)
 #endif
 #endif /* ! ENV_IS_EMBEDDED || CFG_ENV_ADDR_REDUND */
 }
+
+#if !defined(ENV_IS_EMBEDDED)
+static void use_default()
+{
+	puts ("*** Warning - bad CRC or FLASH, using default environment\n\n");
+
+	if (default_environment_size > CFG_ENV_SIZE){
+		puts ("*** Error - default environment is too large\n\n");
+		return;
+	}
+		
+	memset (env_ptr, 0, sizeof(env_t));
+	memcpy (env_ptr->data,
+			default_environment,
+			default_environment_size);
+	env_ptr->crc = crc32(0, env_ptr->data, ENV_SIZE);
+	gd->env_valid = 1;
+}
+#endif
 
 #endif /* CFG_ENV_IS_IN_FLASH */

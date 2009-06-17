@@ -564,7 +564,9 @@ write:
 			return res;
 		}
 
+                udelay(100000);
 		res = mtd->write_ecc (mtd, to, len, &retlen, buf, &buf[len], &oobinfo);
+
 		if (res < 0) {
 			printk (KERN_WARNING "nand_bbt: Error while writing bad block table %d\n", res);
 			return res;
@@ -812,7 +814,7 @@ int nand_scan_bbt (struct mtd_info *mtd, struct nand_bbt_descr *bd)
 	len = (1 << this->bbt_erase_shift);
 	len += (len >> this->page_shift) * mtd->oobsize;
 	buf = kmalloc (len, GFP_KERNEL);
-	if (!buf) {
+	if(!buf) {
 		printk (KERN_ERR "nand_bbt: Out of memory\n");
 		kfree (this->bbt);
 		this->bbt = NULL;
@@ -929,7 +931,7 @@ static struct nand_bbt_descr smallpage_flashbased = {
 };
 
 static struct nand_bbt_descr largepage_flashbased = {
-	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES,
+	.options = 0, /* NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES,*/
 	.offs = 0,
 	.len = 2,
 	.pattern = scan_ff_pattern
@@ -952,9 +954,9 @@ static uint8_t mirror_pattern[] = {'1', 't', 'b', 'B' };
 static struct nand_bbt_descr bbt_main_descr = {
 	.options = NAND_BBT_LASTBLOCK | NAND_BBT_CREATE | NAND_BBT_WRITE
 		| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
-	.offs =	8,
+	.offs =	2,
 	.len = 4,
-	.veroffs = 12,
+	.veroffs = 16,
 	.maxblocks = 4,
 	.pattern = bbt_pattern
 };
@@ -962,9 +964,9 @@ static struct nand_bbt_descr bbt_main_descr = {
 static struct nand_bbt_descr bbt_mirror_descr = {
 	.options = NAND_BBT_LASTBLOCK | NAND_BBT_CREATE | NAND_BBT_WRITE
 		| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
-	.offs =	8,
+	.offs =	2,
 	.len = 4,
-	.veroffs = 12,
+	.veroffs = 16,
 	.maxblocks = 4,
 	.pattern = mirror_pattern
 };

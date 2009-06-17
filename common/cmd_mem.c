@@ -94,9 +94,13 @@ static	ulong	base_address = 0;
 int do_mem_md ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong	addr, length;
-#if defined(CONFIG_HAS_DATAFLASH)
+#if defined(CONFIG_HAS_DATAFLASH) || !defined(CFG_NO_FLASH)
 	ulong	nbytes, linebytes;
 #endif
+#ifndef CFG_NO_FLASH
+	flash_info_t *info;
+#endif
+
 	int	size;
 	int rc = 0;
 
@@ -177,11 +181,51 @@ int do_mem_md ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 # endif
 
 	{
-		/* Print the lines. */
-		print_buffer(addr, (void*)addr, size, length, DISP_LINE_LEN/size);
-		addr += size*length;
-	}
+#ifndef CFG_NO_FLASH
+		if(info = addr2info(addr)) {
+		
+			char	linebuf[DISP_LINE_LEN];
+
+			nbytes = length * size;
+			do {
+				char	linebuf[DISP_LINE_LEN];
+				void *dest = linebuf;
+				void *src = addr;			
+				int count = linebytes = ((nbytes > DISP_LINE_LEN) ? DISP_LINE_LEN : nbytes);
+
+				nbytes -= linebytes;
+
+				while (count > 0) {
+					
+					if (size == 4) 
+						*((ulong  *)dest) = info->read32(src);
+					else if (size == 2)
+						*((ushort *)dest) = info->read16(src);
+					else
+						*((u_char *)dest) = info->read8(src);
+					src += size;
+					dest += size;					
+					count -= size;
+				}
+				
+				print_buffer(addr, linebuf, size, linebytes/size, DISP_LINE_LEN/size);
+				addr += size*length;					
+
+				if (ctrlc()) {
+					rc = 1;
+					break;
+				}
+
+			} while (nbytes > 0);		
+		} else 
+#endif	
+		{
+			/* Print the lines. */
+			print_buffer(addr, (void*)addr, size, length, DISP_LINE_LEN/size);
+			addr += size*length;
+		}
 #endif
+	}
 
 	dp_last_addr = addr;
 	dp_last_length = length;
@@ -390,6 +434,10 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong	addr, dest, count;
 	int	size;
+#ifndef CFG_NO_FLASH
+	flash_info_t *info;
+#endif
+
 
 	if (argc != 4) {
 		printf ("Usage:\n%s\n", cmdtp->usage);
@@ -432,6 +480,31 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 		puts ("done\n");
 		return 0;
+	}
+
+	/* check if we are copying from Flash */
+	if( ((info = addr2info(addr)) != NULL)
+#ifdef CONFIG_HAS_DATAFLASH
+	   && (!addr_dataflash(dest))
+#endif
+	  ) {
+				
+			puts ("Copy from Flash... ");
+
+			while (count > 0) {
+				if (size == 4)
+					*((ulong  *)dest) = info->read32(addr);
+				else if (size == 2)
+					*((ushort *)dest) = info->read16(addr);
+				else
+					*((u_char *)dest) = info->read8(addr);
+				addr += size;
+				dest += size;
+				count -= size;
+			}
+
+			puts ("done\n");			
+			return 0;
 	}
 #endif
 

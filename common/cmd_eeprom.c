@@ -82,9 +82,7 @@ int do_eeprom ( cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		ulong cnt  = simple_strtoul (argv[4], NULL, 16);
 #endif /* CFG_I2C_MULTI_EEPROMS */
 
-# ifndef CONFIG_SPI
 		eeprom_init ();
-# endif /* !CONFIG_SPI */
 
 		if (strcmp (argv[1], "read") == 0) {
 			int rcode;

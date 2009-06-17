@@ -26,7 +26,9 @@ include $(TOPDIR)/config.mk
 LIB	:= $(obj)libspi.a
 
 COBJS-y += mpc8xxx_spi.o
+COBJS-$(CONFIG_ATMEL_SPI) += atmel_spi.o
 COBJS-$(CONFIG_MXC_SPI) += mxc_spi.o
+COBJS-$(CONFIG_DAVINCI_SPI) += davinci_spi.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

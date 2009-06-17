@@ -25,21 +25,22 @@
 #include <command.h>
 #include <ide.h>
 #include <part.h>
+#include <config_cmd_default.h>
 
 #undef	PART_DEBUG
 
 #ifdef	PART_DEBUG
-#define	PRINTF(fmt,args...)	printf (fmt ,##args)
+#define PRINTF(fmt,args...) printf (fmt ,##args)
 #else
 #define PRINTF(fmt,args...)
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) )
+	 defined(CONFIG_CMD_SATA) || \
+	 defined(CONFIG_CMD_SCSI) || \
+	 defined(CONFIG_CMD_USB) || \
+	 defined(CONFIG_MMC) || \
+	 defined(CONFIG_SYSTEMACE) )
 
 struct block_drvr {
 	char *name;
@@ -91,11 +92,11 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) )
+	 defined(CONFIG_CMD_SATA) || \
+	 defined(CONFIG_CMD_SCSI) || \
+	 defined(CONFIG_CMD_USB) || \
+	 defined(CONFIG_MMC) || \
+	 defined(CONFIG_SYSTEMACE) )
 
 /* ------------------------------------------------------------------------- */
 /*
@@ -109,7 +110,7 @@ void dev_print (block_dev_desc_t *dev_desc)
 	lbaint_t lba512;
 #endif
 
-	switch (dev_desc->type) {
+	switch (dev_desc->if_type) {
 	case IF_TYPE_SCSI:
 		printf ("(%d:%d) Vendor: %s Prod.: %s Rev: %s\n",
 			dev_desc->target,dev_desc->lun,
@@ -124,12 +125,18 @@ void dev_print (block_dev_desc_t *dev_desc)
 			dev_desc->revision,
 			dev_desc->product);
 		break;
+	case IF_TYPE_USB:
+		printf ("Vendor: %s Rev: %s Prod: %s\n",
+			dev_desc->vendor,
+			dev_desc->revision,
+			dev_desc->product);
+		break;
 	case DEV_TYPE_UNKNOWN:
 	default:
 		puts ("not available\n");
 		return;
 	}
-	puts ("            Type: ");
+	puts (" 		   Type: ");
 	if (dev_desc->removable)
 		puts ("Removable ");
 	switch (dev_desc->type & 0x1F) {
@@ -159,46 +166,46 @@ void dev_print (block_dev_desc_t *dev_desc)
 		lba512 = (lba * (dev_desc->blksz/512));
 		mb = (10 * lba512) / 2048;	/* 2048 = (1024 * 1024) / 512 MB */
 		/* round to 1 digit */
-		mb_quot	= mb / 10;
+		mb_quot = mb / 10;
 		mb_rem	= mb - (10 * mb_quot);
 
 		gb = mb / 1024;
-		gb_quot	= gb / 10;
+		gb_quot = gb / 10;
 		gb_rem	= gb - (10 * gb_quot);
 #ifdef CONFIG_LBA48
 		if (dev_desc->lba48)
-			printf ("            Supports 48-bit addressing\n");
+			printf ("			 Supports 48-bit addressing\n");
 #endif
 #if defined(CFG_64BIT_LBA) && defined(CFG_64BIT_VSPRINTF)
-		printf ("            Capacity: %ld.%ld MB = %ld.%ld GB (%qd x %ld)\n",
+		printf ("			 Capacity: %ld.%ld MB = %ld.%ld GB (%qd x %ld)\n",
 			mb_quot, mb_rem,
 			gb_quot, gb_rem,
 			lba,
 			dev_desc->blksz);
 #else
-		printf ("            Capacity: %ld.%ld MB = %ld.%ld GB (%ld x %ld)\n",
+		printf ("			 Capacity: %ld.%ld MB = %ld.%ld GB (%ld x %ld)\n",
 			mb_quot, mb_rem,
 			gb_quot, gb_rem,
 			(ulong)lba,
 			dev_desc->blksz);
 #endif
 	} else {
-		puts ("            Capacity: not available\n");
+		puts (" 		   Capacity: not available\n");
 	}
 }
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC)		|| \
-     defined(CONFIG_SYSTEMACE)          )
+	 defined(CONFIG_CMD_SATA) || \
+	 defined(CONFIG_CMD_SCSI) || \
+	 defined(CONFIG_CMD_USB) || \
+	 defined(CONFIG_MMC)		|| \
+	 defined(CONFIG_SYSTEMACE)			)
 
 #if defined(CONFIG_MAC_PARTITION) || \
-    defined(CONFIG_DOS_PARTITION) || \
-    defined(CONFIG_ISO_PARTITION) || \
-    defined(CONFIG_AMIGA_PARTITION)
+	defined(CONFIG_DOS_PARTITION) || \
+	defined(CONFIG_ISO_PARTITION) || \
+	defined(CONFIG_AMIGA_PARTITION)
 
 void init_part (block_dev_desc_t * dev_desc)
 {
@@ -225,8 +232,8 @@ void init_part (block_dev_desc_t * dev_desc)
 
 #ifdef CONFIG_AMIGA_PARTITION
 	if (test_part_amiga(dev_desc) == 0) {
-	    dev_desc->part_type = PART_TYPE_AMIGA;
-	    return;
+		dev_desc->part_type = PART_TYPE_AMIGA;
+		return;
 	}
 #endif
 }
@@ -265,12 +272,12 @@ int get_partition_info (block_dev_desc_t *dev_desc, int part
 
 #ifdef CONFIG_AMIGA_PARTITION
 	case PART_TYPE_AMIGA:
-	    if (get_partition_info_amiga(dev_desc, part, info) == 0)
-	    {
+		if (get_partition_info_amiga(dev_desc, part, info) == 0)
+		{
 		PRINTF ("## Valid Amiga partition found ##\n");
 		return (0);
-	    }
-	    break;
+		}
+		break;
 #endif
 	default:
 		break;
@@ -337,10 +344,10 @@ void print_part (block_dev_desc_t * dev_desc)
 
 #ifdef CONFIG_AMIGA_PARTITION
 	case PART_TYPE_AMIGA:
-	    PRINTF ("## Testing for a valid Amiga partition ##\n");
-	    print_part_header ("AMIGA", dev_desc);
-	    print_part_amiga (dev_desc);
-	    return;
+		PRINTF ("## Testing for a valid Amiga partition ##\n");
+		print_part_header ("AMIGA", dev_desc);
+		print_part_amiga (dev_desc);
+		return;
 #endif
 	}
 	puts ("## Unknown partition table\n");

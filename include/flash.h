@@ -26,7 +26,7 @@
 
 #ifndef CFG_NO_FLASH
 /*-----------------------------------------------------------------------
- * FLASH Info: contains chip specific data, per FLASH bank
+ * FLASH Info: contains chip/board specific data, per FLASH bank
  */
 
 typedef struct {
@@ -56,7 +56,20 @@ typedef struct {
 	ulong   addr_unlock2;		/* unlock address 2 for AMD flash roms  */
 	const char *name;		/* human-readable name 	                */
 #endif
+	
+	/* board specific write routines */
+	void (*write8)(u8 value, void *addr);
+	void (*write16)(u16 value, void *addr);
+	void (*write32)(u32 value, void *addr);
+	void (*write64)(u64 value, void *addr);
+
+	/* board specific read routines */	
+	u8 (*read8)(void *addr);
+	u16 (*read16)(void *addr);
+	u32 (*read32)(void *addr);
+	u64 (*read64)(void *addr);
 } flash_info_t;
+
 
 /*
  * Values for the width of the port

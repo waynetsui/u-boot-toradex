@@ -10,7 +10,7 @@
  * (C) Copyright Randy Dunlap 2000
  * (C) Copyright David Brownell 2000 (kernel hotplug, usb_device_id)
  * (C) Copyright Yggdrasil Computing, Inc. 2000
- *     (usb_device_id matching changes by Adam J. Richter)
+ *	   (usb_device_id matching changes by Adam J. Richter)
  *
  * Adapted for U-Boot:
  * (C) Copyright 2001 Denis Peter, MPL AG Switzerland
@@ -59,7 +59,7 @@
 #undef USB_DEBUG
 
 #ifdef	USB_DEBUG
-#define	USB_PRINTF(fmt,args...)	printf (fmt ,##args)
+#define USB_PRINTF(fmt,args...) printf (fmt ,##args)
 #else
 #define USB_PRINTF(fmt,args...)
 #endif
@@ -180,7 +180,7 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe,
 	setup_packet.value = swap_16(value);
 	setup_packet.index = swap_16(index);
 	setup_packet.length = swap_16(size);
- 	USB_PRINTF("usb_control_msg: request: 0x%X, requesttype: 0x%X\nvalue 0x%X index 0x%X length 0x%X\n",
+	USB_PRINTF("usb_control_msg: request: 0x%X, requesttype: 0x%X\nvalue 0x%X index 0x%X length 0x%X\n",
 		request,requesttype,value,index,size);
 	dev->status=USB_ST_NOT_PROC; /*not yet processed */
 
@@ -241,40 +241,59 @@ int usb_maxpacket(struct usb_device *dev,unsigned long pipe)
 		return(dev->epmaxpacketin[((pipe>>15) & 0xf)]);
 }
 
+/* The routine usb_set_maxpacket_ep() is extracted from the loop of routine
+ * usb_set_maxpacket(), because the optimizer of GCC 4.x chokes on this routine
+ * when it is inlined in 1 single routine. What happens is that the register r3
+ * is used as loop-count 'i', but gets overwritten later on.
+ * This is clearly a compiler bug, but it is easier to workaround it here than
+ * to update the compiler (Occurs with at least several GCC 4.{1,2},x
+ * CodeSourcery compilers like e.g. 2007q3, 2008q1, 2008q3 lite editions on ARM)
+ */
+static void  __attribute__((noinline))
+usb_set_maxpacket_ep(struct usb_device *dev, struct usb_endpoint_descriptor *ep)
+{
+	int b;
+
+	b = ep->bEndpointAddress & USB_ENDPOINT_NUMBER_MASK;
+
+	if ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
+						USB_ENDPOINT_XFER_CONTROL) {
+		/* Control => bidirectional */
+		dev->epmaxpacketout[b] = ep->wMaxPacketSize;
+		dev->epmaxpacketin [b] = ep->wMaxPacketSize;
+		USB_PRINTF("##Control EP epmaxpacketout/in[%d] = %d\n",
+			   b, dev->epmaxpacketin[b]);
+	} else {
+		if ((ep->bEndpointAddress & 0x80) == 0) {
+			/* OUT Endpoint */
+			if (ep->wMaxPacketSize > dev->epmaxpacketout[b]) {
+				dev->epmaxpacketout[b] = ep->wMaxPacketSize;
+				USB_PRINTF("##EP epmaxpacketout[%d] = %d\n",
+					   b, dev->epmaxpacketout[b]);
+			}
+		} else {
+			/* IN Endpoint */
+			if (ep->wMaxPacketSize > dev->epmaxpacketin[b]) {
+				dev->epmaxpacketin[b] = ep->wMaxPacketSize;
+				USB_PRINTF("##EP epmaxpacketin[%d] = %d\n",
+					   b, dev->epmaxpacketin[b]);
+			}
+		} /* if out */
+	}  /* if control */
+}
+
 /*
  * set the max packed value of all endpoints in the given configuration
  */
 int usb_set_maxpacket(struct usb_device *dev)
 {
-	int i,ii,b;
-	struct usb_endpoint_descriptor *ep;
+	int i, ii;
 
-	for(i=0; i<dev->config.bNumInterfaces;i++) {
-		for(ii=0; ii<dev->config.if_desc[i].bNumEndpoints; ii++) {
-			ep=&dev->config.if_desc[i].ep_desc[ii];
-			b=ep->bEndpointAddress & USB_ENDPOINT_NUMBER_MASK;
+	for (i = 0; i < dev->config.bNumInterfaces; i++)
+		for (ii = 0; ii < dev->config.if_desc[i].bNumEndpoints; ii++)
+			usb_set_maxpacket_ep(dev,
+					  &dev->config.if_desc[i].ep_desc[ii]);
 
-			if((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)==USB_ENDPOINT_XFER_CONTROL) {	/* Control => bidirectional */
-				dev->epmaxpacketout[b] = ep->wMaxPacketSize;
-				dev->epmaxpacketin [b] = ep->wMaxPacketSize;
-				USB_PRINTF("##Control EP epmaxpacketout/in[%d] = %d\n",b,dev->epmaxpacketin[b]);
-			}
-			else {
-				if ((ep->bEndpointAddress & 0x80)==0) { /* OUT Endpoint */
-					if(ep->wMaxPacketSize > dev->epmaxpacketout[b]) {
-						dev->epmaxpacketout[b] = ep->wMaxPacketSize;
-						USB_PRINTF("##EP epmaxpacketout[%d] = %d\n",b,dev->epmaxpacketout[b]);
-					}
-				}
-				else  { /* IN Endpoint */
-					if(ep->wMaxPacketSize > dev->epmaxpacketin[b]) {
-						dev->epmaxpacketin[b] = ep->wMaxPacketSize;
-						USB_PRINTF("##EP epmaxpacketin[%d] = %d\n",b,dev->epmaxpacketin[b]);
-					}
-				} /* if out */
-			} /* if control */
-		} /* for each endpoint */
-	}
 	return 0;
 }
 
@@ -356,6 +375,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
  * endp: endpoint number in bits 0-3;
  * direction flag in bit 7 (1 = IN, 0 = OUT)
  */
+
 int usb_clear_halt(struct usb_device *dev, int pipe)
 {
 	int result;
@@ -387,7 +407,7 @@ int usb_clear_halt(struct usb_device *dev, int pipe)
 int usb_get_descriptor(struct usb_device *dev, unsigned char type, unsigned char index, void *buf, int size)
 {
 	int res;
- 	res = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
+	res = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
 			USB_REQ_GET_DESCRIPTOR, USB_DIR_IN,
 			(type << 8) + index, 0,
 			buf, size, USB_CNTL_TIMEOUT);
@@ -399,7 +419,7 @@ int usb_get_descriptor(struct usb_device *dev, unsigned char type, unsigned char
  */
 int usb_get_configuration_no(struct usb_device *dev,unsigned char *buffer,int cfgno)
 {
- 	int result;
+	int result;
 	unsigned int tmp;
 	struct usb_config_descriptor *config;
 
@@ -470,8 +490,8 @@ int usb_set_interface(struct usb_device *dev, int interface, int alternate)
 		return 0;
 
 	if ((ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-	    USB_REQ_SET_INTERFACE, USB_RECIP_INTERFACE, alternate,
-	    interface, NULL, 0, USB_CNTL_TIMEOUT * 5)) < 0)
+		USB_REQ_SET_INTERFACE, USB_RECIP_INTERFACE, alternate,
+		interface, NULL, 0, USB_CNTL_TIMEOUT * 5)) < 0)
 		return ret;
 
 	return 0;
@@ -651,7 +671,7 @@ int usb_string(struct usb_device *dev, int index, char *buf, size_t size)
 	if (err < 0)
 		return err;
 
-	size--;		/* leave room for trailing NULL char in output buffer */
+	size--; 	/* leave room for trailing NULL char in output buffer */
 	for (idx = 0, u = 2; u < err; u += 2) {
 		if (idx >= size)
 			break;
@@ -719,7 +739,7 @@ int usb_new_device(struct usb_device *dev)
 	unsigned char tmpbuf[USB_BUFSIZ];
 
 	dev->descriptor.bMaxPacketSize0 = 8;  /* Start off at 8 bytes  */
-	dev->maxpacketsize = 0;		/* Default to 8 byte max packet size */
+	dev->maxpacketsize = 0; 	/* Default to 8 byte max packet size */
 	dev->epmaxpacketin [0] = 8;
 	dev->epmaxpacketout[0] = 8;
 
@@ -740,7 +760,7 @@ int usb_new_device(struct usb_device *dev)
 	struct usb_device *parent = dev->parent;
 	unsigned short portstatus;
 
-	/* send 64-byte GET-DEVICE-DESCRIPTOR request.  Since the descriptor is
+	/* send 64-byte GET-DEVICE-DESCRIPTOR request.	Since the descriptor is
 	 * only 18 bytes long, this will terminate with a short packet.  But if
 	 * the maxpacket size is 8 or 16 the device may be waiting to transmit
 	 * some more. */
@@ -773,7 +793,7 @@ int usb_new_device(struct usb_device *dev)
 		/* reset the port for the second time */
 		err = hub_port_reset(dev->parent, port, &portstatus);
 		if (err < 0) {
-			printf("\n     Couldn't reset port %i\n", port);
+			printf("\n	   Couldn't reset port %i\n", port);
 			return 1;
 		}
 	}
@@ -781,7 +801,7 @@ int usb_new_device(struct usb_device *dev)
 	/* and this is the old and known way of initializing devices */
 	err = usb_get_descriptor(dev, USB_DT_DEVICE, 0, &dev->descriptor, 8);
 	if (err < 8) {
-		printf("\n      USB device not responding, giving up (status=%lX)\n",dev->status);
+		printf("\n		USB device not responding, giving up (status=%lX)\n",dev->status);
 		return 1;
 	}
 #endif
@@ -799,7 +819,7 @@ int usb_new_device(struct usb_device *dev)
 	err = usb_set_address(dev); /* set address */
 
 	if (err < 0) {
-		printf("\n      USB device not accepting new address (error=%lX)\n", dev->status);
+		printf("\n		USB device not accepting new address (error=%lX)\n", dev->status);
 		return 1;
 	}
 
@@ -841,7 +861,7 @@ int usb_new_device(struct usb_device *dev)
 	if (dev->descriptor.iSerialNumber)
 		usb_string(dev, dev->descriptor.iSerialNumber, dev->serial, sizeof(dev->serial));
 	USB_PRINTF("Manufacturer %s\n", dev->mf);
-	USB_PRINTF("Product      %s\n", dev->prod);
+	USB_PRINTF("Product 	 %s\n", dev->prod);
 	USB_PRINTF("SerialNumber %s\n", dev->serial);
 	/* now prode if the device is a hub */
 	usb_hub_probe(dev,0);
@@ -880,7 +900,7 @@ void usb_scan_devices(void)
 #undef	USB_HUB_DEBUG
 
 #ifdef	USB_HUB_DEBUG
-#define	USB_HUB_PRINTF(fmt,args...)	printf (fmt ,##args)
+#define USB_HUB_PRINTF(fmt,args...) printf (fmt ,##args)
 #else
 #define USB_HUB_PRINTF(fmt,args...)
 #endif
@@ -988,7 +1008,7 @@ static int hub_port_reset(struct usb_device *dev, int port,
 			(portstatus & USB_PORT_STAT_CONNECTION) ? 1 : 0,
 			(portstatus & USB_PORT_STAT_ENABLE) ? 1 : 0);
 		if ((portchange & USB_PORT_STAT_C_CONNECTION) ||
-		    !(portstatus & USB_PORT_STAT_CONNECTION))
+			!(portstatus & USB_PORT_STAT_CONNECTION))
 			return -1;
 
 		if (portstatus & USB_PORT_STAT_ENABLE) {
@@ -1034,7 +1054,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 
 	/* Disconnect any existing devices under this port */
 	if (((!(portstatus & USB_PORT_STAT_CONNECTION)) &&
-	     (!(portstatus & USB_PORT_STAT_ENABLE)))|| (dev->children[port])) {
+		 (!(portstatus & USB_PORT_STAT_ENABLE)))|| (dev->children[port])) {
 		USB_HUB_PRINTF("usb_disconnect(&hub->children[port]);\n");
 		/* Return now if nothing is connected */
 		if (!(portstatus & USB_PORT_STAT_CONNECTION))
@@ -1053,6 +1073,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	/* Allocate a new device struct for it */
 	usb=usb_alloc_new_device();
 	usb->slow = (portstatus & USB_PORT_STAT_LOW_SPEED) ? 1 : 0;
+	usb->high = (portstatus & USB_PORT_STAT_HIGH_SPEED) ? 1 : 0;
 
 	dev->children[port] = usb;
 	usb->parent=dev;
@@ -1142,7 +1163,7 @@ int usb_hub_configure(struct usb_device *dev)
 		case 0x10:
 		case 0x18:
 			USB_HUB_PRINTF("no over-current protection\n");
-      break;
+	  break;
 	}
 	USB_HUB_PRINTF("power on to power good time: %dms\n", descriptor->bPwrOn2PwrGood * 2);
 	USB_HUB_PRINTF("hub controller current requirement: %dmA\n", descriptor->bHubContrCurrent);
@@ -1178,7 +1199,7 @@ int usb_hub_configure(struct usb_device *dev)
 		portstatus = swap_16(portsts.wPortStatus);
 		portchange = swap_16(portsts.wPortChange);
 		USB_HUB_PRINTF("Port %d Status %X Change %X\n",i+1,portstatus,portchange);
-		if (portchange & USB_PORT_STAT_C_CONNECTION) {
+		if ( (portchange & USB_PORT_STAT_C_CONNECTION) || (portstatus & USB_PORT_STAT_CONNECTION)) {
 			USB_HUB_PRINTF("port %d connection change\n", i + 1);
 			usb_hub_port_connect_change(dev, i);
 		}
@@ -1198,7 +1219,7 @@ int usb_hub_configure(struct usb_device *dev)
 		}
 		if (portstatus & USB_PORT_STAT_SUSPEND) {
 			USB_HUB_PRINTF("port %d suspend change\n", i + 1);
-			usb_clear_port_feature(dev, i + 1,  USB_PORT_FEAT_SUSPEND);
+			usb_clear_port_feature(dev, i + 1,	USB_PORT_FEAT_SUSPEND);
 		}
 
 		if (portchange & USB_PORT_STAT_C_OVERCURRENT) {
@@ -1227,9 +1248,9 @@ int usb_hub_probe(struct usb_device *dev, int ifnum)
 	if (iface->bInterfaceClass != USB_CLASS_HUB)
 		return 0;
 	/* Some hubs have a subclass of 1, which AFAICT according to the */
-	/*  specs is not defined, but it works */
+	/*	specs is not defined, but it works */
 	if ((iface->bInterfaceSubClass != 0) &&
-	    (iface->bInterfaceSubClass != 1))
+		(iface->bInterfaceSubClass != 1))
 		return 0;
 	/* Multiple endpoints? What kind of mutant ninja-hub is this? */
 	if (iface->bNumEndpoints != 1)

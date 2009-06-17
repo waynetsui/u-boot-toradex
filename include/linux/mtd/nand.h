@@ -109,6 +109,26 @@ extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_
 /* Extended commands for large page devices */
 #define NAND_CMD_READSTART	0x30
 #define NAND_CMD_CACHEDPROG	0x15
+/* Extended commands for AG-AND device */
+/* 
+ * Note: the command for NAND_CMD_DEPLETE1 is really 0x00 but 
+ *       there is no way to distinguish that from NAND_CMD_READ0
+ *       until the remaining sequence of commands has been completed
+ *       so add a high order bit and mask it off in the command.
+ */
+#define NAND_CMD_DEPLETE1	0x100
+#define NAND_CMD_DEPLETE2	0x38
+#define NAND_CMD_STATUS_MULTI	0x71
+#define NAND_CMD_STATUS_ERROR	0x72
+/* multi-bank error status (banks 0-3) */
+#define NAND_CMD_STATUS_ERROR0	0x73
+#define NAND_CMD_STATUS_ERROR1	0x74
+#define NAND_CMD_STATUS_ERROR2	0x75
+#define NAND_CMD_STATUS_ERROR3	0x76
+#define NAND_CMD_STATUS_RESET	0x7f
+#define NAND_CMD_STATUS_CLEAR	0xff
+
+
 
 /* Status bits */
 #define NAND_STATUS_FAIL	0x01
@@ -135,6 +155,18 @@ extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_
 #define NAND_ECC_HW8_512	6
 /* Hardware ECC 12 byte ECC per 2048 Byte data */
 #define NAND_ECC_HW12_2048	7
+/* Hardware ECC 10 byte ECC per 512 Byte data */
+#define NAND_ECC_HW10_512	8
+
+struct page_layout_item {
+	int length;
+	enum {
+		ITEM_TYPE_DATA, 
+		ITEM_TYPE_OOB, 
+		ITEM_TYPE_ECC,
+	} type;
+}; 
+
 
 /*
  * Constants for Hardware ECC
@@ -145,6 +177,14 @@ extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_
 #define NAND_ECC_WRITE		1
 /* Enable Hardware ECC before syndrom is read back from flash */
 #define NAND_ECC_READSYN	2
+#define NAND_ECC_WRITESYN	3
+#define NAND_ECC_READOOB	4
+#define NAND_ECC_WRITEOOB	5
+
+/* Bit mask for flags passed to do_nand_read_ecc */
+#define NAND_GET_DEVICE		0x80
+
+
 
 /* Option constants for bizarre disfunctionality and real
 *  features
@@ -165,6 +205,10 @@ extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_
 /* Chip has a array of 4 pages which can be read without
  * additional ready /busy waits */
 #define NAND_4PAGE_ARRAY	0x00000040
+/* Chip requires that BBT is periodically rewritten to prevent
+ * bits from adjacent blocks from 'leaking' in altering data.
+ * This happens with the Renesas AG-AND chips, possibly others.  */
+#define BBT_AUTO_REFRESH	0x00000080
 
 /* Options valid for Samsung large page devices */
 #define NAND_SAMSUNG_LP_OPTIONS \
@@ -187,6 +231,12 @@ extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_
  * This can only work if we have the ecc bytes directly behind the
  * data bytes. Applies for DOC and AG-AND Renesas HW Reed Solomon generators */
 #define NAND_HWECC_SYNDROME	0x00020000
+/* This option skips the bbt scan during initialization. */
+#define NAND_SKIP_BBTSCAN	0x00040000
+/* This option specifies that a whole NAND page is to be written in
+ * nand_write_oob. This is needed for some HW ECC generators that need a
+ * whole page to be written to generate ECC properly */
+#define NAND_COMPLEX_OOB_WRITE	0x00080000
 
 
 /* Options set by nand scan */
@@ -207,6 +257,7 @@ typedef enum {
 	FL_ERASING,
 	FL_SYNCING,
 	FL_CACHEDPRG,
+        FL_PM_SUSPENDED,
 } nand_state_t;
 
 /* Keep gcc happy */
@@ -331,12 +382,16 @@ struct nand_chip {
 	int		pagemask;
 	int		pagebuf;
 	struct nand_oobinfo	*autooob;
+	struct page_layout_item *layout;
+	int		layout_allocated;
 	uint8_t		*bbt;
 	struct nand_bbt_descr	*bbt_td;
 	struct nand_bbt_descr	*bbt_md;
 	struct nand_bbt_descr	*badblock_pattern;
 	struct nand_hw_control	*controller;
 	void		*priv;
+	int		(*errstat)(struct mtd_info *mtd, struct nand_chip *this, int state, int status, int page);
+
 };
 
 /*
@@ -348,6 +403,7 @@ struct nand_chip {
 #define NAND_MFR_NATIONAL	0x8f
 #define NAND_MFR_RENESAS	0x07
 #define NAND_MFR_STMICRO	0x20
+#define NAND_MFR_HYNIX          0xad
 #define NAND_MFR_MICRON		0x2c
 
 /**
@@ -459,6 +515,10 @@ extern int nand_update_bbt (struct mtd_info *mtd, loff_t offs);
 extern int nand_default_bbt (struct mtd_info *mtd);
 extern int nand_isbad_bbt (struct mtd_info *mtd, loff_t offs, int allowbbt);
 extern int nand_erase_nand (struct mtd_info *mtd, struct erase_info *instr, int allowbbt);
+extern int nand_do_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
+                             size_t * retlen, u_char * buf, u_char * oob_buf,
+                             struct nand_oobinfo *oobsel, int flags);
+
 
 /*
 * Constants for oob configuration

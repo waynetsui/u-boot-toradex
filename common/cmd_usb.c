@@ -183,13 +183,13 @@ void usb_display_conf_desc(struct usb_config_descriptor *config,struct usb_devic
 
 void usb_display_if_desc(struct usb_interface_descriptor *ifdesc,struct usb_device *dev)
 {
-	printf("     Interface: %d\n",ifdesc->bInterfaceNumber);
-	printf("     - Alternate Setting %d, Endpoints: %d\n",ifdesc->bAlternateSetting,ifdesc->bNumEndpoints);
-	printf("     - Class ");
+	printf("	 Interface: %d\n",ifdesc->bInterfaceNumber);
+	printf("	 - Alternate Setting %d, Endpoints: %d\n",ifdesc->bAlternateSetting,ifdesc->bNumEndpoints);
+	printf("	 - Class ");
 	usb_display_class_sub(ifdesc->bInterfaceClass,ifdesc->bInterfaceSubClass,ifdesc->bInterfaceProtocol);
 	printf("\n");
 	if (ifdesc->iInterface) {
-		printf("     - ");
+		printf("	 - ");
 		usb_display_string(dev,ifdesc->iInterface);
 		printf("\n");
 	}
@@ -197,7 +197,7 @@ void usb_display_if_desc(struct usb_interface_descriptor *ifdesc,struct usb_devi
 
 void usb_display_ep_desc(struct usb_endpoint_descriptor *epdesc)
 {
-	printf("     - Endpoint %d %s ",epdesc->bEndpointAddress & 0xf,(epdesc->bEndpointAddress & 0x80) ? "In" : "Out");
+	printf("	 - Endpoint %d %s ",epdesc->bEndpointAddress & 0xf,(epdesc->bEndpointAddress & 0x80) ? "In" : "Out");
 	switch((epdesc->bmAttributes & 0x03))
 	{
 		case 0: printf("Control"); break;
@@ -276,7 +276,8 @@ void usb_show_tree_graph(struct usb_device *dev,char *pre)
 	pre[index++]= has_child ? '|' : ' ';
 	pre[index]=0;
 	printf(" %s (%s, %dmA)\n",usb_get_class_desc(dev->config.if_desc[0].bInterfaceClass),
-		dev->slow ? "1.5MBit/s" : "12MBit/s",dev->config.MaxPower * 2);
+	  ((dev->slow==0) && (dev->high==1)) ? "480Mbit/s" : (((dev->slow==0) && (dev->high==0)) ? "12MBit/s" : "1.5MBit/s"),
+	  dev->config.MaxPower * 2);
 	if (strlen(dev->mf) ||
 	   strlen(dev->prod) ||
 	   strlen(dev->serial))
@@ -370,7 +371,7 @@ int do_usbboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		printf("error reading partinfo...try to boot raw\n");
 	}
 	if ((strncmp((char *)info.type, BOOT_PART_TYPE, sizeof(info.type)) != 0) &&
-	    (strncmp((char *)info.type, BOOT_PART_COMP, sizeof(info.type)) != 0)) {
+		(strncmp((char *)info.type, BOOT_PART_COMP, sizeof(info.type)) != 0)) {
 		printf ("\n** Invalid partition type \"%.32s\""
 			" (expect \"" BOOT_PART_TYPE "\")\n",
 			info.type);
@@ -423,7 +424,7 @@ int do_usbboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	cnt -= 1;
 
 	if (stor_dev->block_read (dev, info.start+1, cnt,
-		      (ulong *)(addr+info.blksz)) != cnt) {
+			  (ulong *)(addr+info.blksz)) != cnt) {
 		printf ("\n** Read error on %d:%d\n", dev, part);
 		return 1;
 	}
@@ -475,7 +476,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #ifdef CONFIG_USB_STORAGE
 		/* try to recognize storage devices immediately */
 		if (i >= 0)
-	 		usb_stor_curr_dev = usb_stor_scan(1);
+			usb_stor_curr_dev = usb_stor_scan(1);
 #endif
 		return 0;
 	}
@@ -627,7 +628,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #ifdef CONFIG_USB_STORAGE
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,
-	"usb     - USB sub-system\n",
+	"usb	 - USB sub-system\n",
 	"reset - reset (rescan) USB controller\n"
 	"usb stop [f]  - stop USB [f]=force stop\n"
 	"usb tree  - show USB device tree\n"
@@ -636,7 +637,7 @@ U_BOOT_CMD(
 	"usb dev [dev] - show or set current USB storage device\n"
 	"usb part [dev] - print partition table of one or all USB storage devices\n"
 	"usb read addr blk# cnt - read `cnt' blocks starting at block `blk#'\n"
-	"    to memory address `addr'\n"
+	"	 to memory address `addr'\n"
 );
 
 
@@ -649,9 +650,9 @@ U_BOOT_CMD(
 #else
 U_BOOT_CMD(
 	usb,	5,	1,	do_usb,
-	"usb     - USB sub-system\n",
+	"usb	 - USB sub-system\n",
 	"reset - reset (rescan) USB controller\n"
-	"usb  tree  - show USB device tree\n"
+	"usb  tree	- show USB device tree\n"
 	"usb  info [dev] - show available USB devices\n"
 );
 #endif

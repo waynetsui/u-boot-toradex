@@ -156,7 +156,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 #define CONFIG_SYS_DDR_TIMING_3_400_REVB		0x00010000
 #define CONFIG_SYS_DDR_TIMING_0_400_REVB		0x00260802
-#define CONFIG_SYS_DDR_TIMING_1_400_REVB		0x39352322
+#define CONFIG_SYS_DDR_TIMING_1_400_REVB		0x39355322
 #define CONFIG_SYS_DDR_TIMING_2_400_REVB		0x1f9048ca
 #define CONFIG_SYS_DDR_TIMING_4_400_REVB		0x00000000
 #define CONFIG_SYS_DDR_TIMING_5_400_REVB		0x00000000
@@ -656,8 +656,8 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
  "netdev=eth0\0"						\
  "uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
- "loadaddr=2000000\0"			\
- "bootfile=uImage"	\
+ "loadaddr=1000000\0"			\
+ "bootfile=uImage\0"	\
  "tftpflash=tftpboot $loadaddr $uboot; "			\
 	"protect off " MK_STR(TEXT_BASE) " +$filesize; "	\
 	"erase " MK_STR(TEXT_BASE) " +$filesize; "		\
@@ -689,25 +689,30 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_HDBOOT			\
  "setenv bootargs root=/dev/$bdev rw rootdelay=30 "	\
  "console=$consoledev,$baudrate $othbootargs;"	\
- "bootm $norbootaddr - $norfdtaddr"
+ "usb start;"			\
+ "ext2load usb 0:1 $loadaddr /boot/$bootfile;"		\
+ "ext2load usb 0:1 $fdtaddr /boot/$fdtfile;"	\
+ "bootm $loadaddr - $fdtaddr"
 
 #define CONFIG_USB_FAT_BOOT		\
  "setenv bootargs root=/dev/ram rw "	\
- "console=$consoledev,$baudrate $othbootargs;"	\
- "fatload usb 0:1 $loadaddr $bootfile;"		\
- "fatload usb 0:1 $fdtaddr $fdtfile;"	\
- "fatload usb 0:1 $ramdiskaddr $ramdiskfile;"	\
+ "console=$consoledev,$baudrate $othbootargs "	\
+ "ramdisk_size=120000;"			\
+ "usb start;"			\
+ "fatload usb 0:2 $loadaddr $bootfile;"		\
+ "fatload usb 0:2 $fdtaddr $fdtfile;"	\
+ "fatload usb 0:2 $ramdiskaddr $ramdiskfile;"	\
  "bootm $loadaddr $ramdiskaddr $fdtaddr"
 
-#if 0
-#undef CONFIG_USB_EXT2_BOOT		\
+#define CONFIG_USB_EXT2_BOOT		\
  "setenv bootargs root=/dev/ram rw "	\
- "console=$consoledev,$baudrate $othbootargs;"	\
- "ext2load usb 0:1 $loadaddr $bootfile;"		\
- "ext2load usb 0:1 $fdtaddr $fdtfile;"	\
- "ext2load usb 0:1 $ramdiskaddr $ramdiskfile;"	\
+ "console=$consoledev,$baudrate $othbootargs "	\
+ "ramdisk_size=120000;"			\
+ "usb start;"			\
+ "ext2load usb 0:4 $loadaddr $bootfile;"		\
+ "ext2load usb 0:4 $fdtaddr $fdtfile;"	\
+ "ext2load usb 0:4 $ramdiskaddr $ramdiskfile;"	\
  "bootm $loadaddr $ramdiskaddr $fdtaddr"
-#endif
 
 #define CONFIG_NORBOOT		\
  "setenv bootargs root=/dev/$jffs2nor rw "	\
@@ -723,7 +728,8 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 #define CONFIG_RAMBOOTCOMMAND		\
  "setenv bootargs root=/dev/ram rw "	\
- "console=$consoledev,$baudrate $othbootargs;"	\
+ "console=$consoledev,$baudrate $othbootargs "	\
+ "ramdisk_size=120000;"			\
  "tftp $ramdiskaddr $ramdiskfile;"	\
  "tftp $loadaddr $bootfile;"		\
  "tftp $fdtaddr $fdtfile;"		\

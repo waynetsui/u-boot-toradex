@@ -47,10 +47,14 @@ extern void ddr_enable_ecc(unsigned int dram_size);
 #define USB_RST		0x08000000
 
 #define SYSCLK_MASK	0x00200000
-#define BOARDREV_MASK	0x00100000
+#define BOARDREV_MASK	0x10100000
+#define BOARDREV_A	0x10000000
+#define BOARDREV_B	0x10100000
+#define BOARDREV_C	0x00100000
 
 #define SYSCLK_66	66666666
 #define SYSCLK_50	50000000
+#define SYSCLK_100	100000000
 DECLARE_GLOBAL_DATA_PTR;
 
 phys_size_t  fixed_sdram(void);
@@ -58,13 +62,22 @@ phys_size_t  fixed_sdram(void);
 unsigned long get_board_sys_clk(ulong dummy)
 {
 	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
-	u32 val, sysclk;
+	u32 val, sysclk, temp;
 
 	val = pgpio->gpdat;
 	sysclk = val & SYSCLK_MASK;
-	if(sysclk == 0)
-		return SYSCLK_66;
-	else
+	temp = val & BOARDREV_MASK;
+	if (temp == BOARDREV_C)
+		if(sysclk == 0)
+			return SYSCLK_66;
+		else
+			return SYSCLK_100;
+	else if (temp == BOARDREV_B)
+		if(sysclk == 0)
+			return SYSCLK_66;
+		else
+			return SYSCLK_50;
+	else if (temp == BOARDREV_A)
 		return SYSCLK_50;
 }
 
@@ -107,7 +120,7 @@ int checkboard (void)
 	unsigned long sysclk;
 	u32 val, temp;
 	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
-	char board_rev;
+	char board_rev = 0;
 
 /* Bringing the following peripherals out of reset via GPIOs
  * 0= reset and 1= out of reset
@@ -124,13 +137,19 @@ int checkboard (void)
 
 	val = pgpio->gpdat;
 	temp = val & BOARDREV_MASK;
-	if(temp == 0)
-		board_rev = 'A';
-	else
+	if (temp == BOARDREV_C)
+		board_rev = 'C';
+	else if (temp == BOARDREV_B)
 		board_rev = 'B';
+	else if (temp == BOARDREV_A)
+		board_rev = 'A';
 
-	printf ("Board: %sRDB Rev%c, System ID: 0x%02x, "
-		"System Version: 0x%02x\n", gd->cpu->name, board_rev, 0, 0);
+	if (board_rev == 0)
+		printf ("Unknown P2020RDB board \n");
+	else
+		printf ("Board: %sRDB Rev%c, System ID: 0x%02x, "
+			"System Version: 0x%02x\n", gd->cpu->name,
+							board_rev, 0, 0);
 
 	clrsetbits_be32(&pgpio->gpdat, USB_RST, BOARD_PERI_RST);
 
@@ -179,6 +198,7 @@ phys_size_t fixed_sdram (void)
 	u32 val, temp;
 	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
 	sys_info_t sysinfo;
+	char board_rev = 0;
 
 	ddr->cs0_bnds = CONFIG_SYS_DDR_CS0_BNDS;
 	ddr->cs0_config = CONFIG_SYS_DDR_CS0_CONFIG;
@@ -195,10 +215,17 @@ phys_size_t fixed_sdram (void)
 	temp = val & BOARDREV_MASK;
 	get_sys_info(&sysinfo);
 
-	if(temp == 0) {
+	if (temp == BOARDREV_C)
+		board_rev = 'C';
+	else if (temp == BOARDREV_B)
+		board_rev = 'B';
+	else if (temp == BOARDREV_A)
+		board_rev = 'A';
+
+	printf("Configuring DDR for Board Rev%c, freq%d\n",\
+			 board_rev, sysinfo.freqDDRBus);
+	if(temp == BOARDREV_A) {
 		/* Rev A board*/
-		printf("configuring for Board REVA, freqDDR%d\n",\
-			 sysinfo.freqDDRBus);
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_REVA;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_REVA;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_REVA;
@@ -213,8 +240,7 @@ phys_size_t fixed_sdram (void)
 		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_REVA;
 	}
 	else if(sysinfo.freqDDRBus <= 400000000) {
-		printf("configuring for Board REVB, freqDDR%d\n",\
-				 sysinfo.freqDDRBus);
+		/* RevB and RevC boards */
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_400_REVB;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_400_REVB;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_400_REVB;
@@ -229,8 +255,6 @@ phys_size_t fixed_sdram (void)
 		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_400_REVB;
 	}
 	else if(sysinfo.freqDDRBus <= 534000000) {
-		printf("configuring for Board REVB, freqDDR%d\n", \
-				sysinfo.freqDDRBus);
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_533_REVB;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_533_REVB;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_533_REVB;
@@ -245,8 +269,6 @@ phys_size_t fixed_sdram (void)
 		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_533_REVB;
 	}
 	else if(sysinfo.freqDDRBus <= 667000000) {
-		printf("configuring for Board REVB, freqDDR%d\n",\
-			 sysinfo.freqDDRBus);
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_667_REVB;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_667_REVB;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_667_REVB;
@@ -261,8 +283,6 @@ phys_size_t fixed_sdram (void)
 		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_667_REVB;
 	}
 	else if(sysinfo.freqDDRBus <= 800000000) {
-		printf("configuring for Board REVB, freqDDR%d\n",\
-			 sysinfo.freqDDRBus);
 		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_800_REVB;
 		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_800_REVB;
 		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_800_REVB;

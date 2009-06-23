@@ -133,6 +133,9 @@ static char default_environment[] = {
 #if defined(CONFIG_RAMBOOTCOMMAND)
 	"ramboot=" CONFIG_RAMBOOTCOMMAND "\0"
 #endif
+#if defined(CONFIG_NFSBOOTCOMMAND)
+        "nfsboot=" CONFIG_NFSBOOTCOMMAND "\0"
+#endif
 #if defined(CONFIG_HDBOOT)
 	"usbhdboot=" CONFIG_HDBOOT "\0"
 #endif

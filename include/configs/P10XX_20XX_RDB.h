@@ -673,7 +673,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  "jffs2nor=mtdblock3\0"	\
  "norbootaddr=ef080000\0"	\
  "norfdtaddr=ef040000\0"	\
- "jffs2nand=mtdblock10\0"	\
+ "jffs2nand=mtdblock9\0"	\
  "nandbootaddr=100000\0"	\
  "nandfdtaddr=80000\0"
 

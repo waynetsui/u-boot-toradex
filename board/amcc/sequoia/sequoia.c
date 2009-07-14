@@ -567,3 +567,5 @@ void ft_board_setup(void *blob, bd_t *bd)
 	}
 }
 #endif /* CONFIG_NAND_U_BOOT */
+
+void abort () {}

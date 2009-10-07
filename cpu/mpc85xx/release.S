@@ -187,7 +187,7 @@ __secondary_start_page:
 	.align L1_CACHE_SHIFT
 	.globl __spin_table
 __spin_table:
-	.space CONFIG_NUM_CPUS*ENTRY_SIZE
+	.space CONFIG_MAX_CPUS*ENTRY_SIZE
 
 	/* Fill in the empty space.  The actual reset vector is
 	 * the last word of the page */

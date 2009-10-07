@@ -1,5 +1,5 @@
 /*
- * Copyright 2004,2007,2008 Freescale Semiconductor, Inc.
+ * Copyright 2004-2009 Freescale Semiconductor, Inc.
  * (C) Copyright 2002, 2003 Motorola Inc.
  * Xianghua Xiao (X.Xiao@motorola.com)
  *
@@ -38,33 +38,33 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 struct cpu_type cpu_type_list [] = {
-	CPU_TYPE_ENTRY(8533, 8533),
-	CPU_TYPE_ENTRY(8533, 8533_E),
-	CPU_TYPE_ENTRY(8536, 8536),
-	CPU_TYPE_ENTRY(8536, 8536_E),
-	CPU_TYPE_ENTRY(8540, 8540),
-	CPU_TYPE_ENTRY(8541, 8541),
-	CPU_TYPE_ENTRY(8541, 8541_E),
-	CPU_TYPE_ENTRY(8543, 8543),
-	CPU_TYPE_ENTRY(8543, 8543_E),
-	CPU_TYPE_ENTRY(8544, 8544),
-	CPU_TYPE_ENTRY(8544, 8544_E),
-	CPU_TYPE_ENTRY(8545, 8545),
-	CPU_TYPE_ENTRY(8545, 8545_E),
-	CPU_TYPE_ENTRY(8547, 8547_E),
-	CPU_TYPE_ENTRY(8548, 8548),
-	CPU_TYPE_ENTRY(8548, 8548_E),
-	CPU_TYPE_ENTRY(8555, 8555),
-	CPU_TYPE_ENTRY(8555, 8555_E),
-	CPU_TYPE_ENTRY(8560, 8560),
-	CPU_TYPE_ENTRY(8567, 8567),
-	CPU_TYPE_ENTRY(8567, 8567_E),
-	CPU_TYPE_ENTRY(8568, 8568),
-	CPU_TYPE_ENTRY(8568, 8568_E),
-	CPU_TYPE_ENTRY(8572, 8572),
-	CPU_TYPE_ENTRY(8572, 8572_E),
-	CPU_TYPE_ENTRY(P2020, P2020),
-	CPU_TYPE_ENTRY(P2020, P2020_E),
+	CPU_TYPE_ENTRY(8533, 8533, 1),
+	CPU_TYPE_ENTRY(8533, 8533_E, 1),
+	CPU_TYPE_ENTRY(8536, 8536, 1),
+	CPU_TYPE_ENTRY(8536, 8536_E, 1),
+	CPU_TYPE_ENTRY(8540, 8540, 1),
+	CPU_TYPE_ENTRY(8541, 8541, 1),
+	CPU_TYPE_ENTRY(8541, 8541_E, 1),
+	CPU_TYPE_ENTRY(8543, 8543, 1),
+	CPU_TYPE_ENTRY(8543, 8543_E, 1),
+	CPU_TYPE_ENTRY(8544, 8544, 1),
+	CPU_TYPE_ENTRY(8544, 8544_E, 1),
+	CPU_TYPE_ENTRY(8545, 8545, 1),
+	CPU_TYPE_ENTRY(8545, 8545_E, 1),
+	CPU_TYPE_ENTRY(8547, 8547_E, 1),
+	CPU_TYPE_ENTRY(8548, 8548, 1),
+	CPU_TYPE_ENTRY(8548, 8548_E, 1),
+	CPU_TYPE_ENTRY(8555, 8555, 1),
+	CPU_TYPE_ENTRY(8555, 8555_E, 1),
+	CPU_TYPE_ENTRY(8560, 8560, 1),
+	CPU_TYPE_ENTRY(8567, 8567, 1),
+	CPU_TYPE_ENTRY(8567, 8567_E, 1),
+	CPU_TYPE_ENTRY(8568, 8568, 1),
+	CPU_TYPE_ENTRY(8568, 8568_E, 1),
+	CPU_TYPE_ENTRY(8572, 8572, 2),
+	CPU_TYPE_ENTRY(8572, 8572_E, 2),
+	CPU_TYPE_ENTRY(P2020, P2020, 2),
+	CPU_TYPE_ENTRY(P2020, P2020_E, 2),
 };
 
 struct cpu_type *identify_cpu(u32 ver)
@@ -75,6 +75,19 @@ struct cpu_type *identify_cpu(u32 ver)
 			return &cpu_type_list[i];
 
 	return NULL;
+}
+
+int probecpu (void)
+{
+	uint svr;
+	uint ver;
+
+	svr = get_svr();
+	ver = SVR_SOC_VER(svr);
+
+	gd->cpu = identify_cpu(ver);
+
+	return 0;
 }
 
 int checkcpu (void)
@@ -96,23 +109,30 @@ int checkcpu (void)
 	int i;
 
 	svr = get_svr();
-	ver = SVR_SOC_VER(svr);
 	major = SVR_MAJ(svr);
 #ifdef CONFIG_MPC8536
 	major &= 0x7; /* the msb of this nibble is a mfg code */
 #endif
 	minor = SVR_MIN(svr);
 
-#if (CONFIG_NUM_CPUS > 1)
-	volatile ccsr_pic_t *pic = (void *)(CONFIG_SYS_MPC85xx_PIC_ADDR);
-	printf("CPU%d:  ", pic->whoami);
-#else
-	puts("CPU:   ");
+#ifndef CONFIG_MP
+	if (gd->cpu->num_cores > 1)
+		puts("#############################################\n"
+			"The system is detected to be MULTICORE,\n"
+			"but u-boot is built with UNI-CORE\n"
+			"To enable mutlticore Build set CONFIG_MP\n"
+		     "#############################################\n\n");
 #endif
 
-	cpu = identify_cpu(ver);
-	if (cpu) {
-		puts(cpu->name);
+	if (gd->cpu->num_cores > 1) {
+		volatile ccsr_pic_t *pic = (void *)(CONFIG_SYS_MPC85xx_PIC_ADDR);
+		printf("CPU%d:  ", pic->whoami);
+	}
+	else
+		puts("CPU:   ");
+
+	if (gd->cpu->name) {
+		puts(gd->cpu->name);
 
 		if (IS_E_PROCESSOR(svr))
 			puts("E");
@@ -146,7 +166,7 @@ int checkcpu (void)
 	get_sys_info(&sysinfo);
 
 	puts("Clock Configuration:");
-	for (i = 0; i < CONFIG_NUM_CPUS; i++) {
+	for (i = 0; i < gd->cpu->num_cores; i++) {
 		if (!(i & 3))
 			printf ("\n       ");
 		printf("CPU%d:%-4s MHz, ",

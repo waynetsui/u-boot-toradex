@@ -1,4 +1,5 @@
 /*
+ * Copyright 2009 Freescale Semiconductor, Inc.
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
@@ -25,6 +26,7 @@
 #define __ASM_GBL_DATA_H
 
 #include "asm/types.h"
+#include "asm/processor.h"
 
 /*
  * The following data structure is placed in some memory wich is
@@ -92,6 +94,9 @@ typedef	struct	global_data {
 #if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
 	u32 lbc_clk;
 #endif /* CONFIG_MPC85xx || CONFIG_MPC86xx */
+#if defined(CONFIG_MPC85xx)
+	struct cpu_type *cpu;
+#endif
 #if defined(CONFIG_MPC83XX) || defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
 	u32 i2c1_clk;
 	u32 i2c2_clk;

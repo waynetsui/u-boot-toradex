@@ -1,4 +1,5 @@
 /*
+ * Copyright 2009 Freescale Semiconductor, Inc.
  * (C) Copyright 2000-2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
@@ -286,7 +287,9 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,
 #endif
-
+#if defined(CONFIG_MPC85xx)
+	probecpu,
+#endif
 #if !defined(CONFIG_8xx_CPUCLK_DEFAULT)
 	get_clocks,		/* get CPU and bus clocks (etc.) */
 #if defined(CONFIG_TQM8xxL) && !defined(CONFIG_TQM866M) \

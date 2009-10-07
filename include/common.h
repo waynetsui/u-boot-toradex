@@ -1,4 +1,5 @@
 /*
+ * Copyright 2009 Freescale Semiconductor, Inc.
  * (C) Copyright 2000-2007
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
@@ -446,6 +447,7 @@ void		ppcDWstore(unsigned int *addr, unsigned int *value);
 #endif
 
 /* $(CPU)/cpu.c */
+int	probecpu      (void);
 int	checkcpu      (void);
 int	checkicache   (void);
 int	checkdcache   (void);

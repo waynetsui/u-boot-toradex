@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Freescale Semiconductor.
+ * Copyright 2008-2009 Freescale Semiconductor.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -147,7 +147,7 @@ static void pq3_mp_up(unsigned long bootpg)
 	out_be32(&gur->devdisr, devdisr);
 
 	/* release the hounds */
-	up = ((1 << CONFIG_NUM_CPUS) - 1);
+	up = ((1 << gd->cpu->num_cores) - 1);
 	bpcr = in_be32(&ecm->eebpcr);
 	bpcr |= (up << 24);
 	out_be32(&ecm->eebpcr, bpcr);
@@ -157,7 +157,7 @@ static void pq3_mp_up(unsigned long bootpg)
 	/* wait for everyone */
 	while (timeout) {
 		int i;
-		for (i = 0; i < CONFIG_NUM_CPUS; i++) {
+		for (i = 0; i < gd->cpu->num_cores; i++) {
 			if (table[i * NUM_BOOT_ENTRY + BOOT_ENTRY_ADDR_LOWER])
 				cpu_up_mask |= (1 << i);
 		};

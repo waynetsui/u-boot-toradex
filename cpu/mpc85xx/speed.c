@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 Freescale Semiconductor.
+ * Copyright 2004-2009 Freescale Semiconductor.
  * (C) Copyright 2003 Motorola Inc.
  * Xianghua Xiao, (X.Xiao@motorola.com)
  *
@@ -48,7 +48,7 @@ void get_sys_info (sys_info_t * sysInfo)
 	/* Divide before multiply to avoid integer
 	 * overflow for processor speeds above 2GHz */
 	half_freqSystemBus = sysInfo->freqSystemBus/2;
-	for (i = 0; i < CONFIG_NUM_CPUS; i++) {
+	for (i = 0; i  < gd->cpu->num_cores; i++) {
 		e500_ratio = ((gur->porpllsr) >> (i * 8 + 16)) & 0x3f;
 		sysInfo->freqProcessor[i] = e500_ratio * half_freqSystemBus;
 	}

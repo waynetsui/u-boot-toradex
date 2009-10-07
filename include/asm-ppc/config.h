@@ -29,4 +29,5 @@
 #endif
 #endif
 
+#define CONFIG_MAX_CPUS	8
 #endif

@@ -2445,12 +2445,21 @@ MPC8572DS_config:       unconfig
 	@$(MKCONFIG) -a MPC8572DS ppc mpc85xx mpc8572ds freescale
 
 P2020RDB_config \
+P2020RDB_SDCARD_config \
 P1021RDB_config \
 P1020RDB_config:	unconfig
 	@mkdir -p $(obj)include
 	@echo "#define CONFIG_MP" >>$(obj)include/config.h ;
+	@if [ "$(findstring _SDCARD_,$@)" ] ; then \
+		echo "#define CONFIG_SDCARD_U_BOOT" >> $(obj)include/config.h ; \
+		$(XECHO) "...SDCARD Boot" ; \
+	fi ;
 	@$(XECHO) "... setting CONFIG_MP." ;
 	@$(MKCONFIG) -a P10XX_20XX_RDB  ppc mpc85xx p10xx_p20xx_rdb freescale
+	@if [ "$(findstring _SDCARD_,$@)" ] ; then \
+		echo "TEXT_BASE = 0x11001000" > $(obj)board/freescale/p10xx_p20xx_rdb/config.tmp ; \
+		echo "CONFIG_SDCARD_U_BOOT = y" >> $(obj)include/config.mk ; \
+	fi ;
 
 P1011RDB_config \
 P1012RDB_config:	unconfig

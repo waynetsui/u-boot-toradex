@@ -24,6 +24,7 @@
 #include <asm/mmu.h>
 
 struct fsl_e_tlb_entry tlb_table[] = {
+#if !defined(CONFIG_SDCARD_U_BOOT)
 	/* TLB 0 - for temp stack in cache */
 	SET_TLB_ENTRY(0, CONFIG_SYS_INIT_RAM_ADDR, CONFIG_SYS_INIT_RAM_ADDR,
 			MAS3_SX|MAS3_SW|MAS3_SR, 0,
@@ -37,6 +38,7 @@ struct fsl_e_tlb_entry tlb_table[] = {
 	SET_TLB_ENTRY(0, CONFIG_SYS_INIT_RAM_ADDR + 12 * 1024 , CONFIG_SYS_INIT_RAM_ADDR + 12 * 1024,
 			MAS3_SX|MAS3_SW|MAS3_SR, 0,
 			0, 0, BOOKE_PAGESZ_4K, 0),
+#endif
 
 	/* TLB 1 */
 	/* *I*** - Covers boot page */

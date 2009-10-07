@@ -199,9 +199,15 @@
 #define CONFIG_BOARD_EARLY_INIT_R	/* call board_early_init_r function */
 
 
+#if !defined(CONFIG_SDCARD_U_BOOT)
 #define CONFIG_SYS_INIT_RAM_LOCK	1
 #define CONFIG_SYS_INIT_RAM_ADDR      0xffd00000	/* stack in RAM */
 #define CONFIG_SYS_INIT_RAM_END	0x00004000	/* End of used area in RAM */
+#else
+#undef  CONFIG_SYS_INIT_RAM_LOCK
+#define CONFIG_SYS_INIT_RAM_ADDR	0x07d00000	/* unused memory region */
+#define CONFIG_SYS_INIT_RAM_END		0x4000		/* we have SDRAM initialized */
+#endif
 
 #define CONFIG_SYS_GBL_DATA_SIZE	128	/* num bytes initial data */
 #define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
@@ -209,6 +215,10 @@
 
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)	/* Reserved for malloc */
+
+#ifdef CONFIG_SDCARD_U_BOOT
+#define CONFIG_SYS_RESERVED_LAW0	0
+#endif
 
 #define CONFIG_SYS_NAND_BASE		0xffa00000
 #define CONFIG_SYS_NAND_BASE_PHYS	CONFIG_SYS_NAND_BASE
@@ -430,6 +440,7 @@
 /*
  * Environment
  */
+#if !defined(CONFIG_SDCARD_U_BOOT)
 #define CONFIG_ENV_IS_IN_FLASH	1
 #if CONFIG_SYS_MONITOR_BASE > 0xfff80000
 #define CONFIG_ENV_ADDR		0xfff80000
@@ -438,6 +449,12 @@
 #endif
 #define CONFIG_ENV_SIZE		0x2000
 #define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) */
+#else
+#define CONFIG_ENV_IS_IN_SDCARD	 1
+#define CONFIG_ENV_SIZE		0x2000
+/*env located after the u-boot image, size is 8K*/
+#define CONFIG_ENV_ADDR_IN_RAM  ((TEXT_BASE - 0x1000) + 0x80000)
+#endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
 #define CONFIG_SYS_LOADS_BAUD_CHANGE	1	/* allow baudrate change */

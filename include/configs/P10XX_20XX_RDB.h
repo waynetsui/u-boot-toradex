@@ -48,6 +48,18 @@
 #define CONFIG_TSEC_ENET		/* tsec ethernet support */
 #define CONFIG_ENV_OVERWRITE
 
+/*
+ * eSPI - Enhanced SPI
+ */
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_SPANSION
+
+#define CONFIG_HARD_SPI
+#define CONFIG_FSL_ESPI
+
+#define CONFIG_CMD_SF
+#define CONFIG_SF_DEFAULT_SPEED 10000000
+#define CONFIG_SF_DEFAULT_MODE 0
 
 #define CONFIG_SYS_CLK_FREQ	66666666 /* SYSCLK on P10xx_p20xx RDB */
 #define CONFIG_DDR_CLK_FREQ	66666666 /* DDRCLK on P10xx_p20xx RDB */

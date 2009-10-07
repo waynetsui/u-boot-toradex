@@ -403,11 +403,6 @@ static int esdhc_init(struct mmc *mmc)
 
 	/* Enable cache snooping */
 	out_be32(&regs->scr, 0x00000040);
-#ifdef CONFIG_P2020
-	/* Enable AHB2MAG IRQ Bypass */
-	out_be32(&regs->scr, regs->scr | 0x00000020);
-#endif
-
 	out_be32(&regs->sysctl, SYSCTL_HCKEN | SYSCTL_IPGEN);
 
 	/* Set the initial clock speed */
@@ -460,6 +455,11 @@ static int esdhc_initialize(bd_t *bis)
 	mmc->f_max = MIN(gd->sdhc_clk, 50000000);
 
 	mmc_register(mmc);
+#ifdef CONFIG_P2020
+	/* Enable AHB2MAG IRQ Bypass */
+	out_be32(&regs->scr, regs->scr | 0x00000020);
+#endif
+
 
 	return 0;
 }

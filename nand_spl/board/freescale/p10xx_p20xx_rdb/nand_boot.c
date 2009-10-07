@@ -35,16 +35,16 @@ void initsdram(void)
 	out_be32(&ddr->cs0_bnds, CONFIG_SYS_DDR_CS0_BNDS);
 	out_be32(&ddr->cs0_config, CONFIG_SYS_DDR_CS0_CONFIG);
 
-	out_be32(&ddr->timing_cfg_3, CONFIG_SYS_DDR_TIMING_3);
-	out_be32(&ddr->timing_cfg_0, CONFIG_SYS_DDR_TIMING_0);
-	out_be32(&ddr->timing_cfg_1, CONFIG_SYS_DDR_TIMING_1);
-	out_be32(&ddr->timing_cfg_2, CONFIG_SYS_DDR_TIMING_2);
-	out_be32(&ddr->sdram_mode, CONFIG_SYS_DDR_MODE_1);
-	out_be32(&ddr->sdram_mode_2, CONFIG_SYS_DDR_MODE_2);
-	out_be32(&ddr->sdram_interval, CONFIG_SYS_DDR_INTERVAL);
+	out_be32(&ddr->timing_cfg_3, CONFIG_SYS_DDR_TIMING_3_REVA);
+	out_be32(&ddr->timing_cfg_0, CONFIG_SYS_DDR_TIMING_0_REVA);
+	out_be32(&ddr->timing_cfg_1, CONFIG_SYS_DDR_TIMING_1_REVA);
+	out_be32(&ddr->timing_cfg_2, CONFIG_SYS_DDR_TIMING_2_REVA);
+	out_be32(&ddr->sdram_mode, CONFIG_SYS_DDR_MODE_1_REVA);
+	out_be32(&ddr->sdram_mode_2, CONFIG_SYS_DDR_MODE_2_REVA);
+	out_be32(&ddr->sdram_interval, CONFIG_SYS_DDR_INTERVAL_REVA);
 	out_be32(&ddr->sdram_data_init, CONFIG_SYS_DDR_DATA_INIT);
-	out_be32(&ddr->sdram_clk_cntl, CONFIG_SYS_DDR_CLK_CTRL);
-	out_be32(&ddr->sdram_cfg_2, CONFIG_SYS_DDR_CONTROL2);
+	out_be32(&ddr->sdram_clk_cntl, CONFIG_SYS_DDR_CLK_CTRL_REVA);
+	out_be32(&ddr->sdram_cfg_2, CONFIG_SYS_DDR_CONTROL2_REVA);
 
 #if defined(CONFIG_DDR_ECC)
 	out_be32(&ddr->err_int_en, CONFIG_SYS_DDR_ERR_INT_EN);
@@ -54,7 +54,7 @@ void initsdram(void)
 	asm("sync;isync");
 
 	udelay(200);
-	out_be32(&ddr->sdram_cfg, CONFIG_SYS_DDR_CONTROL);
+	out_be32(&ddr->sdram_cfg, CONFIG_SYS_DDR_CONTROL_REVA);
 }
 
 void board_init_f_nand(void)

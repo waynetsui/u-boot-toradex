@@ -1,4 +1,6 @@
 /*
+ * Copyright 2009, Freescale Semiconductor, Inc
+ * Dipen Dudhat
  * Copyright 2007, Freescale Semiconductor, Inc
  * Andy Fleming
  *
@@ -71,8 +73,12 @@ uint esdhc_xfertyp(struct mmc_cmd *cmd, struct mmc_data *data)
 	uint xfertyp = 0;
 
 	if (data) {
+#ifdef CONFIG_SYS_FSL_ESDHC_USE_PIO
+		xfertyp |= XFERTYP_DPSEL;
+#else
 		xfertyp |= XFERTYP_DPSEL | XFERTYP_DMAEN;
 
+#endif
 		if (data->blocks > 1) {
 			xfertyp |= XFERTYP_MSBSEL;
 			xfertyp |= XFERTYP_BCEN;
@@ -95,6 +101,102 @@ uint esdhc_xfertyp(struct mmc_cmd *cmd, struct mmc_data *data)
 
 	return XFERTYP_CMD(cmd->cmdidx) | xfertyp;
 }
+
+#ifdef CONFIG_SYS_FSL_ESDHC_USE_PIO
+static int esdhc_setup_pio_data(struct mmc *mmc, struct mmc_data *data)
+{
+	int timeout;
+	struct fsl_esdhc *regs = mmc->priv;
+
+	if (!(data->flags & MMC_DATA_READ)) {
+		if ((in_be32(&regs->prsstat) & PRSSTAT_WPSPL) == 0) {
+			printf("\nThe SD card is locked. "
+					"Can not write to a locked card.\n\n");
+			return TIMEOUT;
+		}
+		out_be32(&regs->dsaddr, (u32)data->src);
+	} else
+		out_be32(&regs->dsaddr, (u32)data->dest);
+
+	out_be32(&regs->blkattr, data->blocks << 16 | data->blocksize);
+
+	/* Calculate the timeout period for data transactions */
+	timeout = __ilog2(mmc->tran_speed/10);
+	timeout -= 13;
+
+	if (timeout > 14)
+		timeout = 14;
+
+	if (timeout < 0)
+		timeout = 0;
+
+	clrsetbits_be32(&regs->sysctl, SYSCTL_TIMEOUT_MASK, timeout << 16);
+
+	return 0;
+}
+
+/*
+ * PIO Read/Write Mode reduce the performace as DMA is not used in this mode.
+ */
+
+static void
+esdhc_pio_read_write(struct mmc *mmc, struct mmc_data *data)
+{
+	volatile struct fsl_esdhc *regs = mmc->priv;
+	uint blocks;
+	uchar* buffer;
+	uint chunk_remain;
+	uint databuf;
+	uint size,irqstat;
+
+	if (data->flags & MMC_DATA_READ) {
+		blocks = data->blocks;
+		buffer = (uchar*) data->dest;
+		chunk_remain = 0;
+		while(blocks) {
+			size = data->blocksize;
+			irqstat = in_be32(&regs->irqstat);
+			while(!(in_be32(&regs->prsstat) & PRSSTAT_BREN));
+			while(size && (!(irqstat & IRQSTAT_TC))) {
+				if(chunk_remain == 0) {
+					udelay(1000);
+					irqstat = in_be32(&regs->irqstat);
+					databuf = in_be32(&regs->datport);
+					chunk_remain =4;
+				}
+				*buffer = databuf & 0xFF;
+				buffer++;
+				databuf >>= 8;
+				size--;
+				chunk_remain--;
+			}
+			blocks--;
+		}
+	} else {
+		blocks = data->blocks;
+		buffer = (uchar*) data->src;
+		chunk_remain = 4;
+		while(blocks) {
+			size = data->blocksize;
+			irqstat = in_be32(&regs->irqstat);
+			while(!(in_be32(&regs->prsstat) & PRSSTAT_BWEN));
+			while(size && (!(irqstat & IRQSTAT_TC))) {
+				databuf >>=8;
+				databuf |= (u32)*buffer<<24;
+				buffer++;
+				size--;
+				chunk_remain--;
+				if(chunk_remain == 0) {
+					irqstat = in_be32(&regs->irqstat);
+					out_be32(&regs->datport,databuf);
+					chunk_remain =4;
+				}
+			}
+			blocks--;
+		}
+	}
+}
+#endif
 
 static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 {
@@ -141,6 +243,23 @@ static int esdhc_setup_data(struct mmc *mmc, struct mmc_data *data)
 	return 0;
 }
 
+static void
+esdhc_dma_read_write(struct mmc *mmc)
+{
+	volatile struct fsl_esdhc *regs = mmc->priv;
+	uint irqstat;
+
+	do {
+		irqstat = in_be32(&regs->irqstat);
+
+		if (irqstat & DATA_ERR)
+			return COMM_ERR;
+
+		if (irqstat & IRQSTAT_DTOE)
+			return TIMEOUT;
+	} while (!(irqstat & IRQSTAT_TC) &&
+			(in_be32(&regs->prsstat) & PRSSTAT_DLA));
+}
 
 /*
  * Sends a command out on the bus.  Takes the mmc pointer,
@@ -174,7 +293,11 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	if (data) {
 		int err;
 
+#ifdef CONFIG_SYS_FSL_ESDHC_USE_PIO
+		err = esdhc_setup_pio_data(mmc, data);
+#else
 		err = esdhc_setup_data(mmc, data);
+#endif
 		if(err)
 			return err;
 	}
@@ -215,16 +338,11 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 
 	/* Wait until all of the blocks are transferred */
 	if (data) {
-		do {
-			irqstat = in_be32(&regs->irqstat);
-
-			if (irqstat & DATA_ERR)
-				return COMM_ERR;
-
-			if (irqstat & IRQSTAT_DTOE)
-				return TIMEOUT;
-		} while (!(irqstat & IRQSTAT_TC) &&
-				(in_be32(&regs->prsstat) & PRSSTAT_DLA));
+#ifdef CONFIG_SYS_FSL_ESDHC_USE_PIO
+		esdhc_pio_read_write(mmc,data);
+#else
+		esdhc_dma_read_write(mmc);
+#endif
 	}
 
 	out_be32(&regs->irqstat, -1);

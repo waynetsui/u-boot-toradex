@@ -435,6 +435,11 @@
 #define CONFIG_ETHPRIME		"eTSEC1"
 
 #define CONFIG_PHY_GIGE		1	/* Include GbE speed/duplex detection */
+
+#define CONFIG_HAS_ETH0
+#define CONFIG_HAS_ETH1
+#define CONFIG_HAS_ETH2
+
 #endif	/* CONFIG_TSEC_ENET */
 
 /*

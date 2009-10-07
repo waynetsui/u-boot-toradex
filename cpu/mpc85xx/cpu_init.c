@@ -180,6 +180,7 @@ void cpu_init_early_f_sd(void)
 {
 	unsigned int law_size;
 
+#if !defined(CONFIG_SYS_RAMBOOT)
 	/* set up CCSR if we want it moved */
 #if (CONFIG_SYS_CCSRBAR_DEFAULT != CONFIG_SYS_CCSRBAR_PHYS)
 	{
@@ -189,6 +190,7 @@ void cpu_init_early_f_sd(void)
 
 		temp = in_be32((volatile u32 *)CONFIG_SYS_CCSRBAR);
 	}
+#endif
 #endif
 
 	/* Pointer is writable since we allocated a register for it.

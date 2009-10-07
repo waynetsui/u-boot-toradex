@@ -154,6 +154,9 @@ phys_size_t fixed_sdram (void)
 
 	volatile ccsr_ddr_t *ddr= (ccsr_ddr_t *)CONFIG_SYS_MPC85xx_DDR_ADDR;
 	int d_init, dbw;
+	u32 val, temp;
+	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
+	unsigned int ddr_size;
 
 	ddr->cs0_bnds = CONFIG_SYS_DDR_CS0_BNDS;
 	ddr->cs0_config = CONFIG_SYS_DDR_CS0_CONFIG;
@@ -170,6 +173,30 @@ phys_size_t fixed_sdram (void)
 	ddr->sdram_data_init = CONFIG_SYS_DDR_DATA_INIT;
 	ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL;
 	ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2;
+
+	/* On P2020/P1020 RDB boards DDR size varies as follows:
+	 * REV A board (512MB P2020 and 256MB P1020)
+	 * REV B board (1GB P2020 and 256MB P1020)
+	 * FIXME:: must also program cs0_bnds register accordingly.
+	 * currently CSO_BNDS is programmed for 1G.
+	 */
+	if(gd->cpu->soc_ver == SVR_P1020 ||
+	   gd->cpu->soc_ver == SVR_P1020_E)
+		ddr_size = 256 * 1024 * 1024;
+	val = pgpio->gpdat;
+	temp = val & BOARDREV_MASK;
+	if(temp == 0) {
+		/* Rev A board*/
+		if(gd->cpu->soc_ver == SVR_P2020 ||
+			gd->cpu->soc_ver == SVR_P2020_E)
+			ddr_size = 512 * 1024 * 1024;
+	}
+	else {
+		/* Rev B board*/
+		if(gd->cpu->soc_ver == SVR_P2020 ||
+			gd->cpu->soc_ver == SVR_P2020_E)
+			ddr_size = 1024 * 1024 * 1024;
+	}
 
 	dbw = gd->cpu->ddr_data_width;
 	if(dbw == 32) {
@@ -207,7 +234,7 @@ phys_size_t fixed_sdram (void)
 	udelay(500);
 #endif
 
-	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+	return ddr_size;
 }
 
 #endif

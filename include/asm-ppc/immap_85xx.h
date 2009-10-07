@@ -1,7 +1,7 @@
 /*
  * MPC85xx Internal Memory Map
  *
- * Copyright 2007 Freescale Semiconductor.
+ * Copyright 2007-2009 Freescale Semiconductor.
  *
  * Copyright(c) 2002,2003 Motorola Inc.
  * Xianghua Xiao (x.xiao@motorola.com)
@@ -324,6 +324,15 @@ typedef struct ccsr_pcix {
 	uint	gas_timr;	/* 0x8e20 - PCIX Gasket Timer Register */
 	char	res11[476];
 } ccsr_pcix_t;
+
+typedef struct ccsr_gpio {
+	uint	gpdir;
+	uint	gpodr;
+	uint	gpdat;
+	uint	gpier;
+	uint	gpimr;
+	uint	gpicr;
+} ccsr_gpio_t;
 
 #define PCIX_COMMAND	0x62
 #define POWAR_EN	0x80000000
@@ -1686,6 +1695,8 @@ typedef struct ccsr_gur {
 #define CONFIG_SYS_MPC85xx_PCIX_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_PCIX_OFFSET)
 #define CONFIG_SYS_MPC85xx_PCIX2_OFFSET	(0x9000)
 #define CONFIG_SYS_MPC85xx_PCIX2_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_PCIX2_OFFSET)
+#define CONFIG_SYS_MPC85xx_GPIO_OFFSET	(0xF000)
+#define CONFIG_SYS_MPC85xx_GPIO_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_GPIO_OFFSET)
 #define CONFIG_SYS_MPC85xx_SATA1_OFFSET	(0x18000)
 #define CONFIG_SYS_MPC85xx_SATA1_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_SATA1_OFFSET)
 #define CONFIG_SYS_MPC85xx_SATA2_OFFSET	(0x19000)

@@ -116,7 +116,7 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_SPD_BUS_NUM		1
 
 /* These are used when DDR doesn't use SPD. */
-#define CONFIG_SYS_SDRAM_SIZE		256		/* DDR is 256MB */
+#define CONFIG_SYS_SDRAM_SIZE		512		/* DDR is 512MB */
 #define CONFIG_SYS_DDR_CS0_BNDS	0x0000001F
 #define CONFIG_SYS_DDR_CS0_CONFIG	0x80010102	/* Enable, no interleaving */
 #define CONFIG_SYS_DDR_TIMING_3	0x00000000
@@ -235,9 +235,15 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define PIXIS_VCLKL		0x1A	/* VELA VCLKL register */
 #define CONFIG_SYS_PIXIS_VBOOT_MASK	0xc0
 
+#if !defined(CONFIG_SDCARD_U_BOOT)
 #define CONFIG_SYS_INIT_RAM_LOCK	1
 #define CONFIG_SYS_INIT_RAM_ADDR	0xffd00000	/* Initial L1 address */
 #define CONFIG_SYS_INIT_RAM_END	0x00004000	/* End of used area in RAM */
+#else
+#undef  CONFIG_SYS_INIT_RAM_LOCK
+#define CONFIG_SYS_INIT_RAM_ADDR	0x07d00000	/* unused memory region */
+#define CONFIG_SYS_INIT_RAM_END	0x4000          /* we have SDRAM initialized */
+#endif
 
 #define CONFIG_SYS_GBL_DATA_SIZE	128	/* num bytes initial data */
 #define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
@@ -245,6 +251,10 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(1024 * 1024)	/* Reserved for malloc */
+
+#ifdef CONFIG_SDCARD_U_BOOT
+#define CONFIG_SYS_RESERVED_LAW0	0
+#endif
 
 #define CONFIG_SYS_NAND_BASE           0xffa00000
 #define CONFIG_SYS_NAND_BASE_PHYS      CONFIG_SYS_NAND_BASE

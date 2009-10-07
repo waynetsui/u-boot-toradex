@@ -2364,6 +2364,18 @@ ATUM8548_config:	unconfig
 MPC8536DS_config:       unconfig
 	@$(MKCONFIG) $(@:_config=) ppc mpc85xx mpc8536ds freescale
 
+MPC8536DS_SPIFLASH_config \
+MPC8536DS_SDCARD_config:	unconfig
+	@echo "" >$(obj)include/config.h;
+	@if [ "$(findstring _SPIFLASH_,$@)" ] ; then \
+		echo "#define CONFIG_SPIFLASH_U_BOOT" >> $(obj)include/config.h ; \
+	fi ;
+	@echo "#define CONFIG_SDCARD_U_BOOT" >> $(obj)include/config.h ;
+	@$(MKCONFIG) -a MPC8536DS ppc mpc85xx mpc8536ds freescale ; \
+		echo "TEXT_BASE = 0x11001000" > $(obj)board/freescale/mpc8536ds/config.tmp ; \
+		echo "#define CONFIG_SDCARD_U_BOOT" >> $(obj)include/config.h ;  \
+		echo "CONFIG_SDCARD_U_BOOT = y" >> $(obj)include/config.mk ;
+
 MPC8540ADS_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) ppc mpc85xx mpc8540ads freescale
 

@@ -1,5 +1,8 @@
 /*
- * Copyright 2007 Freescale Semiconductor.
+ * Copyright (C) 2007-2009 Freescale Semiconductor, Inc.
+ *
+ * Modified by Jason Jin, Jason.jin@freescale.com,
+ * 	       Mingkai hu, Mingkai.hu@freescale.com
  *
  * (C) Copyright 2003 Motorola Inc.
  * Modified by Xianghua Xiao, X.Xiao@motorola.com
@@ -163,6 +166,70 @@ void cpu_init_early_f(void)
 	invalidate_tlb(0);
 	init_tlbs();
 }
+
+#ifdef CONFIG_SDCARD_U_BOOT
+/*
+ * Used for booting from SD.
+ * The ROM code has set a 4G space in tlb0, and on the sd data structure,
+ * there also has a law0 setting for DDR(usually 1G, can be changed).
+ * we try to use those space as much as we can and will change those
+ * setting later.
+ * Change the CCSRBAR firstly as needed.
+*/
+void cpu_init_early_f_sd(void)
+{
+	unsigned int law_size;
+
+	/* set up CCSR if we want it moved */
+#if (CONFIG_SYS_CCSRBAR_DEFAULT != CONFIG_SYS_CCSRBAR_PHYS)
+	{
+		u32 temp;
+		temp = in_be32((volatile u32 *)CONFIG_SYS_CCSRBAR_DEFAULT);
+		out_be32((volatile u32 *)CONFIG_SYS_CCSRBAR_DEFAULT, CONFIG_SYS_CCSRBAR_PHYS >> 12);
+
+		temp = in_be32((volatile u32 *)CONFIG_SYS_CCSRBAR);
+	}
+#endif
+
+	/* Pointer is writable since we allocated a register for it.
+	 * the gd->used_law will be used in the init_laws(),
+	 * we prepared it here.
+	 */
+	gd = (gd_t *) (CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_GBL_DATA_OFFSET);
+
+	/* Clear initial global data */
+	memset((void *)gd, 0, sizeof(gd_t));
+
+	/* law0 has been set for DDR in the SD data structure, we defined a
+	 * CFG_RESERVED_LAW macro in the header file, try to avoid it being
+	 * overlaped in the init_laws().
+	 */
+	init_laws();
+
+	/*set a temp tlb15 in address space 1 for DDR*/
+	set_tlb(1, CONFIG_SYS_DDR_SDRAM_BASE, CONFIG_SYS_DDR_SDRAM_BASE,
+		MAS3_SX|MAS3_SW|MAS3_SR, 0,
+		1, 15, BOOKE_PAGESZ_1G, 1);
+
+	/*And tlb14 for CCSR registers*/
+	set_tlb(1, CONFIG_SYS_CCSRBAR, CONFIG_SYS_CCSRBAR_PHYS,
+		MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,
+		1, 14, BOOKE_PAGESZ_1M, 1);
+}
+
+/*This run in space 1 */
+void cpu_init_early_f_sd_continue(void)
+{
+	/* Disable tlb0 which intialized in the ROM
+	 * Normal init for space 0
+	 */
+	disable_tlb(0);
+	init_tlbs();
+
+	/*Reinitialize the tlb for DDR in space 0*/
+	setup_ddr_tlbs(CONFIG_SYS_SDRAM_SIZE);
+}
+#endif
 
 /*
  * Breathe some life into the CPU...

@@ -184,6 +184,7 @@ _start_e500:
 	mtspr	DBCR0,r0
 #endif
 
+#if !defined(CONFIG_SDCARD_U_BOOT)
 	/* create a temp mapping in AS=1 to the 4M boot window */
 	lis     r6,FSL_BOOKE_MAS0(1, 15, 0)@h
 	ori     r6,r6,FSL_BOOKE_MAS0(1, 15, 0)@l
@@ -254,9 +255,10 @@ switch_as:
 	dcbtls	0,r0,r3
 	addi	r3,r3,CONFIG_SYS_CACHELINE_SIZE
 	bdnz	1b
+#endif
 
 	/* Jump out the last 4K page and continue to 'normal' start */
-#ifdef CONFIG_SYS_RAMBOOT
+#if defined(CONFIG_SYS_RAMBOOT) || defined(CONFIG_SDCARD_U_BOOT)
 	b	_start_cont
 #else
 	/* Calculate absolute address in FLASH and jump there		*/
@@ -296,7 +298,20 @@ _start_cont:
 	stw	r0,+12(r1)		/* Save return addr (underflow vect) */
 
 	GET_GOT
+#if !defined(CONFIG_SDCARD_U_BOOT)
 	bl	cpu_init_early_f
+#else
+	bl	cpu_init_early_f_sd
+
+	/*Then switch to space 1*/
+	lis     r3,(MSR_CE|MSR_ME|MSR_DE|MSR_IS|MSR_DS)@h
+	ori     r3,r3,(MSR_CE|MSR_ME|MSR_DE|MSR_IS|MSR_DS)@l
+	mtmsr	r3
+	isync
+	msync
+
+	bl	cpu_init_early_f_sd_continue
+#endif
 
 	/* switch back to AS = 0 */
 	lis	r3,(MSR_CE|MSR_ME|MSR_DE)@h

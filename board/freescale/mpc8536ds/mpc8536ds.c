@@ -73,6 +73,10 @@ initdram(int board_type)
 
 	puts("Initializing....");
 
+#ifdef CONFIG_SDCARD_U_BOOT
+	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+#endif
+
 #ifdef CONFIG_SPD_EEPROM
 	dram_size = fsl_ddr_sdram();
 #else

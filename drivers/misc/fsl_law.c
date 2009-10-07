@@ -170,6 +170,10 @@ void init_laws(void)
 
 	gd->used_laws = ~((1 << FSL_HW_NUM_LAWS) - 1);
 
+#ifdef CONFIG_SDCARD_U_BOOT
+	gd->used_laws |= (1 << CONFIG_SYS_RESERVED_LAW0);
+#endif
+
 	for (i = 0; i < num_law_entries; i++) {
 		if (law_table[i].index == -1)
 			set_next_law(law_table[i].addr, law_table[i].size,

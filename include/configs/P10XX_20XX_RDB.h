@@ -397,6 +397,18 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 #define CONFIG_MISC_INIT_R
 
+/************************************************************
+ * USB support
+ ************************************************************/
+
+#define CONFIG_CMD_FAT
+#define CONFIG_CMD_USB
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_FSL
+#define CONFIG_EHCI_HCD_INIT_AFTER_RESET
+#define CONFIG_SYS_USB_EHCI_REGS_BASE		(CONFIG_SYS_CCSRBAR+0x22000)
+
 #if defined(CONFIG_TSEC_ENET)
 
 #ifndef CONFIG_NET_MULTI

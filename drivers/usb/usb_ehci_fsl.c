@@ -1,5 +1,6 @@
 /*
  * (C) Copyright 2008, Excito Elektronik i Sk=E5ne AB
+ * (C) Copyright 2009 Freescale Semiconductor, Inc.
  *
  * Author: Tor Krill tor@excito.com
  *
@@ -22,7 +23,9 @@
 #include <common.h>
 #include <pci.h>
 #include <usb.h>
+#if defined(CONFIG_MPC83XX)
 #include <mpc83xx.h>
+#endif
 #include <asm/io.h>
 #include <asm/bitops.h>
 
@@ -38,14 +41,21 @@
  */
 int ehci_hcd_init(void)
 {
+#if defined(CONFIG_MPC83XX)
 	volatile immap_t *im = (immap_t *)CONFIG_SYS_IMMR;
+#endif
 	uint32_t addr, temp;
 
+#if defined(CONFIG_MPC83XX)
 	addr = (uint32_t)&(im->usb[0]);
+#elif defined(CONFIG_MPC85xx)
+	addr = CONFIG_SYS_USB_EHCI_REGS_BASE;
+#endif
 	hccr = (struct ehci_hccr *)(addr + FSL_SKIP_PCI);
 	hcor = (struct ehci_hcor *)((uint32_t) hccr +
 			HC_LENGTH(ehci_readl(&hccr->cr_capbase)));
 
+#if defined(CONFIG_MPC83XX)
 	/* Configure clock */
 	clrsetbits_be32(&(im->clk.sccr), MPC83XX_SCCR_USB_MASK,
 			MPC83XX_SCCR_USB_DRCM_11);
@@ -60,6 +70,7 @@ int ehci_hcd_init(void)
 		temp = in_be32((void *)(addr + FSL_SOC_USB_CTRL));
 		udelay(1000);
 	} while (!(temp & PHY_CLK_VALID));
+#endif
 
 	/* Set to Host mode */
 	temp = in_le32((void *)(addr + FSL_SOC_USB_USBMODE));
@@ -71,7 +82,11 @@ int ehci_hcd_init(void)
 
 	/* Init phy */
 	/* TODO: handle different phys? */
+#if defined(CONFIG_MPC83XX)
 	out_le32(&(hcor->or_portsc[0]), PORT_PTS_UTMI);
+#elif defined(CONFIG_MPC85xx)
+	out_le32(&(hcor->or_portsc[0]), PORT_PTS_ULPI);
+#endif
 
 	/* Enable interface. */
 	temp = in_be32((void *)(addr + FSL_SOC_USB_CTRL));
@@ -81,9 +96,11 @@ int ehci_hcd_init(void)
 	out_be32((void *)(addr + FSL_SOC_USB_AGECNTTHRSH), 0x00000040);
 	out_be32((void *)(addr + FSL_SOC_USB_SICTRL), 0x00000001);
 
+#if !defined(CONFIG_MPC85xx)
 	/* Enable interface. */
 	temp = in_be32((void *)(addr + FSL_SOC_USB_CTRL));
 	out_be32((void *)(addr + FSL_SOC_USB_CTRL), temp | USB_EN);
+#endif
 
 	temp = in_le32((void *)(addr + FSL_SOC_USB_USBMODE));
 

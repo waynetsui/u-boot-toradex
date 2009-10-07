@@ -157,22 +157,12 @@ phys_size_t fixed_sdram (void)
 	u32 val, temp;
 	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
 	unsigned int ddr_size;
+	sys_info_t sysinfo;
 
 	ddr->cs0_bnds = CONFIG_SYS_DDR_CS0_BNDS;
 	ddr->cs0_config = CONFIG_SYS_DDR_CS0_CONFIG;
 	ddr->cs0_config_2 = CONFIG_SYS_DDR_CS0_CONFIG_2;
-	ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3;
-	ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0;
-	ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1;
-	ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2;
-	ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4;
-	ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5;
-	ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1;
-	ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2;
-	ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL;
 	ddr->sdram_data_init = CONFIG_SYS_DDR_DATA_INIT;
-	ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL;
-	ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2;
 
 	/* On P2020/P1020 RDB boards DDR size varies as follows:
 	 * REV A board (512MB P2020 and 256MB P1020)
@@ -180,24 +170,103 @@ phys_size_t fixed_sdram (void)
 	 * FIXME:: must also program cs0_bnds register accordingly.
 	 * currently CSO_BNDS is programmed for 1G.
 	 */
+	val = pgpio->gpdat;
+	temp = val & BOARDREV_MASK;
+	get_sys_info(&sysinfo);
 	if(gd->cpu->soc_ver == SVR_P1020 ||
 	   gd->cpu->soc_ver == SVR_P1020_E)
 		ddr_size = 256 * 1024 * 1024;
-	val = pgpio->gpdat;
-	temp = val & BOARDREV_MASK;
-	if(temp == 0) {
-		/* Rev A board*/
-		if(gd->cpu->soc_ver == SVR_P2020 ||
-			gd->cpu->soc_ver == SVR_P2020_E)
+	if(gd->cpu->soc_ver == SVR_P2020 ||
+	   gd->cpu->soc_ver == SVR_P2020_E) {
+		if(temp == 0)
 			ddr_size = 512 * 1024 * 1024;
-	}
-	else {
-		/* Rev B board*/
-		if(gd->cpu->soc_ver == SVR_P2020 ||
-			gd->cpu->soc_ver == SVR_P2020_E)
+		else
 			ddr_size = 1024 * 1024 * 1024;
 	}
-
+	if(temp == 0) {
+		/* Rev A board*/
+		printf("configuring for Board REVA, freqDDR%d\n",\
+			 sysinfo.freqDDRBus);
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_REVA;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_REVA;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_REVA;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_REVA;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_REVA;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_REVA;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_REVA;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_REVA;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_REVA;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_REVA;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_REVA;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_REVA;
+	}
+	else if(sysinfo.freqDDRBus <= 400000000) {
+		printf("configuring for Board REVB, freqDDR%d\n",\
+				 sysinfo.freqDDRBus);
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_400_REVB;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_400_REVB;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_400_REVB;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_400_REVB;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_400_REVB;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_400_REVB;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_400_REVB;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_400_REVB;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_400_REVB;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_400_REVB;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_400_REVB;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_400_REVB;
+	}
+	else if(sysinfo.freqDDRBus <= 534000000) {
+		printf("configuring for Board REVB, freqDDR%d\n", \
+				sysinfo.freqDDRBus);
+		ddr_size = 1024 *1024 *1024;
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_533_REVB;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_533_REVB;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_533_REVB;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_533_REVB;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_533_REVB;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_533_REVB;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_533_REVB;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_533_REVB;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_533_REVB;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_533_REVB;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_533_REVB;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_533_REVB;
+	}
+	else if(sysinfo.freqDDRBus <= 667000000) {
+		printf("configuring for Board REVB, freqDDR%d\n",\
+			 sysinfo.freqDDRBus);
+		ddr_size = 1024 *1024 *1024;
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_667_REVB;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_667_REVB;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_667_REVB;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_667_REVB;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_667_REVB;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_667_REVB;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_667_REVB;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_667_REVB;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_667_REVB;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_667_REVB;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_667_REVB;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_667_REVB;
+	}
+	else if(sysinfo.freqDDRBus <= 800000000) {
+		printf("configuring for Board REVB, freqDDR%d\n",\
+			 sysinfo.freqDDRBus);
+		ddr->timing_cfg_3 = CONFIG_SYS_DDR_TIMING_3_800_REVB;
+		ddr->timing_cfg_0 = CONFIG_SYS_DDR_TIMING_0_800_REVB;
+		ddr->timing_cfg_1 = CONFIG_SYS_DDR_TIMING_1_800_REVB;
+		ddr->timing_cfg_2 = CONFIG_SYS_DDR_TIMING_2_800_REVB;
+		ddr->timing_cfg_4 = CONFIG_SYS_DDR_TIMING_4_800_REVB;
+		ddr->timing_cfg_5 = CONFIG_SYS_DDR_TIMING_5_800_REVB;
+		ddr->sdram_mode = CONFIG_SYS_DDR_MODE_1_800_REVB;
+		ddr->sdram_mode_2 = CONFIG_SYS_DDR_MODE_2_800_REVB;
+		ddr->sdram_interval = CONFIG_SYS_DDR_INTERVAL_800_REVB;
+		ddr->sdram_clk_cntl = CONFIG_SYS_DDR_CLK_CTRL_800_REVB;
+		ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL_800_REVB;
+		ddr->sdram_cfg_2 = CONFIG_SYS_DDR_CONTROL2_800_REVB;
+	}
+ 
 	dbw = gd->cpu->ddr_data_width;
 	if(dbw == 32) {
 		/* need to check if this is required for P1020/P2020 also */
@@ -215,9 +284,9 @@ phys_size_t fixed_sdram (void)
 
 	udelay(500);
 
-	ddr->sdram_cfg = CONFIG_SYS_DDR_CONTROL;
 	if(dbw == 32)
 		ddr->sdram_cfg |= 0x00080000;
+	ddr->sdram_cfg |= SDRAM_CFG_MEM_EN;
 
 #if defined(CONFIG_ECC_INIT_VIA_DDRCONTROLLER)
 	d_init = 1;

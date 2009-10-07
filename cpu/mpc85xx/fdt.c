@@ -271,5 +271,10 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 	ft_fixup_cpu(blob, (u64)bd->bi_memstart + (u64)bd->bi_memsize);
 #endif
 
+#ifdef CONFIG_MMC
+	do_fixup_by_compat_u32(blob, "fsl,esdhc", "clock-frequency",
+			       bd->bi_busfreq / 2, 1);
+#endif
+
 	ft_fixup_cache(blob);
 }

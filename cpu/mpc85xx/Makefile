@@ -1,4 +1,5 @@
 #
+# Copyright (C) 2009 Freescale Semiconductor, Inc. All Rights Reserved.
 # (C) Copyright 2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
@@ -49,6 +50,10 @@ COBJS-$(CONFIG_MPC8544) += ddr-gen2.o
 COBJS-$(CONFIG_MPC8572) += ddr-gen3.o
 COBJS-$(CONFIG_MPC8536) += ddr-gen3.o
 COBJS-$(CONFIG_P2020)	+= ddr-gen3.o
+COBJS-$(CONFIG_P1020)	+= ddr-gen3.o
+COBJS-$(CONFIG_P1021)	+= ddr-gen3.o
+COBJS-$(CONFIG_P1011)	+= ddr-gen3.o
+COBJS-$(CONFIG_P1012)	+= ddr-gen3.o
 
 COBJS-$(CONFIG_MPC8536) += mpc8536_serdes.o
 COBJS	= traps.o cpu.o cpu_init.o speed.o interrupts.o tlb.o \

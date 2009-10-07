@@ -61,7 +61,10 @@
 #define CONFIG_SF_DEFAULT_SPEED 10000000
 #define CONFIG_SF_DEFAULT_MODE 0
 
-#define CONFIG_SYS_CLK_FREQ	66666666 /* SYSCLK on P10xx_p20xx RDB */
+#ifndef __ASSEMBLY__
+extern unsigned long get_board_sys_clk(unsigned long dummy);
+#endif
+#define CONFIG_SYS_CLK_FREQ	get_board_sys_clk(0) /*sysclk for P10xx20xxRDB */
 #define CONFIG_DDR_CLK_FREQ	66666666 /* DDRCLK on P10xx_p20xx RDB */
 
 /*

@@ -45,9 +45,28 @@ extern void ddr_enable_ecc(unsigned int dram_size);
 #define GPIO_DIR	0x060f0000
 #define BOARD_PERI_RST	0x020f0000
 #define USB_RST		0x08000000
+
+#define SYSCLK_MASK	0x00200000
+#define BOARDREV_MASK	0x00100000
+
+#define SYSCLK_66	66666666
+#define SYSCLK_50	50000000
 DECLARE_GLOBAL_DATA_PTR;
 
 phys_size_t  fixed_sdram(void);
+
+unsigned long get_board_sys_clk(ulong dummy)
+{
+	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
+	u32 val, sysclk;
+
+	val = pgpio->gpdat;
+	sysclk = val & SYSCLK_MASK;
+	if(sysclk == 0)
+		return SYSCLK_66;
+	else
+		return SYSCLK_50;
+}
 
 int board_early_init_f (void)
 {
@@ -63,10 +82,10 @@ int board_early_init_f (void)
 
 int checkboard (void)
 {
-	u32 val;
+	unsigned long sysclk;
+	u32 val, temp;
 	volatile ccsr_gpio_t *pgpio = (void *)(CONFIG_SYS_MPC85xx_GPIO_ADDR);
-	printf ("Board: %sRDB, System ID: 0x%02x, "
-		"System Version: 0x%02x\n", gd->cpu->name, 0, 0);
+	char board_rev;
 
 /* Bringing the following peripherals out of reset via GPIOs
  * 0= reset and 1= out of reset
@@ -82,6 +101,15 @@ int checkboard (void)
 	setbits_be32(&pgpio->gpdir, GPIO_DIR);
 
 	val = pgpio->gpdat;
+	temp = val & BOARDREV_MASK;
+	if(temp == 0)
+		board_rev = 'A';
+	else
+		board_rev = 'B';
+
+	printf ("Board: %sRDB Rev%c, System ID: 0x%02x, "
+		"System Version: 0x%02x\n", gd->cpu->name, board_rev, 0, 0);
+
 	clrsetbits_be32(&pgpio->gpdat, USB_RST, BOARD_PERI_RST);
 
 	return 0;
@@ -433,3 +461,4 @@ void board_lmb_reserve(struct lmb *lmb)
 	cpu_mp_lmb_reserve(lmb);
 }
 #endif
+

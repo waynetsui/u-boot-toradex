@@ -157,7 +157,7 @@ esdhc_pio_read_write(struct mmc *mmc, struct mmc_data *data)
 			size = data->blocksize;
 			irqstat = in_be32(&regs->irqstat);
 			while(!(in_be32(&regs->prsstat) & PRSSTAT_BREN));
-			while(size && (!(irqstat & IRQSTAT_TC))) {
+			do {
 				if(chunk_remain == 0) {
 					udelay(1000);
 					irqstat = in_be32(&regs->irqstat);
@@ -169,7 +169,7 @@ esdhc_pio_read_write(struct mmc *mmc, struct mmc_data *data)
 				databuf >>= 8;
 				size--;
 				chunk_remain--;
-			}
+			} while(size);
 			blocks--;
 		}
 	} else {

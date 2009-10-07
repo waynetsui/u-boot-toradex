@@ -461,6 +461,9 @@
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
+#ifdef CONFIG_P2020
+#define CONFIG_SYS_FSL_ESDHC_USE_PIO /* P2020 eSDHC DMA is not functional*/
+#endif
 #endif
 
 /*

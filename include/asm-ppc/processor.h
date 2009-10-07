@@ -1014,13 +1014,14 @@ struct cpu_type {
 	char name[15];
 	u32 soc_ver;
 	u32 num_cores;
+	u32 ddr_data_width;
 };
 
 struct cpu_type *identify_cpu(u32 ver);
 
 #if defined(CONFIG_MPC85xx)
-#define CPU_TYPE_ENTRY(n, v, nc) \
-	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), }
+#define CPU_TYPE_ENTRY(n, v, nc, dw) \
+	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), .ddr_data_width = (dw), }
 #else
 #if defined(CONFIG_MPC83XX)
 #define CPU_TYPE_ENTRY(x) {#x, SPR_##x}

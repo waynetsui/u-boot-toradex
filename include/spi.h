@@ -50,16 +50,38 @@
 #define SPI_XFER_END	0x02			/* Deassert CS after transfer */
 
 /*-----------------------------------------------------------------------
+ * Representation of a eSPI transaction, which is always embeded in
+ * structure spi_slave.
+ *
+ *   cmd_len:	Length of the command.
+ *   data_len:	Length of the transmit/receive data.
+ *   tx_buf:	Buffer to store the transmit command and data.
+ *   rx_buf:	Buffer to store the receive data.
+ *   flags:	Flags to indicate the begin/end of the transfer.
+ */
+struct espi_transfer {
+	unsigned int	cmd_len;
+	unsigned int	data_len;
+	const void	*tx_buf;
+	void		*rx_buf;
+
+	unsigned long	flags;
+};
+
+/*-----------------------------------------------------------------------
  * Representation of a SPI slave, i.e. what we're communicating with.
  *
  * Drivers are expected to extend this with controller-specific data.
  *
  *   bus:	ID of the bus that the slave is attached to.
  *   cs:	ID of the chip select connected to the slave.
+ *   transfer:	Represent an eSPI transaction.
  */
 struct spi_slave {
 	unsigned int	bus;
 	unsigned int	cs;
+
+	struct espi_transfer *transfer;
 };
 
 /*-----------------------------------------------------------------------
@@ -146,6 +168,14 @@ void spi_release_bus(struct spi_slave *slave);
  */
 int  spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		void *din, unsigned long flags);
+
+/*-----------------------------------------------------------------------
+ * eSPI transfer
+ *
+ *   Returns: 0 on success, not 0 on failure
+ */
+int  espi_xfer(struct spi_slave *slave);
+
 
 /*-----------------------------------------------------------------------
  * Determine if a SPI chipselect is valid.

@@ -1,4 +1,5 @@
 #
+# Copyright (C) 2009 Freescale Semiconductor, Inc. All rights reserved.
 # (C) Copyright 2000-2008
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
@@ -2430,6 +2431,20 @@ MPC8572DS_config:       unconfig
 		$(XECHO) "... enabling 36-bit physical addressing." ; \
 	fi
 	@$(MKCONFIG) -a MPC8572DS ppc mpc85xx mpc8572ds freescale
+
+P2020RDB_config \
+P1021RDB_config \
+P1020RDB_config:	unconfig
+	@mkdir -p $(obj)include
+	@echo "#define CONFIG_MP" >>$(obj)include/config.h ;
+	@$(XECHO) "... setting CONFIG_MP." ;
+	@$(MKCONFIG) -a P10XX_20XX_RDB  ppc mpc85xx p10xx_p20xx_rdb freescale
+
+P1011RDB_config \
+P1012RDB_config:	unconfig
+	@mkdir -p $(obj)include
+	@$(XECHO) "Uniprocessor Build" ;
+	@$(MKCONFIG) -a P10XX_20XX_RDB  ppc mpc85xx p10xx_p20xx_rdb freescale
 
 PM854_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) ppc mpc85xx pm854

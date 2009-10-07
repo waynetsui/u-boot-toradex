@@ -1,0 +1,85 @@
+Overview
+--------
+P2020RDB is a Low End Dual core platform supporting the P2020 processor of QorIQ
+series.
+The other processors in the Low End and Ultra Low End QorIQ series are:
+P1020 32 bit DDR, dual core with a different eTSEC controller.
+P1021 32 bit DDR, dual core with QE.
+P1011 P1012, single core models of the series.
+
+All are e500 based.
+
+All the above processors are planned to be shipped with the same RDB platform.
+
+Building U-boot
+-----------
+To build the u-boot for P2020RDB:
+	make P2020RDB_config
+	make
+
+The code also contains the support  for other processors in the series viz.
+P1020RDB_config, P1021RDB_config, P1011RDB_config, P1012RDB_config.
+
+Flash Banks
+-----------
+RDB board for P2020,P1020,...has two flash banks. They are both present on boot.
+
+Booting is always from the boot bank at 0xec00_0000.
+
+
+Memory Map
+----------
+
+0xef00_0000 - 0xef7f_ffff	Alernate bank		8MB
+0xe800_0000 - 0xefff_ffff	Boot bank		8MB
+
+0xef78_0000 - 0xef7f_ffff	Alternate u-boot address	512KB
+0xeff8_0000 - 0xefff_ffff	Boot u-boot address		512KB
+
+Switch settings to boot from the NOR flash banks
+------------------------------------------------
+On the connector P7 on the board,
+When jumper is placed across pins 7 & 8 (the default bank is selected)
+When jumper is placed across pins 7 & 5 (the alternate bank is selected)
+
+Flashing Images
+---------------
+
+To place a new u-boot image in the alternate flash bank and then reset with that
+ new image temporarily, use this:
+
+	tftp 1000000 u-boot.bin
+	erase ef780000 ef7fffff
+	cp.b 1000000 ef780000 80000
+
+Now to boot from the alternate bank change the jumper to short pins 7 & 5
+of the P7 connector on the board.
+
+To program the image in the boot flash bank:
+
+	tftp 1000000 u-boot.bin
+	protect off all
+	erase eff80000 ffffffff
+	cp.b 1000000 eff80000 80000
+
+Using the Device Tree Source File
+---------------------------------
+To create the DTB (Device Tree Binary) image file,
+use a command similar to this:
+
+	dtc -b 0 -f -I dts -O dtb p2020rdb.dts > p2020rdb.dtb
+
+Likely, that .dts file will come from here;
+
+	linux-2.6/arch/powerpc/boot/dts/p2020rdb.dts
+
+
+Booting Linux
+-------------
+
+Place a linux uImage in the TFTP disk area.
+
+	tftp 1000000 uImage.p2020rdb
+	tftp 2000000 rootfs.ext2.gz.uboot
+	tftp c00000 p2020rdb.dtb
+	bootm 1000000 2000000 c00000

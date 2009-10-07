@@ -403,6 +403,10 @@ static int esdhc_init(struct mmc *mmc)
 
 	/* Enable cache snooping */
 	out_be32(&regs->scr, 0x00000040);
+#ifdef CONFIG_P2020
+	/* Enable AHB2MAG IRQ Bypass */
+	out_be32(&regs->scr, regs->scr | 0x00000020);
+#endif
 
 	out_be32(&regs->sysctl, SYSCTL_HCKEN | SYSCTL_IPGEN);
 

@@ -183,13 +183,15 @@
 	"consoledev=ttyS0\0"		  \
 	"rootpath=/opt/nfs-exports/ltib-omap\0" \
 	"ramdisksize=89000\0"			\
+	"kernelimage=uImage\0" \
 	"nfsoptions=,wsize=1500,rsize=1500\0"				\
-	"nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp ${otherbootargs};tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
-	"ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
+	"nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp ${otherbootargs};tftpboot ${loadaddr} ${kernelimage};bootm ${loadaddr}\0" \
+	"ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};tftpboot ${loadaddr} ${kernelimage};tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
 	"xipboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};bootm ${loadaddr} ${rootfsaddr}\0" \
 	"rootdevice=/dev/mtdblock4\0" \
 	"rootfstype=yaffs\0" \
-	"mtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=${rootdevice} rootfstype=${rootfstype} rw ${otherbootargs};bootm ${loadaddr}\0"
+	"mtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=${rootdevice} rootfstype=${rootfstype} rw ${otherbootargs};bootm ${loadaddr}\0" \
+	"sdmtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=${rootdevice} rootfstype=${rootfstype} rw ${otherbootargs};mmcinit;fatload mmc0 ${loadaddr} ${kernelimage}; bootm ${loadaddr}\0"
 
 #define CONFIG_BOOTCOMMAND "run xipboot"
 

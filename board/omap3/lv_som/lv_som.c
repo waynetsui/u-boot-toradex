@@ -57,7 +57,7 @@ int board_init(void)
 
 
 
-// GPMC settings for LV SOM
+// GPMC settings for LV SOM Ethernet chip
 #define LV_SOM_NET_GPMC_CONFIG1  0x00001000
 #define LV_SOM_NET_GPMC_CONFIG2  0x00080802
 #define LV_SOM_NET_GPMC_CONFIG3  0x00000000
@@ -76,6 +76,27 @@ u32 gpmc_enet[] = {
 	LV_SOM_NET_GPMC_CONFIG5,
 	LV_SOM_NET_GPMC_CONFIG6,
 };
+
+
+// GPMC settings for LV SOM 1760 chip
+# define LV_SOM_ISP1760_GPMC_CONFIG1  0x00001200
+# define LV_SOM_ISP1760_GPMC_CONFIG2  0x00090901
+# define LV_SOM_ISP1760_GPMC_CONFIG3  0x00091001
+# define LV_SOM_ISP1760_GPMC_CONFIG4  0x07031002
+# define LV_SOM_ISP1760_GPMC_CONFIG5  0x00080c0a
+# define LV_SOM_ISP1760_GPMC_CONFIG6  0x08030200
+
+#define LV_SOM_ISP1760_BASE 0x1c000000
+
+u32 gpmc_isp1760[] = {
+	LV_SOM_ISP1760_GPMC_CONFIG1,
+	LV_SOM_ISP1760_GPMC_CONFIG2,
+	LV_SOM_ISP1760_GPMC_CONFIG3,
+	LV_SOM_ISP1760_GPMC_CONFIG4,
+	LV_SOM_ISP1760_GPMC_CONFIG5,
+	LV_SOM_ISP1760_GPMC_CONFIG6,
+};
+
 
 #define LV_SOM_STNOR_ASYNC_GPMC_CONFIG1	0x00001211
 #define LV_SOM_STNOR_ASYNC_GPMC_CONFIG2	0x00080901
@@ -134,6 +155,22 @@ static void setup_net_chip(void)
 	/* Enable off mode for ALE in PADCONF_GPMC_NADV_ALE register */
 	writew(readw(&ctrl_base->gpmc_nadv_ale) | 0x0E00,
 		&ctrl_base->gpmc_nadv_ale);
+
+}
+
+/******************************************************************************
+ * Routine: setup_1760_chip
+ * Description: Setting up the configuration GPMC registers specific to the
+ *		IXP1760 hardware.
+ *****************************************************************************/
+static void setup_1760_chip(void)
+{
+	// gpio_t *gpio3_base = (gpio_t *)OMAP34XX_GPIO3_BASE;
+	gpmc_csx_t *gpmc_cs1_base = (gpmc_csx_t *)GPMC_CONFIG_CS6_BASE;
+	// ctrl_t *ctrl_base = (ctrl_t *)OMAP34XX_CTRL_BASE;
+
+	// Configure the Ethernet(CS 1) at 0x08000000, 16MB in size
+	enable_gpmc_config(gpmc_isp1760, gpmc_cs1_base, LV_SOM_ISP1760_BASE, GPMC_SIZE_16M);
 
 }
 
@@ -222,6 +259,9 @@ int misc_init_r(void)
 #if defined(CONFIG_CMD_NET)
 	setup_net_chip();
 #endif
+
+	/* Setup access to the isp1760 chip on CS6 */
+	setup_1760_chip();
 
 	fix_flash_sync();
 

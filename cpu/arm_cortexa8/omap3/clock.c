@@ -377,5 +377,10 @@ void per_clocks_enable(void)
 	sr32(&prcm_base->fclken_per, 0, 32, FCK_PER_ON);
 	sr32(&prcm_base->iclken_per, 0, 32, ICK_PER_ON);
 
+#ifdef CONFIG_MUSB
+	/* Enable the MUSB interface clock */
+	sr32(&prcm_base->iclken1_core, 4, 1, 0x1);
+#endif
+
 	sdelay(1000);
 }

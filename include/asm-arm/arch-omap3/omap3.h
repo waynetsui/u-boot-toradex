@@ -3,6 +3,7 @@
  * Texas Instruments, <www.ti.com>
  * Richard Woodruff <r-woodruff2@ti.com>
  * Syed Mohammed Khasim <x0khasim@ti.com>
+ * Atin Malaviya <atin.malaviya@gmail.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -200,6 +201,7 @@ typedef struct gpio {
 #define LEDBPWM			(0x1 << 5)
 
 /* I2C ID4 (slave4) register */
+#define PROTECT_KEY		0x44
 #define VAUX2_DEV_GRP		0x76
 #define VAUX2_DEDICATED		0x79
 #define VAUX3_DEV_GRP		0x7A
@@ -210,6 +212,15 @@ typedef struct gpio {
 #define VPLL2_DEDICATED		0x91
 #define VDAC_DEV_GRP		0x96
 #define VDAC_DEDICATED		0x99
+
+#define VUSB1V5_DEV_GRP		0xCC
+#define VUSB1V5_TYPE		0xCD
+#define VUSB1V8_DEV_GRP		0xCF
+#define VUSB1V8_TYPE		0xD0
+#define VUSB3V1_DEV_GRP		0xD2
+#define VUSB3V1_TYPE		0xD3
+#define VUSB_DEDICATED1		0xD8
+#define VUSB_DEDICATED2		0xD9
 
 #define DEV_GRP_P1		0x20
 #define DEV_GRP_ALL		0xE0

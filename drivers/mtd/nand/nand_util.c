@@ -238,8 +238,8 @@ static struct nand_ecclayout yaffs_ecclayout = {
 static struct nand_ecclayout yaffs2_ecclayout = {
 	.eccbytes = 12,
 	.eccpos = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
-	.oobfree = { { 1, 1}, { 14, 50} },
-	.oobavail = 51,
+	.oobfree = { { 14, 50} },
+	.oobavail = 50,
 };
 #else
 /* ecclayout on chips that page_size = 2K, byte 0,1 is bad block marker */

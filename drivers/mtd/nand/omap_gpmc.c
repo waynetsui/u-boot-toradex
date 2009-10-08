@@ -301,16 +301,6 @@ void omap_nand_switch_ecc(int32_t hardware)
  *   explanation
  */
 
-#ifdef CONFIG_OMAP3_LV_SOM
-static uint8_t omap3_lv_som_scan_ff_pattern[] = { 0xff, 0xff };
-static struct nand_bbt_descr omap3_lv_som_largepage_memorybased = {
-	.options = 0,
-	.offs = 0,
-	.len = 1,  /* to match LoLo, only first byte is looked at */
-	.pattern = omap3_lv_som_scan_ff_pattern
-};
-#endif
-
 int board_nand_init(struct nand_chip *nand)
 {
 	int32_t gpmc_config = 0;
@@ -360,11 +350,17 @@ int board_nand_init(struct nand_chip *nand)
 
 	nand->chip_delay = 100;
 	/* Default ECC mode */
+#if 0
+	nand->ecc.mode = NAND_ECC_HW;
+	nand->ecc.layout = &hw_nand_oob;
+	nand->ecc.size = 512;
+	nand->ecc.bytes = 3;
+	nand->ecc.hwctl = omap_enable_hwecc;
+	nand->ecc.correct = omap_correct_data;
+	nand->ecc.calculate = omap_calculate_ecc;
+	omap_hwecc_init(nand);
+#else
 	nand->ecc.mode = NAND_ECC_SOFT;
-
-#ifdef CONFIG_OMAP3_LV_SOM
-	/* Use our specific bad-block definition (first byte only) */
-	nand->badblock_pattern = &omap3_lv_som_largepage_memorybased;
 #endif
 
 	return 0;

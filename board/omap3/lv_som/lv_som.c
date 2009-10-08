@@ -456,7 +456,7 @@ int do_dump_osc_clk (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
 
 U_BOOT_CMD(
 	dump_osc_clk,	1,	1,	do_dump_osc_clk,
-	"dump_osc_clk - display current timer output\n",
+	"dump_osc_clk - display current timer output",
 	"\n    - display current timer output\n"
 );
 
@@ -570,7 +570,7 @@ int do_dump_prcm_regs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
 
 U_BOOT_CMD(
 	dump_prcm_regs,	1,	1,	do_dump_prcm_regs,
-	"dump_prcm_regs - display PRCM register values\n",
+	"dump_prcm_regs - display PRCM register values",
 	"\n    - display PRCM register values\n"
 );
 
@@ -608,7 +608,7 @@ int do_dump_cs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
 
 U_BOOT_CMD(
 	dump_cs,	1,	1,	do_dump_cs,
-	"dump_cs - display OMAP Chip Select registers\n",
+	"dump_cs - display OMAP Chip Select registers",
 	"\n    - display active OMAP Chip Select registers\n"
 );
 

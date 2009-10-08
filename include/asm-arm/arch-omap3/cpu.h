@@ -85,9 +85,11 @@ typedef struct ctrl_id {
 #define GPMC_BASE		(OMAP34XX_GPMC_BASE)
 #define GPMC_CONFIG_CS0		0x60
 #define GPMC_CONFIG_CS1		0x90
-#define GPMC_CONFIG_CS6		0x150
+#define GPMC_CONFIG_CS2		0xC0
+#define GPMC_CONFIG_CS6		0x180
 #define GPMC_CONFIG_CS0_BASE	(GPMC_BASE + GPMC_CONFIG_CS0)
 #define GPMC_CONFIG_CS1_BASE	(GPMC_BASE + GPMC_CONFIG_CS1)
+#define GPMC_CONFIG_CS2_BASE	(GPMC_BASE + GPMC_CONFIG_CS2)
 #define GPMC_CONFIG_WP		0x10
 
 #define GPMC_CONFIG_WIDTH	0x30
@@ -131,6 +133,10 @@ typedef struct gpmc_csx {
 	unsigned int nand_adr;		/* 0x20 */
 	unsigned int nand_dat;		/* 0x24 */
 } gpmc_csx_t;
+
+extern void enable_gpmc_config(unsigned int *gpmc_config, gpmc_csx_t *gpmc_cs_base,
+			       unsigned int base, unsigned int size);
+
 #else /* __ASSEMBLY__ */
 #define GPMC_CONFIG1		0x00
 #define GPMC_CONFIG2		0x04

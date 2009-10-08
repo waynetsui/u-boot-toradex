@@ -55,21 +55,63 @@ int board_init(void)
 	return 0;
 }
 
-/******************************************************************************
- * Routine: misc_init_r
- * Description: Configure zoom board specific configurations
- *****************************************************************************/
-int misc_init_r(void)
-{
-	power_init_r();
 
-#if defined(CONFIG_CMD_NET)
-	setup_net_chip();
-#endif
 
-	dieid_num_r();
-	return 0;
-}
+// GPMC settings for LV SOM
+#define LV_SOM_NET_GPMC_CONFIG1  0x00001000
+#define LV_SOM_NET_GPMC_CONFIG2  0x00080802
+#define LV_SOM_NET_GPMC_CONFIG3  0x00000000
+#define LV_SOM_NET_GPMC_CONFIG4  0x08020802
+#define LV_SOM_NET_GPMC_CONFIG5  0x00080a0a
+#define LV_SOM_NET_GPMC_CONFIG6  0x00000000
+#define LV_SOM_NET_GPMC_CONFIG7  0x00000f48
+
+#define LV_SOM_NET_BASE 0x08000000
+
+u32 gpmc_enet[] = {
+	LV_SOM_NET_GPMC_CONFIG1,
+	LV_SOM_NET_GPMC_CONFIG2,
+	LV_SOM_NET_GPMC_CONFIG3,
+	LV_SOM_NET_GPMC_CONFIG4,
+	LV_SOM_NET_GPMC_CONFIG5,
+	LV_SOM_NET_GPMC_CONFIG6,
+};
+
+#define LV_SOM_STNOR_ASYNC_GPMC_CONFIG1	0x00001211
+#define LV_SOM_STNOR_ASYNC_GPMC_CONFIG2	0x00080901
+#define LV_SOM_STNOR_ASYNC_GPMC_CONFIG3	0x00020201
+#define LV_SOM_STNOR_ASYNC_GPMC_CONFIG4	0x08010901
+#define LV_SOM_STNOR_ASYNC_GPMC_CONFIG5	0x0008090a
+#define LV_SOM_STNOR_ASYNC_GPMC_CONFIG6	0x08030200
+
+#define LV_SOM_STNOR_ASYNC_BASE 0x10000000
+
+u32 gpmc_stnor_async[] = {
+	LV_SOM_STNOR_ASYNC_GPMC_CONFIG1,
+	LV_SOM_STNOR_ASYNC_GPMC_CONFIG2,
+	LV_SOM_STNOR_ASYNC_GPMC_CONFIG3,
+	LV_SOM_STNOR_ASYNC_GPMC_CONFIG4,
+	LV_SOM_STNOR_ASYNC_GPMC_CONFIG5,
+	LV_SOM_STNOR_ASYNC_GPMC_CONFIG6,
+};
+
+#define LV_SOM_STNOR_SYNC_GPMC_CONFIG1	0x68411213
+#define LV_SOM_STNOR_SYNC_GPMC_CONFIG2	0x000C1502
+#define LV_SOM_STNOR_SYNC_GPMC_CONFIG3	0x00040402
+#define LV_SOM_STNOR_SYNC_GPMC_CONFIG4	0x0B051505
+#define LV_SOM_STNOR_SYNC_GPMC_CONFIG5	0x020E0C15
+#define LV_SOM_STNOR_SYNC_GPMC_CONFIG6	0x0B0603C3
+
+#define LV_SOM_FLASH_BASE 0x10000000
+
+u32 gpmc_stnor_sync[] = {
+	LV_SOM_STNOR_SYNC_GPMC_CONFIG1,
+	LV_SOM_STNOR_SYNC_GPMC_CONFIG2,
+	LV_SOM_STNOR_SYNC_GPMC_CONFIG3,
+	LV_SOM_STNOR_SYNC_GPMC_CONFIG4,
+	LV_SOM_STNOR_SYNC_GPMC_CONFIG5,
+	LV_SOM_STNOR_SYNC_GPMC_CONFIG6,
+};
 
 /******************************************************************************
  * Routine: setup_net_chip
@@ -82,18 +124,8 @@ static void setup_net_chip(void)
 	gpmc_csx_t *gpmc_cs1_base = (gpmc_csx_t *)GPMC_CONFIG_CS1_BASE;
 	ctrl_t *ctrl_base = (ctrl_t *)OMAP34XX_CTRL_BASE;
 
-	/* Configure GPMC registers */
-	writel(0x00000000, &gpmc_cs1_base->config7);
-	sdelay(1000);
-
-	writel(LV_SOM_NET_GPMC_CONFIG1, &gpmc_cs1_base->config1);
-	writel(LV_SOM_NET_GPMC_CONFIG2, &gpmc_cs1_base->config2);
-	writel(LV_SOM_NET_GPMC_CONFIG3, &gpmc_cs1_base->config3);
-	writel(LV_SOM_NET_GPMC_CONFIG4, &gpmc_cs1_base->config4);
-	writel(LV_SOM_NET_GPMC_CONFIG5, &gpmc_cs1_base->config5);
-	writel(LV_SOM_NET_GPMC_CONFIG6, &gpmc_cs1_base->config6);
-	writel(LV_SOM_NET_GPMC_CONFIG7, &gpmc_cs1_base->config7);
-	sdelay(2000);
+	// Configure the Ethernet(CS 1) at 0x08000000, 16MB in size
+	enable_gpmc_config(gpmc_enet, gpmc_cs1_base, LV_SOM_NET_BASE, GPMC_SIZE_16M);
 
 	/* Enable off mode for NWE in PADCONF_GPMC_NWE register */
 	writew(readw(&ctrl_base ->gpmc_nwe) | 0x0E00, &ctrl_base->gpmc_nwe);
@@ -103,17 +135,98 @@ static void setup_net_chip(void)
 	writew(readw(&ctrl_base->gpmc_nadv_ale) | 0x0E00,
 		&ctrl_base->gpmc_nadv_ale);
 
-#if 0
-	/* Make GPIO 64 as output pin */
-	writel(readl(&gpio3_base->oe) & ~(GPIO0), &gpio3_base->oe);
+}
 
-	/* Now send a pulse on the GPIO pin */
-	writel(GPIO0, &gpio3_base->setdataout);
-	udelay(1);
-	writel(GPIO0, &gpio3_base->cleardataout);
-	udelay(1);
-	writel(GPIO0, &gpio3_base->setdataout);
+/* These are bit definitions for the RCR register of the NOR flash       */
+/* 28FxxxP30 device.  This register sets the bus configration for reads. */
+/* settings, located on address pins A[15:0].                            */
+#define FLASH_28FxxxP30_RCR_RM    0x8000
+#define FLASH_28FxxxP30_RCR_R     0x4000
+#define FLASH_28FxxxP30_RCR_LC(x) ((x & 0x7) << 11)
+#define FLASH_28FxxxP30_RCR_WP    0x0400
+#define FLASH_28FxxxP30_RCR_DH    0x0200
+#define FLASH_28FxxxP30_RCR_WD    0x0100
+#define FLASH_28FxxxP30_RCR_BS    0x0080
+#define FLASH_28FxxxP30_RCR_CE    0x0040
+#define FLASH_28FxxxP30_RCR_BW    0x0008
+#define FLASH_28FxxxP30_RCR_BL(x) ((x & 0x7) << 0)
+#define FLASH_28FxxxP30_BL_4      0x1
+#define FLASH_28FxxxP30_BL_8      0x2
+#define FLASH_28FxxxP30_BL_16     0x3
+#define FLASH_28FxxxP30_BL_CONT   0x7
+
+void fix_flash_sync(void)
+{
+	gpmc_csx_t *gpmc_cs2_base = (gpmc_csx_t *)GPMC_CONFIG_CS2_BASE;
+	gpmc_t *gpmc_base = (gpmc_t *)GPMC_BASE;
+	u32 *gpmc_config = NULL;
+	u32 config;
+	u16 rcrval;
+
+	/* CS 2 - Check if NOR is in sync, and if not, then put flash into
+	   sync mode, and GPMC into sync */
+	// gpmc_dump_config(2);
+	config = readl(&gpmc_cs2_base->config1);
+	if (!(config & TYPE_READTYPE)) {
+		// Its in async mode, we have to put it into sync.
+
+		puts ("FLASH: initialize in sync mode\n");
+
+		// clear WAIT1 polarity
+		writel(readl(&gpmc_base->config) & ~0x200, &gpmc_base->config);
+
+		// clear GPMC_TIMEOUT
+		writel(0x0, &gpmc_base->timeout_control);
+
+		// First set the GPMC for async.
+		gpmc_config = gpmc_stnor_async;
+		enable_gpmc_config(gpmc_config, gpmc_cs2_base, LV_SOM_FLASH_BASE, GPMC_SIZE_64M);
+		// Second, tell flash to go into sync mode.
+
+		// gpmc_dump_config(2);
+
+		// 1st NOR cycle, send read config register setup 0x60
+		*(volatile u16 *)LV_SOM_FLASH_BASE = 0x0060;
+
+		// 2nd NOR cycle, send 0x03 to latch in read
+		// configuration register setttings, located on A[15:0]
+		rcrval = FLASH_28FxxxP30_RCR_LC(4) | FLASH_28FxxxP30_RCR_WP |
+		  FLASH_28FxxxP30_RCR_BS | FLASH_28FxxxP30_RCR_CE |
+		  FLASH_28FxxxP30_RCR_BW | FLASH_28FxxxP30_RCR_BL(FLASH_28FxxxP30_BL_4);
+		*(volatile u16 *)(LV_SOM_FLASH_BASE | (rcrval << 1)) = 0x0003;
+
+		// Give a chance for accesses to finish...
+		sdelay(2000);
+
+		// Third, set GPMC for sync.
+		gpmc_config = gpmc_stnor_sync;
+		enable_gpmc_config(gpmc_config, gpmc_cs2_base, LV_SOM_FLASH_BASE, GPMC_SIZE_64M);
+		// And lastly, set the WAIT1 polarity high
+		writel(readl(&gpmc_base->config) | 0x200, &gpmc_base->config);
+
+		// gpmc_dump_config(2);
+
+	} else
+		puts ("FLASH: Already initialized in sync mode\n");
+
+}
+
+/******************************************************************************
+ * Routine: misc_init_r
+ * Description: Configure zoom board specific configurations
+ *****************************************************************************/
+int misc_init_r(void)
+{
+	power_init_r();
+
+#if defined(CONFIG_CMD_NET)
+	setup_net_chip();
 #endif
+
+	fix_flash_sync();
+
+	dieid_num_r();
+	return 0;
 }
 
 /******************************************************************************
@@ -206,19 +319,19 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(GPMC_NCS3),		(IEN  | PTD | DIS | M0)); /*GPMC_nCS3*/
 	MUX_VAL(CP(GPMC_NCS4),		(IDIS | PTU | EN  | M7)); /*GPMC_nCS4*/
 	MUX_VAL(CP(GPMC_NCS5),		(IDIS | PTD | DIS | M7)); /*GPMC_nCS5*/
-	MUX_VAL(CP(GPMC_NCS6),		(IEN  | PTD | DIS | M7)); /*GPMC_nCS6*/
-	MUX_VAL(CP(GPMC_NCS7),		(IEN  | PTU | EN  | M1)); /*GPMC_IO_CIR*/ 
-	MUX_VAL(CP(GPMC_CLK),		(IDIS | PTD | DIS | M0)); /*GPMC_CLK*/
+	MUX_VAL(CP(GPMC_NCS6),		(IDIS | PTU | EN  | M0)); /*GPMC_nCS6 */
+	MUX_VAL(CP(GPMC_NCS7),		(IEN  | PTU | EN  | M1)); /*GPMC_IO_DIR*/ 
+	MUX_VAL(CP(GPMC_CLK),		(IEN  | PTD | DIS | M0)); /*GPMC_CLK*/
 	MUX_VAL(CP(GPMC_NADV_ALE),	(IDIS | PTD | DIS | M0)); /*GPMC_nADV_ALE*/
 	MUX_VAL(CP(GPMC_NOE),		(IDIS | PTD | DIS | M0)); /*GPMC_nOE*/
 	MUX_VAL(CP(GPMC_NWE),		(IDIS | PTD | DIS | M0)); /*GPMC_nWE*/
-	MUX_VAL(CP(GPMC_NWP),		(IDIS | PTU | DIS | M0)); /*GPMC_nWP*/
-	MUX_VAL(CP(GPMC_NBE0_CLE),	(IDIS | PTD | DIS | M0)); /*GPMC_nBE0_CLE*/
-	MUX_VAL(CP(GPMC_NBE1),		(IEN  | PTD | DIS | M0)); /*GPMC_nBE1*/
-	MUX_VAL(CP(GPMC_WAIT0),		(IEN  | PTD | EN  | M0)); /*GPMC_WAIT0*/
+	MUX_VAL(CP(GPMC_NWP),		(IEN  | PTU | EN  | M0)); /*GPMC_nWP*/
+	MUX_VAL(CP(GPMC_NBE0_CLE),	(IEN  | PTU | EN  | M0)); /*GPMC_nBE0_CLE*/
+	MUX_VAL(CP(GPMC_NBE1),		(IDIS | PTU | EN  | M0)); /*GPMC_nBE1*/
+	MUX_VAL(CP(GPMC_WAIT0),		(IEN  | PTU | EN  | M0)); /*GPMC_WAIT0*/
 	MUX_VAL(CP(GPMC_WAIT1),		(IEN  | PTU | EN  | M0)); /*GPMC_WAIT1*/
 	MUX_VAL(CP(GPMC_WAIT2),		(IEN  | PTU | EN  | M0)); /*GPMC_WAIT2*/
-	MUX_VAL(CP(GPMC_WAIT3),		(IEN  | PTU | EN  | M0)); /*GPMC_WAIT3*/
+	MUX_VAL(CP(GPMC_WAIT3),		(IEN  | PTU | EN  | M1)); /*uP_DREQ1 */
 	MUX_VAL(CP(I2C1_SCL),		(IEN  | PTU | EN  | M0)); /*I2C1_SCL*/
 	MUX_VAL(CP(I2C1_SDA),		(IEN  | PTU | EN  | M0)); /*I2C1_SDA*/
 	MUX_VAL(CP(I2C2_SCL),		(IEN  | PTU | EN  | M0)); /*I2C1_SCL*/
@@ -310,16 +423,6 @@ static const struct pm_module_def pm_dbg_reg_modules[] = {
 #define OMAP2_CM_BASE			OMAP3430_CM_BASE
 #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
 
-unsigned long cm_read_mod_reg(s16 module, u16 idx)
-{
-  return 0x12345678;
-}
-
-unsigned long prm_read_mod_reg(s16 module, u16 idx)
-{
-  return 0x12345678;
-}
-
 int do_dump_prcm_regs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
 {
   int i, j;
@@ -341,15 +444,7 @@ int do_dump_prcm_regs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
     for (j=pm_dbg_reg_modules[i].low;
 			j <= pm_dbg_reg_modules[i].high; j += 4) {
 
-#if 1
-      // printf("addr %x offset %x j %x\n", addr, pm_dbg_reg_modules[i].offset, j);
       val = readl(addr + j);
-#else
-      if (pm_dbg_reg_modules[i].type == MOD_CM)
-	val = cm_read_mod_reg(pm_dbg_reg_modules[i].offset, j);
-      else
-	val = prm_read_mod_reg(pm_dbg_reg_modules[i].offset, j);
-#endif
       if (val != 0) {
 	regs++;
 	if (linefeed) {

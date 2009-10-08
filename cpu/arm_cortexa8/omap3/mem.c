@@ -236,6 +236,12 @@ void gpmc_init(void)
 
 	config = readl(&gpmc_base->config);
 	config &= (~0xf00);
+
+#ifdef CONFIG_OMAP3_LV_SOM
+	// set Wait1, used for sync NOR
+	config |= 0x200;
+#endif
+
 	writel(config, &gpmc_base->config);
 
 	/*

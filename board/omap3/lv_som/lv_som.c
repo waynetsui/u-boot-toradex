@@ -228,3 +228,150 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(I2C4_SCL),		(IEN  | PTU | EN  | M0)); /*I2C4_SCL*/
 	MUX_VAL(CP(I2C4_SDA),		(IEN  | PTU | EN  | M0)); /*I2C4_SDA*/
 }
+
+int do_dump_osc_clk (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
+{
+	extern u32 get_osc_clk_speed(void);
+
+	printf("get_osc_clk_speed() = %d\n", get_osc_clk_speed());
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	dump_osc_clk,	1,	1,	do_dump_osc_clk,
+	"dump_osc_clk - display current timer output\n",
+	"\n    - display current timer output\n"
+);
+
+#define MOD_CM 0
+#define MOD_PRM 1
+
+#define OCP_MOD						0x000
+#define MPU_MOD						0x100
+#define CORE_MOD					0x200
+#define GFX_MOD						0x300
+#define WKUP_MOD					0x400
+#define PLL_MOD						0x500
+
+#define OMAP3430_IVA2_MOD				-0x800
+#define OMAP3430ES2_SGX_MOD				GFX_MOD
+#define OMAP3430_CCR_MOD				PLL_MOD
+#define OMAP3430_DSS_MOD				0x600
+#define OMAP3430_CAM_MOD				0x700
+#define OMAP3430_PER_MOD				0x800
+#define OMAP3430_EMU_MOD				0x900
+#define OMAP3430_GR_MOD					0xa00
+#define OMAP3430_NEON_MOD				0xb00
+#define OMAP3430ES2_USBHOST_MOD				0xc00
+
+struct pm_module_def {
+	char name[8]; /* Name of the module */
+	short type; /* CM or PRM */
+	short offset;
+	int low; /* First register address on this module */
+	int high; /* Last register address on this module */
+};
+
+static const struct pm_module_def pm_dbg_reg_modules[] = {
+	{ "IVA2", MOD_CM, OMAP3430_IVA2_MOD, 0, 0x4c },
+	{ "OCP", MOD_CM, OCP_MOD, 0, 0x10 },
+	{ "MPU", MOD_CM, MPU_MOD, 4, 0x4c },
+	{ "CORE", MOD_CM, CORE_MOD, 0, 0x4c },
+	{ "SGX", MOD_CM, OMAP3430ES2_SGX_MOD, 0, 0x4c },
+	{ "WKUP", MOD_CM, WKUP_MOD, 0, 0x40 },
+	{ "CCR", MOD_CM, PLL_MOD, 0, 0x70 },
+	{ "DSS", MOD_CM, OMAP3430_DSS_MOD, 0, 0x4c },
+	{ "CAM", MOD_CM, OMAP3430_CAM_MOD, 0, 0x4c },
+	{ "PER", MOD_CM, OMAP3430_PER_MOD, 0, 0x4c },
+	{ "EMU", MOD_CM, OMAP3430_EMU_MOD, 0x40, 0x54 },
+	{ "NEON", MOD_CM, OMAP3430_NEON_MOD, 0x20, 0x48 },
+	{ "USB", MOD_CM, OMAP3430ES2_USBHOST_MOD, 0, 0x4c },
+
+	{ "IVA2", MOD_PRM, OMAP3430_IVA2_MOD, 0x50, 0xfc },
+	{ "OCP", MOD_PRM, OCP_MOD, 4, 0x1c },
+	{ "MPU", MOD_PRM, MPU_MOD, 0x58, 0xe8 },
+	{ "CORE", MOD_PRM, CORE_MOD, 0x58, 0xf8 },
+	{ "SGX", MOD_PRM, OMAP3430ES2_SGX_MOD, 0x58, 0xe8 },
+	{ "WKUP", MOD_PRM, WKUP_MOD, 0xa0, 0xb0 },
+	{ "CCR", MOD_PRM, PLL_MOD, 0x40, 0x70 },
+	{ "DSS", MOD_PRM, OMAP3430_DSS_MOD, 0x58, 0xe8 },
+	{ "CAM", MOD_PRM, OMAP3430_CAM_MOD, 0x58, 0xe8 },
+	{ "PER", MOD_PRM, OMAP3430_PER_MOD, 0x58, 0xe8 },
+	{ "EMU", MOD_PRM, OMAP3430_EMU_MOD, 0x58, 0xe4 },
+	{ "GLBL", MOD_PRM, OMAP3430_GR_MOD, 0x20, 0xe4 },
+	{ "NEON", MOD_PRM, OMAP3430_NEON_MOD, 0x58, 0xe8 },
+	{ "USB", MOD_PRM, OMAP3430ES2_USBHOST_MOD, 0x58, 0xe8 },
+	{ "", 0, 0, 0, 0 },
+};
+#define OMAP3430_CM_BASE	0x48004800
+#define OMAP3430_PRM_BASE	0x48306800
+
+#define OMAP2_CM_BASE			OMAP3430_CM_BASE
+#define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+
+unsigned long cm_read_mod_reg(s16 module, u16 idx)
+{
+  return 0x12345678;
+}
+
+unsigned long prm_read_mod_reg(s16 module, u16 idx)
+{
+  return 0x12345678;
+}
+
+int do_dump_prcm_regs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
+{
+  int i, j;
+  unsigned long val;
+  int regs, linefeed;
+  unsigned int addr;
+  for (i=0; pm_dbg_reg_modules[i].name[0] != 0; ++i) {
+    regs = 0;
+    linefeed = 0;
+
+    if (pm_dbg_reg_modules[0].type == MOD_CM) {
+      addr = (u32)(OMAP2_CM_BASE + pm_dbg_reg_modules[i].offset);
+      printf("MOD: CM_%s (%08x)\n", pm_dbg_reg_modules[i].name, addr);
+    } else {
+      addr = (u32)(OMAP2_PRM_BASE + pm_dbg_reg_modules[i].offset);
+      printf("MOD: PRM_%s (%08x)\n", pm_dbg_reg_modules[i].name, addr);
+
+    }
+    for (j=pm_dbg_reg_modules[i].low;
+			j <= pm_dbg_reg_modules[i].high; j += 4) {
+
+#if 1
+      // printf("addr %x offset %x j %x\n", addr, pm_dbg_reg_modules[i].offset, j);
+      val = readl(addr + j);
+#else
+      if (pm_dbg_reg_modules[i].type == MOD_CM)
+	val = cm_read_mod_reg(pm_dbg_reg_modules[i].offset, j);
+      else
+	val = prm_read_mod_reg(pm_dbg_reg_modules[i].offset, j);
+#endif
+      if (val != 0) {
+	regs++;
+	if (linefeed) {
+	  printf("\n");
+	  linefeed = 0;
+	}
+	printf("  %02x -> %08lx", j, val);
+	if (regs % 4 == 0)
+	  linefeed = 1;
+      }
+    }
+    printf("\n");
+  }
+
+  return 0;
+
+}
+
+
+
+U_BOOT_CMD(
+	dump_prcm_regs,	1,	1,	do_dump_prcm_regs,
+	"dump_prcm_regs - display PRCM register values\n",
+	"\n    - display PRCM register values\n"
+);

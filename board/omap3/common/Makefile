@@ -33,7 +33,7 @@ COBJS-$(CONFIG_OMAP3_BEAGLE) += power.o
 COBJS-$(CONFIG_OMAP3_OVERO) += power.o
 COBJS-$(CONFIG_OMAP3_PANDORA) += power.o
 COBJS-$(CONFIG_OMAP3_ZOOM1) += power.o
-COBJS-$(CONFIG_OMAP3_LV_SOM) += power.o
+COBJS-$(CONFIG_OMAP3_LV_SOM) += power-lv_som.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)

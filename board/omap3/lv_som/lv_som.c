@@ -78,7 +78,7 @@ int misc_init_r(void)
  *****************************************************************************/
 static void setup_net_chip(void)
 {
-	gpio_t *gpio3_base = (gpio_t *)OMAP34XX_GPIO3_BASE;
+	// gpio_t *gpio3_base = (gpio_t *)OMAP34XX_GPIO3_BASE;
 	gpmc_csx_t *gpmc_cs1_base = (gpmc_csx_t *)GPMC_CONFIG_CS1_BASE;
 	ctrl_t *ctrl_base = (ctrl_t *)OMAP34XX_CTRL_BASE;
 

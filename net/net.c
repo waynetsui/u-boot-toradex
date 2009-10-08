@@ -660,6 +660,10 @@ NetSetTimeout(ulong iv, thand_f * f)
 		timeHandler = f;
 		timeStart = get_timer(0);
 		timeDelta = iv;
+#ifdef CONFIG_OMAP3_LV_SOM
+		// iv is in ms, get_timer returns ticks, scale appropriately...
+		timeDelta = (timeDelta * CONFIG_SYS_HZ) / 1000;
+#endif
 	}
 }
 

@@ -121,6 +121,9 @@
  */
 #if defined(CONFIG_CMD_NET)
 
+#define CONFIG_TFTP_BLOCKSIZE_512  // Force TFTP blocksize to stay at
+				   // 512 - prevents fragmentation
+
 #define CONFIG_DRIVER_SMC911X
 #define CONFIG_DRIVER_SMC911X_16_BIT
 #define CONFIG_DRIVER_SMC911X_BASE	0x08000000
@@ -276,7 +279,7 @@
 
 /* Configure the PISMO */
 #define PISMO1_NAND_SIZE		GPMC_SIZE_128M
-#define PISMO1_ONEN_SIZE		GPMC_SIZE_128M
+// #define PISMO1_ONEN_SIZE		GPMC_SIZE_128M
 
 #define CONFIG_SYS_MAX_FLASH_SECT	520	/* max number of sectors on */
 						/* one chip */
@@ -287,15 +290,13 @@
 
 /* Monitor at start of flash */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
-#define CONFIG_SYS_ONENAND_BASE		ONENAND_MAP
 
 #define CONFIG_ENV_IS_IN_NAND		1
-#define ONENAND_ENV_OFFSET		0x260000 /* environment starts here */
-#define SMNAND_ENV_OFFSET		0x260000 /* environment starts here */
+#define SMNAND_ENV_OFFSET		0xffe0000 /* environment starts here */
 
 #define CONFIG_SYS_ENV_SECT_SIZE	boot_flash_sec
 #define CONFIG_ENV_OFFSET		boot_flash_off
-#define CONFIG_ENV_ADDR			SMNAND_ENV_OFFSET
+#define CONFIG_ENV_ADDR			boot_flash_env_addr
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup

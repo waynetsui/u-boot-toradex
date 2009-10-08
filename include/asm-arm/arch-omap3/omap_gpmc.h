@@ -48,6 +48,20 @@
 
 /* Large Page x16 NAND device Layout */
 #ifdef GPMC_NAND_ECC_LP_x16_LAYOUT
+#ifdef CONFIG_OMAP3_LV_SOM
+/* OMAP3_LV_SOM only uses first byte for bad block marker, not first
+   half-word */
+#define GPMC_NAND_HW_ECC_LAYOUT {\
+	.eccbytes = 12,\
+	.eccpos = {2, 3, 4, 5, 6, 7, 8, 9,\
+		10, 11, 12, 13},\
+	.oobfree = {\
+		{.offset = 1,\
+		 .length = 1 },	\
+		{.offset = 14,\
+		 .length = 50 } } \
+}
+#else
 #define GPMC_NAND_HW_ECC_LAYOUT {\
 	.eccbytes = 12,\
 	.eccpos = {2, 3, 4, 5, 6, 7, 8, 9,\
@@ -56,6 +70,7 @@
 		{.offset = 14,\
 		 .length = 50 } } \
 }
+#endif
 #endif
 
 /* Small Page x8 NAND device Layout */

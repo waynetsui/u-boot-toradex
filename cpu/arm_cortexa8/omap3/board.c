@@ -36,6 +36,7 @@
 #include <asm/io.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/mem.h>
+#include <nand.h>
 
 extern omap3_sysinfo sysinfo;
 
@@ -319,6 +320,25 @@ void abort(void)
  *****************************************************************************/
 static int do_switch_ecc(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
+	struct mtd_info *mtd;
+	struct nand_chip *nand;
+
+	/* the following commands operate on the current device */
+	if (nand_curr_device < 0 || nand_curr_device >= CONFIG_SYS_MAX_NAND_DEVICE ||
+	    !nand_info[nand_curr_device].name) {
+		puts("\nno devices available\n");
+		return 1;
+	}
+	mtd = &nand_info[nand_curr_device];
+	nand = mtd->priv;
+
+	if (argc == 1) {
+		if (nand->ecc.mode == NAND_ECC_SOFT)
+			printf("Software ECC\n");
+		else
+			printf("Hardware ECC\n");
+		return 0;
+	}	  
 	if (argc != 2)
 		goto usage;
 	if (strncmp(argv[1], "hw", 2) == 0)

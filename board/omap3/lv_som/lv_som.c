@@ -225,6 +225,9 @@ int misc_init_r(void)
 
 	fix_flash_sync();
 
+	/* Switch to Hardware ECC mode */
+	omap_nand_switch_ecc(1);
+
 	dieid_num_r();
 	return 0;
 }

@@ -114,6 +114,7 @@
 #define CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 #define CONFIG_CMD_PING		/* ping */
 #define CONFIG_CMD_DHCP		/* dhcp */
+#define CONFIG_CMD_ASKENV	/* askenv */
 
 /*----------------------------------------------------------------------------
  * SMSC9115 Ethernet from SMSC9118 family
@@ -174,6 +175,25 @@
 /* Environment information */
 #define CONFIG_BOOTDELAY		10
 
+#if 1
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"display=15\0"		  \
+	"loadaddr=0x81000000\0"	  \
+	"rootfsaddr=0x81300000\0" \
+	"consoledev=ttyS0\0"		  \
+	"rootpath=/opt/nfs-exports/ltib-omap\0" \
+	"ramdisksize=89000\0"			\
+	"nfsoptions=,wsize=1500,rsize=1500\0"				\
+	"nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp ${otherbootargs};tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
+	"ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
+	"xipboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};bootm ${loadaddr} ${rootfsaddr}\0" \
+	"mtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/mtdblock3 rw ${otherbootargs};tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0"
+
+#define CONFIG_BOOTCOMMAND "run xipboot"
+
+#else
+
+// Beagle ENV_SETTINGS
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
 	"console=ttyS2,115200n8\0" \
@@ -199,6 +219,7 @@
 		"nand read ${loadaddr} 280000 400000; " \
 		"bootm ${loadaddr}\0" \
 
+// Beagle BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
 	"if mmcinit; then " \
 		"if run loadbootscript; then " \
@@ -210,8 +231,28 @@
 			"fi; " \
 		"fi; " \
 	"else run nandboot; fi"
+#endif
 
+#define CONFIG_PREBOOT \
+	"echo ======================NOTICE============================;"    \
+	"echo This is the first time that you boot up this board. You are;" \
+	"echo required to set a valid display for your LCD panel.;"	\
+	"echo Enter the display number of the LCD panel(none for no LCD panel);" \
+	"echo Pick one of:;"						\
+	"echo   2 == LQ121S1DG31     TFT SVGA    (12.1)  Sharp;"	\
+	"echo   3 == LQ036Q1DA01     TFT QVGA    (3.6)   Sharp w/ASIC;" \
+	"echo   5 == LQ064D343       TFT VGA     (6.4)   Sharp;"	\
+	"echo   7 == LQ10D368        TFT VGA     (10.4)  Sharp;"	\
+	"echo  15 == LQ043T1DG01     TFT WQVGA   (4.3)   Sharp;"	\
+	"echo MAKE SURE YOUR DISPLAY IS CORRECTLY ENTERED!;"		\
+	"askenv display 'Please enter your LCD display number:' 2;"	\
+	"printenv display;"						\
+	"setenv preboot;"						\
+	"saveenv;"
+
+#define CONFIG_CMDLINE_EDITING		1
 #define CONFIG_AUTO_COMPLETE		1
+
 /*
  * Miscellaneous configurable options
  */
@@ -297,6 +338,11 @@
 #define CONFIG_SYS_ENV_SECT_SIZE	boot_flash_sec
 #define CONFIG_ENV_OFFSET		boot_flash_off
 #define CONFIG_ENV_ADDR			boot_flash_env_addr
+
+#if 0
+#define CONFIG_MTD_DEBUG 1
+#define CONFIG_MTD_DEBUG_VERBOSE 2 // Loud MTD debug messages
+#endif
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup

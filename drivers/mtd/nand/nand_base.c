@@ -1993,6 +1993,7 @@ static int nand_do_write_oob(struct mtd_info *mtd, loff_t to,
 	MTDDEBUG (MTD_DEBUG_LEVEL3, "nand_write_oob: to = 0x%08x, len = %i\n",
 	          (unsigned int)to, (int)ops->ooblen);
 
+
 	if (ops->mode == MTD_OOB_AUTO)
 		len = chip->ecc.layout->oobavail;
 	else

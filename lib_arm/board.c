@@ -353,6 +353,12 @@ void start_armboot (void)
 #if defined(CONFIG_CMD_NAND)
 	puts ("NAND:  ");
 	nand_init();		/* go init the NAND */
+
+#ifdef CONFIG_OMAP3_LV_SOM
+	/* Switch to Hardware ECC mode */
+	omap_nand_switch_ecc(1);
+#endif
+
 #endif
 
 #if defined(CONFIG_CMD_ONENAND)

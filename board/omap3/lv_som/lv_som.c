@@ -443,6 +443,12 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(SYS_OFF_MODE),	(IEN  | PTD | DIS | M0));/*SYS_OFF_MODE*/
 	MUX_VAL(CP(SYS_CLKOUT1),	(IEN  | PTD | DIS | M0));/*SYS_CLKOUT1*/
 #endif
+
+	/*Audio Interface */
+	MUX_VAL(CP(MCBSP2_FSX),     (IEN  | PTD | DIS | M0)); /*McBSP2_FSX*/
+	MUX_VAL(CP(MCBSP2_CLKX),    (IEN  | PTD | DIS | M0)); /*McBSP2_CLKX*/
+	MUX_VAL(CP(MCBSP2_DR),      (IEN  | PTD | DIS | M0)); /*McBSP2_DR*/
+	MUX_VAL(CP(MCBSP2_DX),      (IDIS | PTD | DIS | M0)); /*McBSP2_DX*/
 }
 
 int do_dump_osc_clk (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])

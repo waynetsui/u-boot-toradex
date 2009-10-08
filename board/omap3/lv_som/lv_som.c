@@ -578,3 +578,42 @@ U_BOOT_CMD(
 	"dump_cs - display OMAP Chip Select registers\n",
 	"\n    - display active OMAP Chip Select registers\n"
 );
+
+int do_dump_mux (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
+{
+	int i;
+	int reg_lo, reg_hi;
+	u16 regval;
+	u32 reg;
+	struct {
+		int lo, hi;
+	} mux_ranges[] = {
+		{0x30, 0x21e},
+		{0x5d8, 0x5fa},
+	};
+
+	for (i=0; i<ARRAY_SIZE(mux_ranges); ++i) {
+		reg_lo = mux_ranges[i].lo;
+		reg_hi = mux_ranges[i].hi;
+		for (reg=reg_lo; reg<=reg_hi; reg+=2) {
+			regval = readw(OMAP34XX_CTRL_BASE + reg);
+			/* If not disabled (mode 7) dump it */
+			if ((regval & M7) != M7)
+				printf("%03x = %04x (%s | %s | %s M%d)\n",
+				       reg, regval,
+				       ((regval & IEN) ? "IEN " : "IDIS"),
+				       ((regval & PTU) ? "PTU" : "PTD"),
+				       ((regval & EN) ? "EN " : "DIS"),
+				       (regval & M7));
+		}
+
+	}
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	dump_mux,	1,	1,	do_dump_mux,
+	"dump_mux - display OMAP Pin MUX registers",
+	"\n    - display active OMAP Pin MUX registers\n"
+);

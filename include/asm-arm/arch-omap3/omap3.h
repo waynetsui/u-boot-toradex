@@ -145,8 +145,10 @@ typedef struct gpio {
 #define SRAM_OFFSET2			0x0000F800
 #define SRAM_VECT_CODE			(SRAM_OFFSET0 | SRAM_OFFSET1 | \
 					 SRAM_OFFSET2)
+#define SRAM_BASE (SRAM_OFFSET0|SRAM_OFFSET1)
 
 #define LOW_LEVEL_SRAM_STACK		0x4020FFFC
+
 
 #define DEBUG_LED1			149	/* gpio */
 #define DEBUG_LED2			150	/* gpio */

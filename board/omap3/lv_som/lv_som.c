@@ -37,6 +37,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/mach-types.h>
 #include "lv_som.h"
+#include "product_id.h"
 
 /******************************************************************************
  * Routine: board_init
@@ -269,6 +270,38 @@ int misc_init_r(void)
 	omap_nand_switch_ecc(1);
 
 	dieid_num_r();
+	return 0;
+}
+
+/******************************************************************
+ * get_sysboot_value() - get init word settings
+ ******************************************************************/
+inline u32 get_sysboot_value(void)
+{
+	ctrl_t *ctrl_base = (ctrl_t *)OMAP34XX_CTRL_BASE;
+	return ctrl_base->status & 0x3f;
+}
+
+/******************************************************************************
+ * Routine: late_board_init
+ * Description: Late hardware init.
+ *****************************************************************************/
+int board_late_init(void)
+{
+	extern u32 get_sysboot_value(void);
+	unsigned char enetaddr[6];
+
+	// DECLARE_GLOBAL_DATA_PTR;
+	
+	printf("SYSBOOT: 0x%03x\n", get_sysboot_value());
+
+	fetch_production_data(); // Extract production data
+	// Fetch the ethaddr of the LAN
+	board_get_nth_enetaddr(enetaddr, 0);
+#ifdef CONFIG_HAS_ETH1
+	// Fetch the ethaddr of the WiFi
+	board_get_nth_enetaddr(enetaddr, 1);
+#endif
 	return 0;
 }
 

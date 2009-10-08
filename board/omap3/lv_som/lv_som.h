@@ -35,7 +35,5 @@ const omap3_sysinfo sysinfo = {
 	"NAND",
 };
 
-static void setup_net_chip(void);
-
-
+// extern void setup_net_chip(void);
 #endif /* _BOARD_ZOOM_H_ */

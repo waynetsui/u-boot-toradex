@@ -187,7 +187,9 @@
 	"nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp ${otherbootargs};tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0" \
 	"ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};tftpboot ${loadaddr} uImage;tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
 	"xipboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};bootm ${loadaddr} ${rootfsaddr}\0" \
-	"mtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/mtdblock3 rw ${otherbootargs};tftpboot ${loadaddr} uImage;bootm ${loadaddr}\0"
+	"rootdevice=/dev/mtdblock4\0" \
+	"rootfstype=yaffs\0" \
+	"mtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=${rootdevice} rootfstype=${rootfstype} rw ${otherbootargs};bootm ${loadaddr}\0"
 
 #define CONFIG_BOOTCOMMAND "run xipboot"
 

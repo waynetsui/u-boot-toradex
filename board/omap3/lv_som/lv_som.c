@@ -375,3 +375,41 @@ U_BOOT_CMD(
 	"dump_prcm_regs - display PRCM register values\n",
 	"\n    - display PRCM register values\n"
 );
+
+void gpmc_dump_config(int cs)
+{
+  u32 gpmc_base = GPMC_CONFIG_CS0_BASE + (cs * GPMC_CONFIG_WIDTH);
+  u32 config7;
+  u32 base, len;
+  gpmc_csx_t *cs_base = (gpmc_csx_t *)gpmc_base;
+
+  config7 = cs_base->config7;
+  if (config7 & (1<<6)) {
+    len = (((config7 >> 7 & 0xf) ^ 0xf) + 1) << 24;
+    base = (config7 & 0x3F) << 24;
+  printf("%d:%08x %08x %08x %08x %08x %08x %03x %08x-%08x\n",
+	 cs, 
+	 cs_base->config1, cs_base->config2, cs_base->config3,
+	 cs_base->config4, cs_base->config5, cs_base->config6,
+	 cs_base->config7, base, base+len-1);
+  }
+}
+
+int do_dump_cs (cmd_tbl_t *cmdtp, int flah, int argc, char *argv[])
+{
+	int i;
+	gpmc_t *gpmc_base = (gpmc_t *)GPMC_BASE;
+	printf("CS: GPMC_CONFIG [%08x]\n", gpmc_base->config);
+	printf("CS: GPMC_IRQENABLE [%08x]\n", gpmc_base->irqenable);
+	printf("CS: GPMC_TIMEOUT_CONTROL [%08x]\n", gpmc_base->timeout_control);
+	for (i=0; i<8; ++i)
+		gpmc_dump_config(i);
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	dump_cs,	1,	1,	do_dump_cs,
+	"dump_cs - display OMAP Chip Select registers\n",
+	"\n    - display active OMAP Chip Select registers\n"
+);

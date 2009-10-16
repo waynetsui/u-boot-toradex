@@ -26,13 +26,6 @@
 #include <asm/sizes.h>
 #include <asm/arch/hardware.h>
 
-/*=======*/
-/* Board */
-/*=======*/
-#define	CONFIG_USE_SPIFLASH
-#undef	CONFIG_SYS_USE_NAND 
-#undef	CONFIG_SYS_USE_NOR 
-
 /*===================*/
 /* SoC Configuration */
 /*===================*/
@@ -110,14 +103,56 @@
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT		10
 
-/*=====================*/
-/* Flash & Environment */
-/*=====================*/
-#ifdef CONFIG_SYS_USE_NAND
-#undef CONFIG_ENV_IS_IN_FLASH
+/*=================*/
+/* U-Boot commands */
+/*=================*/
+#include <config_cmd_default.h>
+#define CONFIG_CMD_ENV
+#define CONFIG_CMD_ASKENV
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_DIAG
+#define CONFIG_CMD_MII
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_SAVES
+#define CONFIG_CMD_MEMORY
+#undef CONFIG_CMD_BDI
+#undef CONFIG_CMD_FPGA
+#undef CONFIG_CMD_SETGETDCR
+#define CONFIG_CMD_EEPROM
+#define CONFIG_CMD_SF
+#define CONFIG_CMD_NAND
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_IMLS
+
+/* Only enable NOR support if using it for environment */
+#ifdef CONFIG_SYS_USE_NOR
+#define CONFIG_CMD_FLASH
+#define CONFIG_CMD_IMLS
+#undef CONFIG_CMD_NAND
+#endif
+
+/* eXperimenter does not contain NAND or NOR*/
+#if defined(CONFIG_DA850_EXP)
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_IMLS
+#undef CONFIG_CMD_NAND
+#undef CONFIG_SYS_USE_NAND
+#undef CONFIG_SYS_USE_NOR
+#endif
+
+#ifdef CONFIG_USB_DA8XX
+#define CONFIG_CMD_USB		/* inclue support for usb       */
+#define CONFIG_CMD_STORAGE	/* inclue support for usb       */
+#define CONFIG_CMD_FAT		/* inclue support for FAT/storage*/
+#define CONFIG_DOS_PARTITION	/* inclue support for FAT/storage*/
+#endif
+
+/*=======*/
+/* Flash */
+/*=======*/
 #define CONFIG_SYS_NO_FLASH
-#define CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_SIZE			SZ_128K
+
+#if defined(CONFIG_CMD_NAND)
 #define CONFIG_NAND_CS			2
 #define CONFIG_SYS_NAND_BASE		DAVINCI_ASYNC_EMIF_DATA_CE3_BASE
 #define CONFIG_CLE_MASK			0x10
@@ -129,35 +164,55 @@
 /* Max number of NAND devices */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define NAND_MAX_CHIPS			1
-/* Block 0--not used by bootcode */
-#define CONFIG_ENV_OFFSET		0x0	
-#endif
 
-#ifdef CONFIG_SYS_USE_NOR
-#define CONFIG_ENV_IS_IN_FLASH
+#elif defined(CONFIG_CMD_FLASH)
 #undef CONFIG_SYS_NO_FLASH
 #define CONFIG_FLASH_CFI_DRIVER
 #define CONFIG_SYS_FLASH_CFI
 #define CONFIG_SYS_MAX_FLASH_BANKS	1
 #define CONFIG_SYS_FLASH_SECT_SZ	0x20000	
-#define CONFIG_ENV_OFFSET		(CONFIG_SYS_FLASH_SECT_SZ * 2)
 #define CONFIG_SYS_FLASH_BASE		DAVINCI_ASYNC_EMIF_DATA_CE2_BASE 
 #define PHYS_FLASH_SIZE			0x800000	
 #define CONFIG_SYS_MAX_FLASH_SECT	(PHYS_FLASH_SIZE/CONFIG_SYS_FLASH_SECT_SZ)
-#define CONFIG_ENV_SECT_SIZE		CONFIG_SYS_FLASH_SECT_SZ	
 #endif
 
-#ifdef CONFIG_USE_SPIFLASH
+#if defined(CONFIG_CMD_SF)
+#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
+#endif
+
+/*=============*/
+/* Environment */
+/*=============*/
+
+#if defined(CONFIG_SYS_SPIFLASH)
 #undef CONFIG_ENV_IS_IN_FLASH
 #undef CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_SIZE			SZ_64K
 #define CONFIG_ENV_OFFSET		SZ_256K
 #define CONFIG_ENV_SECT_SIZE		SZ_64K
-#define CONFIG_SYS_NO_FLASH
-#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
-#endif
 
+#elif defined(CONFIG_SYS_USE_NAND)
+#undef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_SIZE			SZ_128K
+#define CONFIG_SYS_NO_FLASH
+#define CONFIG_ENV_IS_IN_NAND
+/* Block 0--not used by bootcode */
+#define CONFIG_ENV_OFFSET		0x0	
+
+#elif defined(CONFIG_SYS_USE_NOR)
+#define CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_OFFSET		(CONFIG_SYS_FLASH_SECT_SZ * 2)
+#define CONFIG_ENV_SECT_SIZE		CONFIG_SYS_FLASH_SECT_SZ	
+
+#else
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_SYS_NO_FLASH
+#define CONFIG_ENV_SIZE				SZ_16K
+#undef CONFIG_CMD_IMLS
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_ENV
+#endif
 
 /*==============================*/
 /* USB  configuration           */
@@ -206,51 +261,6 @@
 #define CONFIG_BOOTCOMMAND		""
 #define CONFIG_BOOTARGS			"mem=32M console=ttyS2,115200n8 root=/dev/ram0 rw initrd=0xc1180000,4M ip=dhcp"
 #define CONFIG_BOOTDELAY		3
-
-/*=================*/
-/* U-Boot commands */
-/*=================*/
-#include <config_cmd_default.h>
-#define CONFIG_CMD_ENV
-#define CONFIG_CMD_ASKENV
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_DIAG
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_SAVES
-#define CONFIG_CMD_MEMORY
-#undef CONFIG_CMD_BDI
-#undef CONFIG_CMD_FPGA
-#undef CONFIG_CMD_SETGETDCR
-#define CONFIG_CMD_EEPROM
-
-#ifdef CONFIG_SYS_USE_NAND
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_IMLS
-#define CONFIG_CMD_NAND
-#endif
-
-#ifdef CONFIG_USE_SPIFLASH
-#undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_FLASH
-#define CONFIG_CMD_SF
-#endif
-
-#if !defined(CONFIG_SYS_USE_NAND) && !defined(CONFIG_SYS_USE_NOR) && !defined(CONFIG_USE_SPIFLASH)
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_SYS_NO_FLASH
-#define CONFIG_ENV_SIZE				SZ_16K
-#undef CONFIG_CMD_IMLS
-#undef CONFIG_CMD_FLASH
-#undef CONFIG_CMD_ENV
-#endif
-
-#ifdef CONFIG_USB_DA8XX
-#define CONFIG_CMD_USB		/* inclue support for usb       */
-#define CONFIG_CMD_STORAGE	/* inclue support for usb       */
-#define CONFIG_CMD_FAT		/* inclue support for FAT/storage*/
-#define CONFIG_DOS_PARTITION	/* inclue support for FAT/storage*/
-#endif
 
 
 #endif /* __CONFIG_H */

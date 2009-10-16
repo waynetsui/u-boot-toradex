@@ -2715,10 +2715,28 @@ davinci_sffsdr_config :	unconfig
 davinci_sonata_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs sonata davinci davinci
 
+da850_omapl138_exp_spiflash_config \
+da850_omapl138_exp_config \
+da850_omapl138_evm_nand_config \
+da850_omapl138_evm_nor_config \
+da850_omapl138_evm_spiflash_config \
 da850_omapl138_evm_config :	unconfig
 	@mkdir -p $(obj)include
-	echo "#define CONFIG_DA850_EVM" >> $(obj)include/config.h
-	$(XECHO) "... configured for DA850/OMAP-L138 boot"
+	@if [ "$(findstring _exp,$@)" ] ; then \
+		echo "#define CONFIG_DA850_EXP" >> $(obj)include/config.h ; \
+	else \
+		echo "#define CONFIG_DA850_EVM" >> $(obj)include/config.h ; \
+	fi;
+	@if [ "$(findstring _nand,$@)" ] ; then \
+		echo "#define CONFIG_SYS_USE_NAND 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variables in NAND FLASH" ; \
+	elif [ "$(findstring _nor,$@)" ] ; then \
+		echo "#define CONFIG_SYS_USE_NOR 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variables in NOR FLASH" ; \
+	else \
+		echo "#define CONFIG_SYS_SPIFLASH 1"	>>$(obj)include/config.h ; \
+		$(XECHO) "... with environment variables in SPI FLASH" ; \
+	fi;
 	@$(MKCONFIG) -a da850_evm arm arm926ejs da8xx-evm da8xx da8xx
 
 da830_omapl137_evm_config :	unconfig

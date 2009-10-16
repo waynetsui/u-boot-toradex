@@ -29,6 +29,7 @@ LIB	= $(obj)lib$(BOARD).a
 
 COBJS-$(CONFIG_DA830_EVM) += da830.o
 COBJS-$(CONFIG_DA850_EVM) += da850.o
+COBJS-$(CONFIG_DA850_EXP) += da850.o
 
 COBJS   := $(sort $(COBJS-y))
 SOBJS	:= board_init.o

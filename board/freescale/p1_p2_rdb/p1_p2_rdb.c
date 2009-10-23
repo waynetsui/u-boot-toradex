@@ -130,8 +130,33 @@ int checkboard (void)
 
 int board_early_init_r(void)
 {
+	u8 i2c_data;
+	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 	const unsigned int flashbase = CONFIG_SYS_FLASH_BASE;
 	const u8 flash_esel = 2;
+	unsigned int orig_bus = i2c_get_bus_num();
+
+	i2c_set_bus_num(1);
+	if (i2c_read(CONFIG_SYS_I2C_EEPROM_ADDR2, 0,
+				1, &i2c_data, sizeof(i2c_data)) == 0) {
+		if (i2c_data & 0x2)
+			puts("NOR Flash Bank : Secondary\n");
+		else
+			puts("NOR Flash Bank : Primary\n");
+
+		if (i2c_data & 0x1) {
+			setbits_be32(&gur->pmuxcr, MPC85xx_PMUXCR_SD_DATA);
+			puts("SD/MMC : 8-bit Mode\n");
+			puts("eSPI : Disabled\n");
+		} else {
+			puts("SD/MMC : 4-bit Mode\n");
+			puts("eSPI : Enabled\n");
+		}
+	}
+	else
+		puts("Failed reading I2C Chip 0x18 on bus 1\n");
+
+	i2c_set_bus_num(orig_bus);
 
 	/*
 	 * Remap Boot flash region to caching-inhibited

@@ -93,6 +93,21 @@
 #define CONFIG_TSEC_ENET		/* tsec ethernet support */
 #define CONFIG_ENV_OVERWRITE
 
+#define CONFIG_E1000		1	/* Defind e1000 pci Ethernet card*/
+
+/*
+ * eSPI - Enhanced SPI
+ */
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_SPANSION
+
+#define CONFIG_HARD_SPI
+#define CONFIG_FSL_ESPI
+
+#define CONFIG_CMD_SF
+#define CONFIG_SF_DEFAULT_SPEED 10000000
+#define CONFIG_SF_DEFAULT_MODE 0
+
 #ifndef __ASSEMBLY__
 extern unsigned long get_board_sys_clk(unsigned long dummy);
 #endif

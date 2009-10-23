@@ -369,7 +369,7 @@ static int esdhc_init(struct mmc *mmc)
 	int timeout = 1000;
 
 	/* Enable cache snooping */
-	out_be32(&regs->scr, 0x00000040);
+	setbits_be32(&regs->scr, 0x00000040);
 
 	out_be32(&regs->sysctl, SYSCTL_HCKEN | SYSCTL_IPGEN);
 
@@ -424,6 +424,10 @@ static int esdhc_initialize(bd_t *bis)
 
 	mmc_register(mmc);
 
+#ifdef CONFIG_P2020
+	/* Enable AHB2MAG IRQ Bypass */
+	setbits_be32(&regs->scr, 0x00000020);
+#endif
 	return 0;
 }
 

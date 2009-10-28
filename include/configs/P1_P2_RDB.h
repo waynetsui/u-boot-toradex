@@ -46,9 +46,12 @@
 /* Boot using DDR for eSDHC/eSPI/NAND boot because L2 Cache size
  * on these platforms is 256K.
  */
-#if defined(CONFIG_P1011) || defined(CONFIG_P1020)
+/*
+ * Due to Bug using L2 eSDHC/NAND/eSPI gives hang on power-on,
+ * But after doing soft reset it works fine. That's why make use 
+ * of DDR instead of L2 on all P1 & P2 platforms.
+ */
 #define CONFIG_SYS_FSL_BOOT_DDR
-#endif
 
 #ifdef CONFIG_MK_NAND
 #define CONFIG_NAND_U_BOOT		1

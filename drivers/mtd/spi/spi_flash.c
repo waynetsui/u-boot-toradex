@@ -2,6 +2,7 @@
  * SPI flash interface
  *
  * Copyright (C) 2008 Atmel Corporation
+ * Copyright 2009 Freescale Semiconductor, Inc.
  * Licensed under the GPL-2 or later.
  */
 
@@ -17,6 +18,7 @@ int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len)
 	unsigned long flags = SPI_XFER_BEGIN;
 	int ret;
 
+#ifndef CONFIG_FSL_ESPI
 	if (len == 0)
 		flags |= SPI_XFER_END;
 
@@ -32,6 +34,35 @@ int spi_flash_cmd(struct spi_slave *spi, u8 cmd, void *response, size_t len)
 			debug("SF: Failed to read response (%zu bytes): %d\n",
 					len, ret);
 	}
+#else
+	struct espi_transfer transfer[1];
+	unsigned char *buffer;
+
+	buffer = (unsigned char *)malloc(len + 2);
+	if (!buffer) {
+		debug("SF: Failed to malloc memory.\n");
+		return 1;
+	}
+	memcpy(buffer, &cmd, 1);
+
+	transfer[0].cmd_len = 1;
+	transfer[0].data_len = len;
+	transfer[0].tx_buf = buffer;
+	transfer[0].rx_buf = buffer + 1;
+	transfer[0].flags = flags | SPI_XFER_END;
+
+	spi->transfer = &transfer[0];
+	ret = espi_xfer(spi);
+	if (ret) {
+		debug("SF: Failed to send command %02x: %d\n", cmd, ret);
+		return ret;
+	}
+
+	if (len)
+		memcpy(response, transfer[0].rx_buf + 1, len);
+
+	free(buffer);
+#endif
 
 	return ret;
 }
@@ -42,6 +73,7 @@ int spi_flash_cmd_read(struct spi_slave *spi, const u8 *cmd,
 	unsigned long flags = SPI_XFER_BEGIN;
 	int ret;
 
+#ifndef CONFIG_FSL_ESPI
 	if (data_len == 0)
 		flags |= SPI_XFER_END;
 
@@ -55,6 +87,33 @@ int spi_flash_cmd_read(struct spi_slave *spi, const u8 *cmd,
 			debug("SF: Failed to read %zu bytes of data: %d\n",
 					data_len, ret);
 	}
+#else
+	struct espi_transfer transfer[1];
+	unsigned char *buffer;
+
+	buffer = (unsigned char *)malloc(2 * cmd_len + data_len);
+	if (!buffer) {
+		debug("SF: Failed to malloc memory.\n");
+		return 1;
+	}
+	memcpy(buffer, cmd, cmd_len);
+
+	transfer[0].cmd_len = cmd_len;
+	transfer[0].data_len = data_len;
+	transfer[0].tx_buf = buffer;
+	transfer[0].rx_buf = buffer + cmd_len;
+	transfer[0].flags = flags | SPI_XFER_END;
+
+	spi->transfer = &transfer[0];
+	ret = espi_xfer(spi);
+	if (ret) {
+		debug("SF: Failed to read %zu bytes of data: %d\n",
+				data_len, ret);
+	}
+
+	memcpy(data, transfer[0].rx_buf + cmd_len, data_len);
+	free(buffer);
+#endif
 
 	return ret;
 }
@@ -65,6 +124,7 @@ int spi_flash_cmd_write(struct spi_slave *spi, const u8 *cmd, size_t cmd_len,
 	unsigned long flags = SPI_XFER_BEGIN;
 	int ret;
 
+#ifndef CONFIG_FSL_ESPI
 	if (data_len == 0)
 		flags |= SPI_XFER_END;
 
@@ -78,6 +138,33 @@ int spi_flash_cmd_write(struct spi_slave *spi, const u8 *cmd, size_t cmd_len,
 			debug("SF: Failed to read %zu bytes of data: %d\n",
 					data_len, ret);
 	}
+#else
+	struct espi_transfer transfer[1];
+	unsigned char *buffer;
+
+	buffer = (unsigned char *)malloc(cmd_len + data_len);
+	if (!buffer) {
+		debug("SF: Failed to malloc memory.\n");
+		return 1;
+	}
+	memcpy(buffer, cmd, cmd_len);
+	memcpy(buffer + cmd_len, data, data_len);
+
+	transfer[0].cmd_len = cmd_len;
+	transfer[0].data_len = data_len;
+	transfer[0].tx_buf = buffer;
+	transfer[0].rx_buf = NULL;
+	transfer[0].flags = flags | SPI_XFER_END;
+
+	spi->transfer = &transfer[0];
+	ret = espi_xfer(spi);
+	if (ret) {
+		debug("SF: Failed to read %zu bytes of data: %d\n",
+				data_len, ret);
+	}
+
+	free(buffer);
+#endif
 
 	return ret;
 }

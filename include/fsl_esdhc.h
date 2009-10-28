@@ -2,7 +2,7 @@
  * FSL SD/MMC Defines
  *-------------------------------------------------------------------
  *
- * Copyright 2007-2008, Freescale Semiconductor, Inc
+ * Copyright 2007-2009 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -86,6 +86,7 @@
 #define PRSSTAT_CDPL		(0x00040000)
 #define PRSSTAT_CINS		(0x00010000)
 #define PRSSTAT_BREN		(0x00000800)
+#define PRSSTAT_BWEN		(0x00000400)
 #define PRSSTAT_DLA		(0x00000004)
 #define PRSSTAT_CICHB		(0x00000002)
 #define PRSSTAT_CIDHB		(0x00000001)
@@ -117,6 +118,7 @@
 #define XFERTYP_DMAEN		0x00000001
 
 #define CINS_TIMEOUT		1000
+#define PIO_TIMEOUT		100000
 
 #define DSADDR		0x2e004
 

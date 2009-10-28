@@ -118,6 +118,11 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_MP
 #endif
 
+/* TSECV2 */
+#if defined(CONFIG_P1020)
+#define CONFIG_TSECV2
+#endif
+
 /*
  * These can be toggled for performance analysis, otherwise use default.
  */

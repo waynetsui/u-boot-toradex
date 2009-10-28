@@ -451,14 +451,25 @@ typedef struct tsec_hash_regs
 	uint	res2[24];
 } tsec_hash_t;
 
+/* MDIO structure for etsec2.0.
+ * Backward compatible to etsec1.x
+ */
+
 typedef struct tsec_mdio
 {
+	uint	res1[4];
+	uint	ieventm;	/* MDIO Interrupt event register */
+	uint	imaskm;		/* MDIO Interrupt mask register */
+	uint	res2;
+	uint	emapm;		/* MDIO Event mapping register */
+	uint	res3[320];
 	uint	miimcfg;	/* MII Management: Configuration */
 	uint	miimcom;	/* MII Management: Command */
 	uint	miimadd;	/* MII Management: Address */
 	uint	miimcon;	/* MII Management: Control */
 	uint	miimstat;	/* MII Management: Status */
 	uint	miimind;	/* MII Management: Indicators */
+	uint	res4[690];
 } tsec_mdio_t;
 
 typedef struct tsec

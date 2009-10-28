@@ -246,6 +246,9 @@ phys_size_t initdram(int board_type)
 {
 	phys_size_t dram_size = 0;
 
+#if defined(CONFIG_SYS_RAMBOOT) && defined(CONFIG_SYS_FSL_BOOT_DDR)
+	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+#endif
 	dram_size = fixed_sdram();
 	set_ddr_laws(0, dram_size, LAW_TRGT_IF_DDR_1);
 

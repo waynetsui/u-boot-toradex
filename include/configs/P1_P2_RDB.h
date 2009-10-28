@@ -43,20 +43,39 @@
 #define CONFIG_P2020
 #endif
 
+/* Boot using DDR for eSDHC/eSPI/NAND boot because L2 Cache size
+ * on these platforms is 256K.
+ */
+#if defined(CONFIG_P1011) || defined(CONFIG_P1020)
+#define CONFIG_SYS_FSL_BOOT_DDR
+#endif
+
 #ifdef CONFIG_MK_NAND
 #define CONFIG_NAND_U_BOOT		1
 #define CONFIG_RAMBOOT_NAND		1
+#ifdef CONFIG_SYS_FSL_BOOT_DDR
+#define CONFIG_RAMBOOT_TEXT_BASE	0x01001000
+#else
 #define CONFIG_RAMBOOT_TEXT_BASE	0xf8f82000
+#endif
 #endif
 
 #ifdef CONFIG_MK_SDCARD
 #define CONFIG_RAMBOOT_SDCARD		1
+#ifdef CONFIG_SYS_FSL_BOOT_DDR
+#define CONFIG_RAMBOOT_TEXT_BASE	0x11000000
+#else
 #define CONFIG_RAMBOOT_TEXT_BASE	0xf8f80000
+#endif
 #endif
 
 #ifdef CONFIG_MK_SPIFLASH
 #define CONFIG_RAMBOOT_SPIFLASH		1
+#ifdef CONFIG_SYS_FSL_BOOT_DDR
+#define CONFIG_RAMBOOT_TEXT_BASE	0x11000000
+#else
 #define CONFIG_RAMBOOT_TEXT_BASE	0xf8f80000
+#endif
 #endif
 
 /* High Level Configuration Options */
@@ -101,6 +120,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  /*
   * Config the L2 Cache as L2 SRAM
   */
+#ifndef CONFIG_SYS_FSL_BOOT_DDR
 #define CONFIG_SYS_INIT_L2_ADDR		0xf8f80000
 #ifdef CONFIG_PHYS_64BIT
 #define CONFIG_SYS_INIT_L2_ADDR_PHYS	0xff8f80000ull
@@ -109,6 +129,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #endif
 #define CONFIG_SYS_L2_SIZE		(512 << 10)
 #define CONFIG_SYS_INIT_L2_END		(CONFIG_SYS_INIT_L2_ADDR + CONFIG_SYS_L2_SIZE)
+#endif
 
 /*
  * Base addresses -- Note these are effective addresses where the
@@ -233,6 +254,15 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(16 * 1024)
 
 /* NAND boot: 4K NAND loader config */
+#ifdef CONFIG_SYS_FSL_BOOT_DDR
+#define CONFIG_SYS_NAND_SPL_SIZE	0x1000
+#define CONFIG_SYS_NAND_U_BOOT_SIZE	((512 << 10) + CONFIG_SYS_NAND_SPL_SIZE)
+#define CONFIG_SYS_NAND_U_BOOT_DST	(0x01000000 - CONFIG_SYS_NAND_SPL_SIZE)
+#define CONFIG_SYS_NAND_U_BOOT_START	0x01000000
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	(0)
+#define CONFIG_SYS_NAND_U_BOOT_RELOC	0x00010000
+#define CONFIG_SYS_NAND_U_BOOT_RELOC_SP	(CONFIG_SYS_NAND_U_BOOT_RELOC + 0x10000)
+#else
 #define CONFIG_SYS_NAND_SPL_SIZE	0x1000
 #define CONFIG_SYS_NAND_U_BOOT_SIZE	((512 << 10) - 0x2000)
 #define CONFIG_SYS_NAND_U_BOOT_DST	(CONFIG_SYS_INIT_L2_ADDR)
@@ -240,6 +270,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_NAND_U_BOOT_OFFS	(0)
 #define CONFIG_SYS_NAND_U_BOOT_RELOC	(CONFIG_SYS_INIT_L2_END - 0x2000)
 #define CONFIG_SYS_NAND_U_BOOT_RELOC_SP		((CONFIG_SYS_INIT_L2_END - 1) & ~0xF)
+#endif
 
 /* NAND flash config */
 #define CONFIG_NAND_BR_PRELIM	(CONFIG_SYS_NAND_BASE_PHYS \

@@ -6,6 +6,20 @@
  * Copyright(c) 2002,2003 Motorola Inc.
  * Xianghua Xiao (x.xiao@motorola.com)
  *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #ifndef __IMMAP_85xx__
@@ -1931,5 +1945,15 @@ typedef struct ccsr_gur {
 	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_SERDES2_OFFSET)
 #define CONFIG_SYS_MPC85xx_USB_ADDR \
 	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_USB_OFFSET)
+
+/* TSEC and MDIO OFFSETS */
+#define CONFIG_SYS_TSEC1_OFFSET		0x24000
+#define TSEC_SIZE			0x01000
+
+#define CONFIG_SYS_MDIO1_OFFSET		0x24520
+#define MDIO_OFFSET			0x01000
+
+#define TSEC_BASE_ADDR		(CONFIG_SYS_IMMR + CONFIG_SYS_TSEC1_OFFSET)
+#define MDIO_BASE_ADDR		(CONFIG_SYS_IMMR + CONFIG_SYS_MDIO1_OFFSET)
 
 #endif /*__IMMAP_85xx__*/

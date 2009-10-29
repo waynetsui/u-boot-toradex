@@ -33,6 +33,8 @@
 #include <tsec.h>
 #include <vsc7385.h>
 #include <netdev.h>
+#include <mmc.h>
+#include <malloc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -243,5 +245,49 @@ extern void cpu_mp_lmb_reserve(struct lmb *lmb);
 void board_lmb_reserve(struct lmb *lmb)
 {
 	cpu_mp_lmb_reserve(lmb);
+}
+#endif
+
+#if defined(CONFIG_MMC)
+/*
+ * The environment variables are written to just after the u-boot image
+ * on SDCard, so we must read the MBR to get the start address and code
+ * length of the u-boot image, then calculate the address of the env.
+ */
+#define ESDHC_BOOT_IMAGE_SIZE	0x48
+#define ESDHC_BOOT_IMAGE_ADDR	0x50
+
+int mmc_get_env_addr(int dev, u32 *env_addr)
+{
+	int ret;
+	u8 *tmp_buf;
+	u32 blklen, code_offset, code_len;
+	struct mmc *mmc = find_mmc_device(dev);
+
+	mmc_init(mmc);
+
+	blklen = mmc->read_bl_len;
+	tmp_buf = malloc(blklen);
+	if (!tmp_buf)
+		return 1;
+
+	/* read out the first block, get the config data information */
+	ret = mmc_read(mmc, 0, tmp_buf, blklen);
+	if (ret) {
+		free(tmp_buf);
+		return 1;
+	}
+
+	/* Get the Source Address, from offset 0x50 */
+	code_offset = *(u32 *)(tmp_buf + ESDHC_BOOT_IMAGE_ADDR);
+
+	/* Get the code size from offset 0x48 */
+	code_len = *(u32 *)(tmp_buf + ESDHC_BOOT_IMAGE_SIZE);
+
+	*env_addr = code_offset + code_len;
+
+	free(tmp_buf);
+
+	return 0;
 }
 #endif

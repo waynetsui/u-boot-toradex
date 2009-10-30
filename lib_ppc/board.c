@@ -2,6 +2,8 @@
  * (C) Copyright 2000-2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * Copyright 2009 Freescale Semiconductor, Inc.
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -784,6 +786,12 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	nand_init();		/* go init the NAND */
 #endif
 
+#ifdef CONFIG_GENERIC_MMC
+	WATCHDOG_RESET ();
+	puts ("MMC:  ");
+	mmc_initialize (bd);
+#endif
+
 	/* relocate environment function pointers etc. */
 	env_relocate ();
 
@@ -938,12 +946,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	WATCHDOG_RESET ();
 	puts ("SCSI:  ");
 	scsi_init ();
-#endif
-
-#ifdef CONFIG_GENERIC_MMC
-	WATCHDOG_RESET ();
-	puts ("MMC:  ");
-	mmc_initialize (bd);
 #endif
 
 #if defined(CONFIG_CMD_DOC)

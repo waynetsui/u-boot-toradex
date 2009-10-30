@@ -53,6 +53,10 @@
  */
 #define CONFIG_SYS_FSL_BOOT_DDR
 
+#ifdef CONFIG_MK_RAMBOOT
+#define CONFIG_MK_SDCARD
+#endif
+
 #ifdef CONFIG_MK_NAND
 #define CONFIG_NAND_U_BOOT		1
 #define CONFIG_RAMBOOT_NAND		1
@@ -487,7 +491,11 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  * Environment
  */
 #if defined(CONFIG_SYS_RAMBOOT)
-#if defined(CONFIG_RAMBOOT_NAND)
+#if defined(CONFIG_MK_RAMBOOT)
+	#define CONFIG_ENV_IS_NOWHERE	1       /* Store ENV in memory only */
+	#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - 0x1000)
+	#define CONFIG_ENV_SIZE		0x2000
+#elif defined(CONFIG_RAMBOOT_NAND)
 	#define CONFIG_ENV_IS_IN_NAND	1
 	#define CONFIG_ENV_SIZE		CONFIG_SYS_NAND_BLOCK_SIZE
 	#define CONFIG_ENV_OFFSET	((512 * 1024) + CONFIG_SYS_NAND_BLOCK_SIZE)

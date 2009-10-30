@@ -93,6 +93,7 @@ void cpu_init_early_f(void)
 
 	write_tlb(mas0, mas1, mas2, mas3, mas7);
 
+#if !defined(CONFIG_MK_RAMBOOT)
 	/* set up CCSR if we want it moved */
 #if (CONFIG_SYS_CCSRBAR_DEFAULT != CONFIG_SYS_CCSRBAR_PHYS)
 	mas0 = MAS0_TLBSEL(0) | MAS0_ESEL(1);
@@ -104,6 +105,7 @@ void cpu_init_early_f(void)
 	write_tlb(mas0, mas1, mas2, mas3, mas7);
 
 	setup_ccsrbar();
+#endif
 #endif
 
 	init_laws();

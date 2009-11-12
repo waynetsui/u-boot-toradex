@@ -657,13 +657,13 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 	"norbootaddr=ef080000\0"	\
 	"norfdtaddr=ef040000\0"	\
 	"jffs2nand=mtdblock9\0"	\
-	"nandbootaddr=100000\0"	\
-	"nandfdtaddr=80000\0"		\
+	"nandbootaddr=200000\0"	\
+	"nandfdtaddr=100000\0"		\
 	"nandimgsize=400000\0"		\
-	"nandfdtsize=80000\0"		\
+	"nandfdtsize=100000\0"		\
 	"usb_phy_type=ulpi\0"		\
 	"vscfw_addr=ef000000\0"	\
-	"othbootargs=ramdisk_size=600000\0" \
+	"othbootargs=ramdisk_size=700000 cache-sram-size=0x10000\0" \
 	"usbfatboot=setenv bootargs root=/dev/ram rw "	\
 	"console=$consoledev,$baudrate $othbootargs; "	\
 	"usb start;"			\

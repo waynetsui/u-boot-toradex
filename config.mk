@@ -41,7 +41,11 @@ endif
 
 # clean the slate ...
 PLATFORM_RELFLAGS =
+ifdef CONFIG_CW
+PLATFORM_CPPFLAGS = -DCONFIG_CW
+else
 PLATFORM_CPPFLAGS =
+endif
 PLATFORM_LDFLAGS =
 
 #########################################################################
@@ -108,8 +112,13 @@ else
 ARFLAGS = crv
 endif
 RELFLAGS= $(PLATFORM_RELFLAGS)
+ifdef CONFIG_CW
+DBGFLAGS= -g2 -gdwarf-2
+OPTFLAGS= -O1
+else
 DBGFLAGS= -g # -DDEBUG
 OPTFLAGS= -Os #-fomit-frame-pointer
+endif
 ifndef LDSCRIPT
 #LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds.debug
 ifeq ($(CONFIG_NAND_U_BOOT),y)
@@ -140,6 +149,17 @@ CPPFLAGS += -I$(TOPDIR)/include
 CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
+ifdef CONFIG_CW
+
+ifdef BUILD_TAG
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -ggdb \
+	-DBUILD_TAG='"$(BUILD_TAG)"'
+else
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -ggdb
+endif
+
+else # !define CONFIG_CW
+
 ifdef BUILD_TAG
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
 	-DBUILD_TAG='"$(BUILD_TAG)"'
@@ -148,6 +168,8 @@ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
 endif
 
 CFLAGS += $(call cc-option,-fno-stack-protector)
+
+endif # CONFIG_CW
 
 # avoid trigraph warnings while parsing pci.h (produced by NIOS gcc-2.9)
 # this option have to be placed behind -Wall -- that's why it is here
@@ -159,7 +181,11 @@ endif
 
 # $(CPPFLAGS) sets -g, which causes gcc to pass a suitable -g<format>
 # option to the assembler.
+ifdef CONFIG_CW
+AFLAGS_DEBUG := -Wa,-gdwarf2
+else
 AFLAGS_DEBUG :=
+endif
 
 # turn jbsr into jsr for m68k
 ifeq ($(ARCH),m68k)

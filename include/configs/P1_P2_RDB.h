@@ -130,6 +130,8 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_TSECV2
 #endif
 
+#define CONFIG_HWCONFIG
+
 /*
  * These can be toggled for performance analysis, otherwise use default.
  */

@@ -25,8 +25,8 @@
 #include <pci.h>
 
 struct pci_info {
-	u16	agent;
-	u16	cfg;
+	u32	agent;
+	u32	cfg;
 };
 
 /* The agent field is a bit mask in which each bit represents the value of
@@ -191,6 +191,32 @@ static struct pci_info pci_config_info[] =
 	[LAW_TRGT_IF_PCIE_2] = {
 		.agent = (1 << 0) | (1 << 2),
 		.cfg =   (1 << 0xe),
+	},
+};
+#elif defined(CONFIG_P1022)
+static struct pci_info pci_config_info[] =
+{
+	[LAW_TRGT_IF_PCIE_1] = {
+		.agent = (1 << 0) | (1 << 1),
+		.cfg =   (1 << 6) | (1 << 7) | (1 << 9) | (1 << 0xa) |
+			 (1 << 0xb) | (1 << 0xd) | (1 << 0xe) |
+			 (1 << 0xf) | (1 << 0x15) | (1 << 0x16) |
+			 (1 << 0x17) | (1 << 0x18) | (1 << 0x19) |
+			 (1 << 0x1a) | (1 << 0x1b) | (1 << 0x1c) |
+			 (1 << 0x1d) | (1 << 0x1e) | (1 << 0x1f),
+	},
+	[LAW_TRGT_IF_PCIE_2] = {
+		.agent = (1 << 0) | (1 << 2),
+		.cfg =   (1 << 0) | (1 << 1) | (1 << 6) | (1 << 7) |
+			 (1 << 9) | (1 << 0xa) | (1 << 0xb) | (1 << 0xd) |
+			 (1 << 0x15) | (1 << 0x16) | (1 << 0x17) |
+			 (1 << 0x18) | (1 << 0x1c),
+	},
+	[LAW_TRGT_IF_PCIE_3] = {
+		.agent = (1 << 0) | (1 << 3),
+		.cfg =   (1 << 6) | (1 << 7) | (1 << 9) | (1 << 0xd) |
+			 (1 << 0x15) | (1 << 0x16) | (1 << 0x17) | (1 << 0x18) |
+			 (1 << 0x19) | (1 << 0x1a) | (1 << 0x1b),
 	},
 };
 #elif defined(CONFIG_P2010) || defined(CONFIG_P2020)

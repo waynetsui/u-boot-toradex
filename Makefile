@@ -2513,6 +2513,10 @@ P2020DS_36BIT_config \
 P2020DS_config:		unconfig
 	@$(MKCONFIG) -t $(@:_config=) P2020DS ppc mpc85xx p2020ds freescale
 
+P1022DS_36BIT_config \
+P1022DS_config:		unconfig
+	@$(MKCONFIG) -t $(@:_config=) P1022DS ppc mpc85xx p1022ds freescale
+
 P1011RDB_config	\
 P1011RDB_NAND_config \
 P1011RDB_SDCARD_config \

@@ -531,6 +531,14 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_SATA2		CONFIG_SYS_MPC85xx_SATA2_ADDR
 #define CONFIG_SYS_SATA2_FLAGS		FLAGS_DMA
 
+/* Change from legacy to enterprise mode */
+#define CONFIG_P1022_LEGACY_ERRATUM_WORKAROUND   1
+
+/* In Rev 2.0 of SATA IP, the DATA SNOOP bit is 28 instead of 22
+ * in older revs. Not sure if this will be listed as an erratum.
+ */
+#define CONFIG_P1022_SATA_SNOOP_BIT_SHIFTED       1
+
 #ifdef CONFIG_FSL_SATA
 #define CONFIG_LBA48
 #define CONFIG_CMD_SATA

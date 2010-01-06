@@ -244,7 +244,11 @@ typedef struct prd_entry {
 /* ext_c_ddc
 */
 #define PRD_ENTRY_EXT		0x80000000 /* extension flag or called indirect descriptor flag */
-#define PRD_ENTRY_DATA_SNOOP	0x00400000 /* Snoop enable for all data associated with the PRD entry */
+#ifdef CONFIG_P1022_SATA_SNOOP_BIT_SHIFTED
+#define PRD_ENTRY_DATA_SNOOP    0x10000000 /* Snoop enable for all data associated with the PRD entry */
+#else
+#define PRD_ENTRY_DATA_SNOOP    0x00400000 /* Snoop enable for all data associated with the PRD entry */
+#endif
 #define PRD_ENTRY_LEN_MASK	0x003fffff /* Data word count */
 
 #define PRD_ENTRY_MAX_XFER_SZ	(PRD_ENTRY_LEN_MASK + 1)

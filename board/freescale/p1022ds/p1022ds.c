@@ -183,6 +183,8 @@ phys_size_t fixed_sdram(void)
 int misc_init_r(void)
 {
 	u8 tmp_val;
+	fsl_sata_reg_t *sata1_reg = (fsl_sata_reg_t *)CONFIG_SYS_MPC85xx_SATA1_ADDR;
+	fsl_sata_reg_t *sata2_reg = (fsl_sata_reg_t *)CONFIG_SYS_MPC85xx_SATA2_ADDR;
 
 	/*  Enable the TFP410 Encoder (I2C address 0x38)
 	*/
@@ -206,6 +208,16 @@ int misc_init_r(void)
 /* #ifdef CONFIG_FSL_DIU_FB */
 /* 	p1022ds_diu_init(); */
 /* #endif */
+
+	/* Changing the SATA controller to operate in enterprise mode
+	 * By default, on Rev 1, it comes up in "legacy" mode.
+	 */
+#ifdef CONFIG_P1022_LEGACY_ERRATUM_WORKAROUND
+	out_le32(&sata1_reg->hstatus, 0x20000000);
+	out_le32(&sata1_reg->hcontrol, 0x00000100);
+	out_le32(&sata2_reg->hstatus, 0x20000000);
+	out_le32(&sata2_reg->hcontrol, 0x00000100);
+#endif
 
 	return 0;
 }

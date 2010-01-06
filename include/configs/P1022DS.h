@@ -555,6 +555,12 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_FSL_ESDHC_ADDR	CONFIG_SYS_MPC85xx_ESDHC_ADDR
 #endif
 
+/* In Rev 1.0 of P1022, in the Host Capabilities register
+ * the 1.8V bit is set; it should not be. So we exclude this
+ * setting in the driver.
+ */
+#define P1022_REV1_SDHC_ERRATUM_WORKAROUND              1
+
 #if defined(CONFIG_MMC) || defined(CONFIG_USB_EHCI)
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT

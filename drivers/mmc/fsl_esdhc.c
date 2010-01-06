@@ -324,8 +324,11 @@ static int esdhc_initialize(bd_t *bis)
 
 	caps = regs->hostcapblt;
 
+	/* 1.8V incorrectly set in hardware on P1022 eSDHC */
+#ifndef P1022_REV1_SDHC_ERRATUM_WORKAROUND
 	if (caps & ESDHC_HOSTCAPBLT_VS18)
 		mmc->voltages |= MMC_VDD_165_195;
+#endif
 	if (caps & ESDHC_HOSTCAPBLT_VS30)
 		mmc->voltages |= MMC_VDD_29_30 | MMC_VDD_30_31;
 	if (caps & ESDHC_HOSTCAPBLT_VS33)

@@ -78,6 +78,10 @@ uint esdhc_xfertyp(struct mmc_cmd *cmd, struct mmc_data *data)
 		if (data->blocks > 1) {
 			xfertyp |= XFERTYP_MSBSEL;
 			xfertyp |= XFERTYP_BCEN;
+#ifdef CONFIG_FSL_ESDHC_AUTOCMD12
+			/* For P1022 errata */
+			xfertyp |= XFERTYP_AC12EN;
+#endif
 		}
 
 		if (data->flags & MMC_DATA_READ)
@@ -154,6 +158,12 @@ esdhc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 	uint	xfertyp;
 	uint	irqstat;
 	volatile struct fsl_esdhc *regs = mmc->priv;
+
+#ifdef CONFIG_FSL_ESDHC_AUTOCMD12
+	/* For P1022 errata */
+	if (cmd->cmdidx == MMC_CMD_STOP_TRANSMISSION)
+		return 0;
+#endif
 
 	out_be32(&regs->irqstat, -1);
 

@@ -643,9 +643,23 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
  * Environment
  */
 #if defined(CONFIG_SYS_RAMBOOT)
+#ifdef CONFIG_RAMBOOT_SPIFLASH
+#define CONFIG_ENV_IS_IN_SPI_FLASH	1
+#define CONFIG_ENV_SPI_BUS		0
+#define CONFIG_ENV_SPI_CS		0
+#define CONFIG_ENV_SPI_MAX_HZ		10000000
+#define CONFIG_ENV_SPI_MODE		0
+#define CONFIG_ENV_SIZE			0x2000          /* 8KB */
+#define CONFIG_ENV_OFFSET		0x100000        /* 1MB */
+#define CONFIG_ENV_SECT_SIZE		0x10000
+#elif defined(CONFIG_RAMBOOT_SDCARD)
+#define CONFIG_ENV_IS_IN_SDCARD                1
+#define CONFIG_ENV_SIZE                        0x2000
+#else
 #define CONFIG_ENV_IS_NOWHERE	1       /* Store ENV in memory only */
 #define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - 0x1000)
 #define CONFIG_ENV_SIZE		0x2000
+#endif
 #else
 #define CONFIG_ENV_IS_IN_FLASH	1
 #if CONFIG_SYS_MONITOR_BASE > 0xfff80000

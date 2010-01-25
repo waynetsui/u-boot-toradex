@@ -98,6 +98,10 @@ phys_size_t initdram(int board_type)
 
 	puts("Initializing....");
 
+#if defined(CONFIG_SYS_RAMBOOT)
+	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+#endif
+
 #ifdef CONFIG_SPD_EEPROM
 	dram_size = fsl_ddr_sdram();
 #else

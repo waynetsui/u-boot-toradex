@@ -31,6 +31,16 @@
 #define CONFIG_PHYS_64BIT
 #endif
 
+#ifdef CONFIG_MK_SDCARD
+#define CONFIG_RAMBOOT_SDCARD		1
+#define CONFIG_RAMBOOT_TEXT_BASE	0x11000000
+#endif
+
+#ifdef CONFIG_MK_SPIFLASH
+#define CONFIG_RAMBOOT_SPIFLASH		1
+#define CONFIG_RAMBOOT_TEXT_BASE	0x11000000
+#endif
+
 /* #define DEBUG */
 /* High Level Configuration Options */
 #define CONFIG_BOOKE		1	/* BOOKE */
@@ -111,7 +121,7 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 /* DDR Setup */
 #define CONFIG_SPD_EEPROM
 #define CONFIG_DDR_SPD
-#define CONFIG_SYS_DDR_TLB_START 9
+#define CONFIG_SYS_DDR_TLB_START 10
 #define CONFIG_VERY_BIG_RAM
 #define CONFIG_FSL_DDR3		1
 #undef CONFIG_FSL_DDR_INTERACTIVE
@@ -222,6 +232,12 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor */
 
+#if defined(CONFIG_RAMBOOT_SDCARD) || defined(CONFIG_RAMBOOT_SPIFLASH)
+#define CONFIG_SYS_RAMBOOT
+#else
+#undef CONFIG_SYS_RAMBOOT
+#endif
+
 #define CONFIG_FLASH_CFI_DRIVER
 #define CONFIG_SYS_FLASH_CFI
 #define CONFIG_SYS_FLASH_EMPTY_INFO
@@ -308,6 +324,10 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024)	/* Reserved for malloc */
+
+#if defined(CONFIG_RAMBOOT_SDCARD) || defined(CONFIG_RAMBOOT_SPIFLASH)
+#define CONFIG_SYS_RESERVED_LAW0	0
+#endif
 
 /* #define CONFIG_SYS_NAND_BASE		0xffa00000 */
 /* #ifdef CONFIG_PHYS_64BIT */
@@ -622,6 +642,11 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 /*
  * Environment
  */
+#if defined(CONFIG_SYS_RAMBOOT)
+#define CONFIG_ENV_IS_NOWHERE	1       /* Store ENV in memory only */
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE - 0x1000)
+#define CONFIG_ENV_SIZE		0x2000
+#else
 #define CONFIG_ENV_IS_IN_FLASH	1
 #if CONFIG_SYS_MONITOR_BASE > 0xfff80000
 #define CONFIG_ENV_ADDR		0xfff80000
@@ -630,6 +655,7 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 #endif
 #define CONFIG_ENV_SIZE		0x2000
 #define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) */
+#endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
 #define CONFIG_SYS_LOADS_BAUD_CHANGE	1	/* allow baudrate change */

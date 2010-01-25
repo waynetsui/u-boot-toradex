@@ -2514,6 +2514,8 @@ P2020DS_config:		unconfig
 	@$(MKCONFIG) -t $(@:_config=) P2020DS ppc mpc85xx p2020ds freescale
 
 P1022DS_36BIT_config \
+P1022DS_SDCARD_config \
+P1022DS_SPIFLASH_config \
 P1022DS_config:		unconfig
 	@$(MKCONFIG) -t $(@:_config=) P1022DS ppc mpc85xx p1022ds freescale
 

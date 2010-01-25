@@ -52,7 +52,11 @@ int board_early_init_f(void)
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 	u32 tmp;
 	/* Set pmuxcr to allow both i2c1 and i2c2 */
+#ifdef CONFIG_RAMBOOT_SDCARD
+	gur->pmuxcr |= 0x00401000;
+#else
 	gur->pmuxcr |= 0x1000;
+#endif
 	tmp = gur->pmuxcr;
 
 	/* Set muxing for TSEC2

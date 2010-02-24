@@ -58,6 +58,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define BOARDREV_MASK	0x10100000
 #define BOARDREV_B	0x10100000
 #define BOARDREV_C	0x00100000
+#define BOARDREV_D	0x00000000
 
 #define SYSCLK_66	66666666
 #define SYSCLK_50	50000000
@@ -81,6 +82,11 @@ unsigned long get_board_sys_clk(ulong dummy)
 			return SYSCLK_66;
 		else
 			return SYSCLK_50;
+	} else if (board_rev_gpio == BOARDREV_D) {
+		if(sysclk_gpio == 0)
+			return SYSCLK_66;
+		else
+			return SYSCLK_100;
 	}
 	return 0;
 }
@@ -110,6 +116,8 @@ int checkboard (void)
 		board_rev = 'C';
 	else if (board_rev_gpio == BOARDREV_B)
 		board_rev = 'B';
+	else if (board_rev_gpio == BOARDREV_D)
+		board_rev = 'D';
 	else
 		panic ("Unexpected Board REV %x detected!!\n", board_rev_gpio);
 

@@ -63,7 +63,6 @@ void diu_set_pixel_clock(unsigned int pixclock)
 
 void p1022ds_diu_init(void)
 {
-	char *monitor_port;
 	int gamma_fix;
 	unsigned int pixel_format;
 	unsigned char tmp_val;
@@ -75,23 +74,19 @@ void p1022ds_diu_init(void)
 	tmp_val = in_8(pixis_base + PIXIS_BRDCFG1);
 	pixis_arch = in_8(pixis_base + PIXIS_VER);
 
-	monitor_port = getenv("monitor");
-
-	if (!strncmp(monitor_port, "1", 1)) { /* 1 - LVDS */
+#ifdef CONFIG_MK_DIU1
 		xres = 1024;
 		yres = 768;
 		pixel_format = 0x88883316;
 		gamma_fix = 0;
 		out_8(pixis_base + PIXIS_BRDCFG1, (tmp_val & 0xf7) | 0x40 | 0x20);
-
-	} else {	/* 0, or uninitialized env var */
+#else
 		xres = 1280;
 		yres = 1024;
 		pixel_format = 0x88883316;
 		gamma_fix = 0;
 		out_8(pixis_base + PIXIS_BRDCFG1, tmp_val | 0x80);
-	}
-
+#endif
 	/* Set BRDCFG0[ELBC_DIU] */
 	tmp_val_brdcfg0 = in_8(pixis_base + PIXIS_BRDCFG0);
 	tmp_val_brdcfg0 = (tmp_val_brdcfg0 & 0x3D) | 0x02;

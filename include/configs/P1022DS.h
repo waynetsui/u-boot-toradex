@@ -408,13 +408,17 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 #endif
 
+#if defined(CONFIG_MK_DIU0) || defined(CONFIG_MK_DIU1)
 #define CONFIG_FSL_DIU_FB	1	/* FSL DIU */
 #define CONFIG_SYS_DIU_ADDR		(CONFIG_SYS_CCSRBAR+0x10000)
 /*DIU Configuration*/
 #define DIU_CONNECT_TO_DVI		/* DIU controller connects to DVI encoder*/
 
 /* video */
+#define CONFIG_VIDEO
+#else
 #undef CONFIG_VIDEO
+#endif
 
 #if defined(CONFIG_VIDEO)
 #define CONFIG_CFB_CONSOLE
@@ -783,6 +787,7 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 
 #define CONFIG_BAUDRATE	115200
 
+#ifdef CONFIG_MK_DIU0
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
  "perf_mode=stable\0"			\
  "memctl_intlv_ctl=2\0"						\
@@ -805,6 +810,30 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
  "diuerr=md e002c014 1\0" \
  "othbootargs=diufb=15M video=fslfb:1280x1024-32@60,monitor=0 tty0 debug\0" \
  "monitor=0-DVI\0"
+#else
+#define	CONFIG_EXTRA_ENV_SETTINGS				\
+ "perf_mode=stable\0"			\
+ "memctl_intlv_ctl=2\0"						\
+ "netdev=eth0\0"						\
+ "uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
+ "tftpflash=tftpboot $loadaddr $uboot; "			\
+	"protect off " MK_STR(TEXT_BASE) " +$filesize; "	\
+	"erase " MK_STR(TEXT_BASE) " +$filesize; "		\
+	"cp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize; "	\
+	"protect on " MK_STR(TEXT_BASE) " +$filesize; "		\
+	"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0"	\
+ "consoledev=ttyS0\0"				\
+ "ramdiskaddr=2000000\0"			\
+ "ramdiskfile=uramdisk\0"		\
+ "fdtaddr=c00000\0"				\
+ "fdtfile=p1022ds.dtb\0"		\
+ "bdev=sda3\0"				\
+ "diuregs=md e002c000 1d\0" \
+ "dium=mw e002c01c\0" \
+ "diuerr=md e002c014 1\0" \
+ "othbootargs=diufb=15M video=fslfb:1024x768-32@60,monitor=1 tty0 debug\0" \
+ "monitor=1-LVDS\0"
+#endif
 
 #define CONFIG_HDBOOT				\
  "setenv bootargs root=/dev/$bdev rw "		\

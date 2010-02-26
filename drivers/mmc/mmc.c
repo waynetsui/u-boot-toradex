@@ -1,5 +1,5 @@
 /*
- * Copyright 2008, Freescale Semiconductor, Inc
+ * Copyright 2008-2010, Freescale Semiconductor, Inc
  * Andy Fleming
  *
  * Based vaguely on the Linux code
@@ -128,33 +128,51 @@ mmc_bwrite(int dev_num, ulong start, lbaint_t blkcnt, const void*src)
 	return blkcnt;
 }
 
-int mmc_read_block(struct mmc *mmc, void *dst, uint blocknum)
+int mmc_read_block(struct mmc *mmc, void *dst, uint start, int blkcnt)
 {
 	struct mmc_cmd cmd;
 	struct mmc_data data;
+	int err, stoperr = 0;
 
-	cmd.cmdidx = MMC_CMD_READ_SINGLE_BLOCK;
+	if (blkcnt > 1)
+		cmd.cmdidx = MMC_CMD_READ_MULTIPLE_BLOCK;
+	else
+		cmd.cmdidx = MMC_CMD_READ_SINGLE_BLOCK;
 
 	if (mmc->high_capacity)
-		cmd.cmdarg = blocknum;
+		cmd.cmdarg = start;
 	else
-		cmd.cmdarg = blocknum * mmc->read_bl_len;
+		cmd.cmdarg = start * mmc->read_bl_len;
 
 	cmd.resp_type = MMC_RSP_R1;
 	cmd.flags = 0;
 
 	data.dest = dst;
-	data.blocks = 1;
+	data.blocks = blkcnt;
 	data.blocksize = mmc->read_bl_len;
 	data.flags = MMC_DATA_READ;
 
-	return mmc_send_cmd(mmc, &cmd, &data);
+	err = mmc_send_cmd(mmc, &cmd, &data);
+
+	if (blkcnt > 1) {
+		cmd.cmdidx = MMC_CMD_STOP_TRANSMISSION;
+		cmd.cmdarg = 0;
+		cmd.resp_type = MMC_RSP_R1b;
+		cmd.flags = 0;
+		stoperr = mmc_send_cmd(mmc, &cmd, NULL);
+	}
+
+	if (err) {
+		printf("the read data have err %d\n", err);
+		return err;
+	}
+
+	return stoperr;
 }
 
 int mmc_read(struct mmc *mmc, u64 src, uchar *dst, int size)
 {
 	char *buffer;
-	int i;
 	int blklen = mmc->read_bl_len;
 	int startblock = lldiv(src, mmc->read_bl_len);
 	int endblock = lldiv(src + size - 1, mmc->read_bl_len);
@@ -174,28 +192,10 @@ int mmc_read(struct mmc *mmc, u64 src, uchar *dst, int size)
 	if (err)
 		return err;
 
-	for (i = startblock; i <= endblock; i++) {
-		int segment_size;
-		int offset;
-
-		err = mmc_read_block(mmc, buffer, i);
-
-		if (err)
-			goto free_buffer;
-
-		/*
-		 * The first block may not be aligned, so we
-		 * copy from the desired point in the block
-		 */
-		offset = (src & (blklen - 1));
-		segment_size = MIN(blklen - offset, size);
-
-		memcpy(dst, buffer + offset, segment_size);
-
-		dst += segment_size;
-		src += segment_size;
-		size -= segment_size;
-	}
+	err = mmc_read_block(mmc, buffer, startblock, endblock - startblock + 1);
+	if (err)
+		goto free_buffer;
+	memcpy(dst, buffer, size);
 
 free_buffer:
 	free(buffer);
@@ -206,7 +206,6 @@ free_buffer:
 static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 {
 	int err;
-	int i;
 	struct mmc *mmc = find_mmc_device(dev_num);
 
 	if (!mmc)
@@ -219,13 +218,11 @@ static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 		return 0;
 	}
 
-	for (i = start; i < start + blkcnt; i++, dst += mmc->read_bl_len) {
-		err = mmc_read_block(mmc, dst, i);
+	err = mmc_read_block(mmc, dst, start, blkcnt);
 
-		if (err) {
-			printf("block read failed: %d\n", err);
-			return i - start;
-		}
+	if (err) {
+		printf("block read failed: %d\n", err);
+		return -start;
 	}
 
 	return blkcnt;

@@ -32,6 +32,7 @@
 #define BOARDREV_MASK   0x10100000
 #define BOARDREV_B      0x10100000
 #define BOARDREV_C      0x00100000
+#define BOARDREV_D      0x00000000
 
 #define SYSCLK_66       66666666
 #define SYSCLK_50       50000000
@@ -110,7 +111,12 @@ void board_init_f(ulong bootflag)
 	val = pgpio->gpdat;
 	sysclk_mask = val & SYSCLK_MASK;
 	temp = val & BOARDREV_MASK;
-	if (temp == BOARDREV_C) {
+	if (temp == BOARDREV_D) {
+		if(sysclk_mask == 0)
+			sys_clk = SYSCLK_66;
+		else
+			sys_clk = SYSCLK_100;
+	} else if (temp == BOARDREV_C) {
 		if(sysclk_mask == 0)
 			sys_clk = SYSCLK_66;
 		else

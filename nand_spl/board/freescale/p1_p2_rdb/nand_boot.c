@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 Freescale Semiconductor, Inc.
+ * Copyright 2009-2010 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -54,6 +54,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define CONFIG_SYS_DDR_MODE_1_667	0x00040852
 #define CONFIG_SYS_DDR_MODE_2_667	0x00000000
 #define CONFIG_SYS_DDR_INTERVAL_667	0x0a280100
+#define SDRAM_CFG_32_BE			0x00080000
 
 #define udelay(x) {int i, j; for (i = 0; i < x; i++) for (j = 0; j < 10000; j++); }
 
@@ -81,7 +82,13 @@ void initsdram(void)
 	out_be32(&ddr->sdram_mode_2, CONFIG_SYS_DDR_MODE_2_667);
 	out_be32(&ddr->sdram_interval, CONFIG_SYS_DDR_INTERVAL_667);
 	out_be32(&ddr->sdram_clk_cntl, CONFIG_SYS_DDR_CLK_CTRL_667);
+
+#if defined(CONFIG_P2020) || defined(CONFIG_P2010)
 	out_be32(&ddr->sdram_cfg, CONFIG_SYS_DDR_CONTROL);
+#elif defined(CONFIG_P1020) || defined(CONFIG_P1011)
+	out_be32(&ddr->sdram_cfg, CONFIG_SYS_DDR_CONTROL | SDRAM_CFG_32_BE);
+#endif
+
 	out_be32(&ddr->sdram_cfg_2, CONFIG_SYS_DDR_CONTROL_2);
 
 	asm("sync;isync");

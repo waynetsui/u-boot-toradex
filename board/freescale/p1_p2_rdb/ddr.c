@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 Freescale Semiconductor, Inc.
+ * Copyright 2009-2010 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -245,9 +245,17 @@ phys_size_t fixed_sdram (void)
 phys_size_t initdram(int board_type)
 {
 	phys_size_t dram_size = 0;
+	struct cpu_type *cpu;
 
 #if defined(CONFIG_SYS_RAMBOOT) && defined(CONFIG_SYS_FSL_BOOT_DDR)
-	return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
+	cpu = gd->cpu;
+
+	/* P1020 and it's derivatives support max 32bit DDR width */
+	if (cpu->soc_ver == SVR_P1020 || cpu->soc_ver == SVR_P1020_E ||
+		cpu->soc_ver == SVR_P1011 || cpu->soc_ver == SVR_P1011_E)
+		return (CONFIG_SYS_SDRAM_SIZE * 1024 * 1024) / 2;
+	else
+		return CONFIG_SYS_SDRAM_SIZE * 1024 * 1024;
 #endif
 	dram_size = fixed_sdram();
 	set_ddr_laws(0, dram_size, LAW_TRGT_IF_DDR_1);

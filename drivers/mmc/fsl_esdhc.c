@@ -1,5 +1,5 @@
 /*
- * Copyright 2007, 2009 Freescale Semiconductor, Inc.
+ * Copyright 2007, 2009-2010 Freescale Semiconductor, Inc.
  * Andy Fleming
  *
  * Based vaguely on the pxa mmc code:
@@ -407,8 +407,11 @@ static int esdhc_initialize(bd_t *bis)
 
 	caps = regs->hostcapblt;
 
+	/* 1.8V incorrectly set in hardware on P1020 & P1022 eSDHC */
+#ifndef ESDHC_ERRATUM_1_8V
 	if (caps & ESDHC_HOSTCAPBLT_VS18)
 		mmc->voltages |= MMC_VDD_165_195;
+#endif
 	if (caps & ESDHC_HOSTCAPBLT_VS30)
 		mmc->voltages |= MMC_VDD_29_30 | MMC_VDD_30_31;
 	if (caps & ESDHC_HOSTCAPBLT_VS33)

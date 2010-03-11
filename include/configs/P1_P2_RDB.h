@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 Freescale Semiconductor, Inc.
+ * Copyright 2009-2010 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -559,6 +559,9 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_FSL_ESDHC_ADDR	CONFIG_SYS_MPC85xx_ESDHC_ADDR
 #ifdef CONFIG_P2020
 #define CONFIG_SYS_FSL_ESDHC_USE_PIO /* P2020 eSDHC DMA is not functional*/
+#endif
+#ifdef CONFIG_P1020
+#define ESDHC_ERRATUM_1_8V	1 /* P1020 eSDHC is not functional with 1.8v */
 #endif
 #endif
 

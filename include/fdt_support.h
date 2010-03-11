@@ -74,6 +74,7 @@ int fdt_pci_dma_ranges(void *blob, int phb_off, struct pci_controller *hose);
 void ft_board_setup(void *blob, bd_t *bd);
 void ft_cpu_setup(void *blob, bd_t *bd);
 void ft_pci_setup(void *blob, bd_t *bd);
+void fdt_fixup_add_2nd_usb(void *blob, int agent);
 #endif
 
 void set_working_fdt_addr(void *addr);

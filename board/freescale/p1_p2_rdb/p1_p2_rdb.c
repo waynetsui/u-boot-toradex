@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 Freescale Semiconductor, Inc.
+ * Copyright 2009-2010 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -21,6 +21,7 @@
  */
 
 #include <common.h>
+#include <hwconfig.h>
 #include <command.h>
 #include <asm/processor.h>
 #include <asm/mmu.h>
@@ -43,6 +44,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define SGMII_PHY_RST_SET	0x00020000
 #define PCIE_RST_SET		0x00010000
 #define RGMII_PHY_RST_SET	0x02000000
+#define USB2_PORT_OUT_EN	0x01000000
 
 #define USB_RST_CLR		0x04000000
 
@@ -227,8 +229,11 @@ int board_eth_init(bd_t *bis)
 #if defined(CONFIG_OF_BOARD_SETUP)
 void ft_board_setup(void *blob, bd_t *bd)
 {
+	volatile ccsr_gur_t *gur = (void *)CONFIG_SYS_MPC85xx_GUTS_ADDR;
+	volatile ccsr_gpio_t *gpio = (void *)CONFIG_SYS_MPC85xx_GPIO_ADDR;
 	phys_addr_t base;
 	phys_size_t size;
+	int agent;
 
 	ft_cpu_setup(blob, bd);
 
@@ -236,6 +241,22 @@ void ft_board_setup(void *blob, bd_t *bd)
 	size = getenv_bootm_size();
 
 	fdt_fixup_memory(blob, (u64)base, (u64)size);
+
+	if (!hwconfig("usb2"))
+		return;
+
+	agent = hwconfig_subarg_cmp("usb2", "dr_mode", "peripheral");
+
+	/*
+	 * Add the 2nd usb node and enable it. eLBC will
+	 * now be disabled since it is MUXed with USB2
+	 */
+
+	fdt_fixup_add_2nd_usb(blob, agent);
+
+	setbits_be32(&gpio->gpdir, USB2_PORT_OUT_EN);
+	setbits_be32(&gpio->gpdat, USB2_PORT_OUT_EN);
+	setbits_be32(&gur->pmuxcr, MPC85xx_PMUXCR_ELBC_OFF_USB2_ON);
 }
 #endif
 

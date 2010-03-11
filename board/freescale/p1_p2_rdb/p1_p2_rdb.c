@@ -235,6 +235,109 @@ int board_eth_init(bd_t *bis)
 #endif
 
 #if defined(CONFIG_OF_BOARD_SETUP)
+void fdt_fixup_add_2nd_usb(void *blob, int agent)
+{
+	const char *soc_compat = "fsl,p1020-immr";
+	const char *lbc_compat = "fsl,p1020-elbc";
+	const u32 *addrcell, *sizecell, *ph;
+	int off, lbcoff, len, err;
+	u32 *regbuf = NULL;
+	u32 *irqbuf = NULL;
+
+	off = fdt_node_offset_by_compatible(blob, -1, soc_compat);
+	if (off < 0) {
+		printf("WARNING: could not find compatible node %s: %s.\n",
+			soc_compat, fdt_strerror(off));
+		return;
+	}
+
+	lbcoff = fdt_node_offset_by_compatible(blob, -1, lbc_compat);
+	if (lbcoff < 0) {
+		printf("WARNING: could not find compatible node %s: %s.\n",
+			lbc_compat, fdt_strerror(lbcoff));
+		return;
+	}
+
+	addrcell = fdt_getprop(blob, off, "#address-cells", NULL);
+	sizecell = fdt_getprop(blob, off, "#size-cells", NULL);
+
+	off = fdt_add_subnode(blob, off, "usb@23000");
+	if (off < 0) {
+		printf("WARNING: could not add 2nd usb node %s.\n",
+				fdt_strerror(off));
+		return;
+	}
+
+	err = fdt_setprop_cell(blob, off, "#address-cells", 1);
+	if (err < 0)
+		printf("WARNING: could not set #address-cell property: %s\n",
+			fdt_strerror(err));
+
+	err = fdt_setprop_cell(blob, off, "#size-cells", 0);
+	if (err < 0)
+		printf("WARNING: could not set #size-cells property: %s\n",
+			fdt_strerror(err));
+
+	err = fdt_setprop_string(blob, off, "compatible", "fsl-usb2-dr");
+	if (err < 0)
+		printf("WARNING: could not set compatible property: %s\n",
+			fdt_strerror(err));
+
+	err = fdt_setprop_string(blob, off, "phy_type", "ulpi");
+	if (err < 0)
+		printf("WARNING: could not set phy_type property: %s\n",
+			fdt_strerror(err));
+
+	if (agent) {
+		err = fdt_setprop_string(blob, off, "dr_mode", "peripheral");
+		if (err < 0)
+			printf("WARNING: could not set dr_mode property: %s\n",
+				fdt_strerror(err));
+	}
+
+	if (addrcell && *addrcell == 2) {
+		regbuf[0] = 0;
+		regbuf[1] = CONFIG_SYS_MPC85xx_USB2_OFFSET;
+		len = 2;
+	} else {
+		regbuf[0] = CONFIG_SYS_MPC85xx_USB2_OFFSET;
+		len = 1;
+	}
+
+	if (sizecell && *sizecell == 2) {
+		regbuf[len] = 0;
+		regbuf[len + 1] = 0x1000;
+		len = 2;
+	} else {
+		regbuf[len] = 0x1000;
+		len++;
+	}
+
+	err = fdt_setprop(blob, off, "reg", regbuf, len * sizeof(u32));
+	if (err < 0)
+		printf("WARNING: could not set <%s> %s\n",
+					"reg", fdt_strerror(err));
+
+	irqbuf[0] = 0x2e;
+	irqbuf[1] = 0x2;
+
+	err = fdt_setprop(blob, off, "interrupts", irqbuf, 2 * sizeof(u32));
+	if (err < 0)
+		printf("WARNING: could not set %s %s\n",
+				"interrupts", fdt_strerror(err));
+
+	ph = fdt_getprop(blob, lbcoff, "interrupt-parent", 0);
+	if (!ph) {
+		printf("WARNING: could not read interrupt-parent property\n");
+		return;
+	}
+
+	err = fdt_setprop(blob, off, "interrupt-parent", ph, sizeof(u32));
+	if (err < 0)
+		printf("WARNING: could not set %s %s\n",
+				"interrupt-parent", fdt_strerror(err));
+}
+
 void ft_board_setup(void *blob, bd_t *bd)
 {
 	volatile ccsr_gur_t *gur = (void *)CONFIG_SYS_MPC85xx_GUTS_ADDR;

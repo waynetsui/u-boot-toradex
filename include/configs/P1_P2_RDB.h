@@ -626,7 +626,28 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_HAS_ETH2
 #endif
 
+/* Select DTB, RAMDISK_SIZE and HOSTNAME based on Platform */
+#ifdef CONFIG_P2020
+#define PLATFORM_DTB		"p2020rdb.dtb"
 #define CONFIG_HOSTNAME		P2020RDB
+#define RAMDISK_SIZE		700000
+#endif
+#ifdef CONFIG_P2010
+#define PLATFORM_DTB		"p2010rdb.dtb"
+#define CONFIG_HOSTNAME		P2010RDB
+#define RAMDISK_SIZE		700000
+#endif
+#ifdef CONFIG_P1020
+#define PLATFORM_DTB		"p1020rdb.dtb"
+#define CONFIG_HOSTNAME		P1020RDB
+#define RAMDISK_SIZE		200000
+#endif
+#ifdef CONFIG_P1011
+#define PLATFORM_DTB		"p1011rdb.dtb"
+#define CONFIG_HOSTNAME		P1011RDB
+#define RAMDISK_SIZE		200000
+#endif
+
 #define CONFIG_ROOTPATH		/opt/nfsroot
 #define CONFIG_BOOTFILE		uImage
 #define CONFIG_UBOOTPATH	u-boot.bin/* U-Boot image on TFTP server */
@@ -654,8 +675,9 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 	"ramdiskaddr=2000000\0"			\
 	"ramdiskfile=rootfs.ext2.gz.uboot\0"		\
 	"fdtaddr=c00000\0"				\
-	"fdtfile=p2020rdb.dtb\0"		\
+	"fdtfile="PLATFORM_DTB"\0"		\
 	"bdev=sda1\0"	\
+	"hwconfig=esdhc\0"	\
 	"jffs2nor=mtdblock3\0"	\
 	"norbootaddr=ef080000\0"	\
 	"norfdtaddr=ef040000\0"	\
@@ -666,7 +688,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 	"nandfdtsize=100000\0"		\
 	"usb_phy_type=ulpi\0"		\
 	"vscfw_addr=ef000000\0"	\
-	"othbootargs=ramdisk_size=700000 cache-sram-size=0x10000\0" \
+	"othbootargs=ramdisk_size="MK_STR(RAMDISK_SIZE)" cache-sram-size=0x10000\0" \
 	"usbfatboot=setenv bootargs root=/dev/ram rw "	\
 	"console=$consoledev,$baudrate $othbootargs; "	\
 	"usb start;"			\

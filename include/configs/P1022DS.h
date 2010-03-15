@@ -127,7 +127,7 @@ extern unsigned long calculate_board_ddr_clk(unsigned long dummy);
 #undef CONFIG_FSL_DDR_INTERACTIVE
 
 /* ECC will be enabled based on perf_mode environment variable */
-#define	CONFIG_DDR_ECC
+#undef	CONFIG_DDR_ECC
 
 #define CONFIG_ECC_INIT_VIA_DDRCONTROLLER
 #define CONFIG_MEM_INIT_VALUE	0xDeadBeef

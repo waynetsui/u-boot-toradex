@@ -557,10 +557,6 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_FSL_ESDHC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	CONFIG_SYS_MPC85xx_ESDHC_ADDR
-#if defined(CONFIG_P1020) || defined(CONFIG_P2020)
-#define ESDHC_ERRATUM_1_8V	1 /* P1020 Rev 1.0/ P2020 Rev 2.0
-				     eSDHC is not functional with 1.8v */
-#endif
 #endif
 
 #define CONFIG_USB_EHCI

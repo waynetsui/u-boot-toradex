@@ -558,6 +558,12 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_GENERIC_MMC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	CONFIG_SYS_MPC85xx_ESDHC_ADDR
 #define CONFIG_SYS_FSL_ESDHC_BROKEN_TIMEOUT
+#if defined(CONFIG_P1020)
+#define CONFIG_FSL_ESDHC_MULTIBLK_WORKAROUND	/* Multiblk transfer read
+						   command, CMD12 cause
+						   protocol violations on P1020
+						   so AUTOCMD12 used */
+#endif
 #endif
 
 #define CONFIG_USB_EHCI

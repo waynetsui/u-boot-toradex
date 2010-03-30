@@ -66,7 +66,7 @@ const board_specific_parameters_t board_specific_parameters[][20] = {
 		{334, 400,    2,    5,  31,    3,  0},
 		{401, 549,    2,    5,  31,    3,  0},
 		{550, 680,    2,    5,  31,    5,  0},
-		{681, 850,    2,    5,  31,    5,  1},
+		{681, 850,    2,    5,  31,    5,  0},
 		{  0, 333,    1,    5,  31,    3,  0},
 		{334, 400,    1,    5,  31,    3,  0},
 		{401, 549,    1,    5,  31,    3,  0},
@@ -112,7 +112,7 @@ void fsl_ddr_board_options(memctl_options_t *popts,
 	 * Factors to consider for half-strength driver enable:
 	 *	- number of DIMMs installed
 	 */
-	popts->half_strength_driver_enable = 0;
+	popts->half_strength_driver_enable = 1;
 
 	/*
 	 * For wake up arp feature, we need enable auto self refresh

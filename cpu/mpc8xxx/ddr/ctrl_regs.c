@@ -906,6 +906,7 @@ static void set_ddr_sdram_clk_cntl(fsl_ddr_cfg_regs_t *ddr,
 
 	clk_adjust = popts->clk_adjust;
 	ddr->ddr_sdram_clk_cntl = (clk_adjust & 0xF) << 23;
+	debug("FSLDDR: sdram_clk_cntl = 0x%08x\n", ddr->ddr_sdram_clk_cntl);
 }
 
 /* DDR Initialization Address (DDR_INIT_ADDR) */
@@ -998,6 +999,7 @@ static void set_ddr_zq_cntl(fsl_ddr_cfg_regs_t *ddr, unsigned int zq_en)
 			    | ((zqoper & 0xF) << 16)
 			    | ((zqcs & 0xF) << 8)
 			    );
+	debug("FSLDDR: ddr_zq_cntl = 0x%08x\n", ddr->ddr_zq_cntl);
 }
 
 /* DDR Write Leveling Control (DDR_WRLVL_CNTL) */
@@ -1057,6 +1059,7 @@ static void set_ddr_wrlvl_cntl(fsl_ddr_cfg_regs_t *ddr,
 			       | ((wrlvl_wlr & 0x7) << 8)
 			       | ((wrlvl_start & 0x1F) << 0)
 			       );
+	debug("FSLDDR: wrlvl_cntl = 0x%08x\n", ddr->ddr_wrlvl_cntl);
 }
 
 /* DDR Self Refresh Counter (DDR_SR_CNTR) */

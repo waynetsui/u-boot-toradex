@@ -91,12 +91,13 @@ void p1022ds_diu_init(void)
 	tmp_val_brdcfg0 = in_8(pixis_base + PIXIS_BRDCFG0);
 	tmp_val_brdcfg0 = (tmp_val_brdcfg0 & 0x3D) | 0x02;
 	out_8(pixis_base + PIXIS_BRDCFG0, tmp_val_brdcfg0);
+	/* we must do the dummy read from eLBC to sync the write as above */
+	in_8(pixis_base + PIXIS_BRDCFG0);
 
 	/* Setting PMUXCR to switch to DVI from ELBC */
 	/* Set pmuxcr to allow both i2c1 and i2c2 */
-	gur->pmuxcr |= 0x40000000;
-	tmp = gur->pmuxcr;
-
+	clrsetbits_be32(&gur->pmuxcr, 0xc0000000, 0x40000000);
+	tmp = in_be32(&gur->pmuxcr);
 	fsl_diu_init(xres, pixel_format, gamma_fix,
 		     (unsigned char *)FSL_Logo_BMP);
 }

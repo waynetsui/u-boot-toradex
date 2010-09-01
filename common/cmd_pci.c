@@ -37,6 +37,10 @@
 
 unsigned char	ShortPCIListing = 1;
 
+#ifdef CONFIG_FASTBOOT
+int pci_init_skipped;
+#endif
+
 /*
  * Follows routines for the output of infos about devices on PCI bus.
  */
@@ -476,6 +480,13 @@ int do_pci (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong addr = 0, value = 0, size = 0;
 	pci_dev_t bdf = 0;
 	char cmd = 's';
+
+#ifdef CONFIG_FASTBOOT
+	if (pci_init_skipped) {
+		pci_init_skipped = 0;
+		pci_init();
+	}
+#endif
 
 	if (argc > 1)
 		cmd = argv[1][0];

@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2006
+# (C) Copyright 2007
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,37 +23,28 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)libnand.a
+$(shell mkdir -p $(OBJTREE)/board/freescale/common)
 
-ifdef CONFIG_CMD_NAND
-ifndef CONFIG_NAND_LEGACY
-COBJS-y += nand.o
-COBJS-y += nand_base.o
-COBJS-y += nand_bbt.o
-COBJS-y += nand_ecc.o
-COBJS-y += nand_ids.o
-COBJS-y += nand_util.o
-endif
+LIB	= $(obj)lib$(BOARD).a
 
-COBJS-$(CONFIG_DRIVER_NAND_BFIN) += bfin_nand.o
-COBJS-$(CONFIG_NAND_FSL_ELBC) += fsl_elbc_nand.o
-COBJS-$(CONFIG_NAND_FSL_UPM) += fsl_upm.o
-COBJS-$(CONFIG_NAND_NOMADIK) += nomadik.o
-COBJS-$(CONFIG_NAND_S3C64XX) += s3c64xx.o
-COBJS-$(CONFIG_NAND_OMAP_GPMC) += omap_gpmc.o
-#COBJS-$(CONFIG_NAND_FSL_NFC) += fsl_nfc_nand.o
-COBJS-$(CONFIG_NAND_FSL_NFC) += fsl_nfc_nand_5125.o mpc5125_nfc_mtc.mtc
-endif
+COBJS-y	:= $(BOARD).o
+COBJS-${CONFIG_FSL_DIU_FB} += ../ads5121/ads5121_diu.o
+COBJS-${CONFIG_FSL_DIU_FB} += ../freescale/common/fsl_diu_fb.o
+COBJS-${CONFIG_FSL_DIU_FB} += ../freescale/common/fsl_logo_bmp.o
 
 COBJS	:= $(COBJS-y)
-SRCS	:= $(COBJS:.o=.c)
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
-
-all:	$(LIB)
-
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
+
+clean:
+	rm -f $(SOBJS) $(OBJS)
+
+distclean:	clean
+	rm -f $(LIB) core *.bak $(obj).depend
 
 #########################################################################
 

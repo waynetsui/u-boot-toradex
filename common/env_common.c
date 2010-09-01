@@ -143,10 +143,16 @@ uchar default_environment[] = {
 	|| defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 int default_environment_size = sizeof(default_environment);
 #endif
-
+#if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+static unsigned int env_crc=0;
+#endif
 void env_crc_update (void)
 {
+#if 0
+	env_crc=crc32(0, (void *)gd->env_addr, ENV_SIZE);
+#else
 	env_ptr->crc = crc32(0, env_ptr->data, ENV_SIZE);
+#endif
 }
 
 static uchar env_get_char_init (int index)
@@ -237,6 +243,7 @@ void env_relocate (void)
 #endif
 
 #ifdef ENV_IS_EMBEDDED
+#error failed environent
 	/*
 	 * The environment buffer is embedded with the text segment,
 	 * just relocate the environment pointer
@@ -264,7 +271,7 @@ void env_relocate (void)
 		env_relocate_spec ();
 	}
 	gd->env_addr = (ulong)&(env_ptr->data);
-
+	/*puts("env_ptr:\n");*/
 #ifdef CONFIG_AMIGAONEG3SE
 	disable_nvram();
 #endif

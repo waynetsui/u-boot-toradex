@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006 Freescale Semiconductor, Inc.
+ * Copyright (C) 2004-2006, 2009 Freescale Semiconductor, Inc. All right reserved.
  * (C) Copyright 2007 DENX Software Engineering
  *
  * See file CREDITS for list of people who contributed to this
@@ -53,6 +53,9 @@ int checkcpu (void)
 	case SPR_5121E:
 		puts ("MPC5121e ");
 		break;
+	case SPR_5125:
+		puts ("MPC5125 ");
+		break;
 	default:
 		printf ("Unknown part ID %08x ", spridr & 0xffff0000);
 	}
@@ -71,6 +74,8 @@ int checkcpu (void)
 	return 0;
 }
 
+#define RESET_MAGIC_WORD	0x52535445
+
 
 int
 do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
@@ -87,11 +92,11 @@ do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	/*
 	 * Enable Reset Control Reg - "RSTE" is the magic word that let us go
 	 */
-	immap->reset.rpr = 0x52535445;
+	immap->reset.rpr = RESET_MAGIC_WORD;
 
 	/* Verify Reset Control Reg is enabled */
 	while (!((immap->reset.rcer) & RCER_CRE))
-		;
+		immap->reset.rpr = RESET_MAGIC_WORD;
 
 	printf ("Resetting the board.\n");
 	udelay(200);

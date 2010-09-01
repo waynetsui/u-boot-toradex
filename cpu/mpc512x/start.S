@@ -190,16 +190,35 @@ _end_of_vectors:
 boot_cold:
 	/* Save msr contents */
 	mfmsr	r5
+	lis	r4, CONFIG_DEFAULT_IMMR@h
 
 	/* Set IMMR area to our preferred location */
-	lis	r4, CONFIG_DEFAULT_IMMR@h
+	mfspr	r6, MBAR
 	lis	r3, CONFIG_SYS_IMMR@h
 	ori	r3, r3, CONFIG_SYS_IMMR@l
+	
+	/* see if it has already been set (RAMBOOT or BDI configured) */
+
+	cmpw	r3, r6
+	beq	1f
 	stw	r3, IMMRBAR(r4)
-	mtspr	MBAR, r3		/* IMMRBAR is mirrored into the MBAR SPR (311) */
+	/* IMMRBAR is mirrored into the MBAR SPR (311) */
+	mtspr	MBAR, r3
+
+1:	lwz	r4, RCWHR(r3)
+	lis	r5, NAND_BOOT
+	and.	r4, r4, r5
+	beq	3f
+
+	/* in NAND boot reset the NFC Access Window  */
+	li	r4, 0
+	lis	r4, START_REG(CFG_NAND_BASE)
+	stw	r4, NFCBAR(r3)
+	lwz	r4, NFCBAR(r3)
+	isync
 
 	/* Initialise the machine */
-	bl	cpu_early_init
+3:	bl	cpu_early_init
 
 	/*
 	 * Set up Local Access Windows:
@@ -207,15 +226,16 @@ boot_cold:
 	 * 1) Boot/CS0 (boot FLASH)
 	 * 2) On-chip SRAM (initial stack purposes)
 	 */
-
+	isync
 	/* Boot CS/CS0 window range */
 	lis     r3, CONFIG_SYS_IMMR@h
 	ori     r3, r3, CONFIG_SYS_IMMR@l
-
+ #if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+ #else
 	lis	r4, START_REG(CONFIG_SYS_FLASH_BASE)
 	ori	r4, r4, STOP_REG(CONFIG_SYS_FLASH_BASE, CONFIG_SYS_FLASH_SIZE)
 	stw	r4, LPCS0AW(r3)
-
+#endif
 	/*
 	 * The SRAM window has a fixed size (256K), so only the start address
 	 * is necessary
@@ -235,13 +255,27 @@ boot_cold:
 	 * Set configuration of the Boot/CS0, the SRAM window does not have a
 	 * config register so no params can be set for it
 	 */
+#if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+#else
 	lis     r3, (CONFIG_SYS_IMMR + LPC_OFFSET)@h
 	ori     r3, r3, (CONFIG_SYS_IMMR + LPC_OFFSET)@l
 
 	lis     r4, CONFIG_SYS_CS0_CFG@h
 	ori     r4, r4, CONFIG_SYS_CS0_CFG@l
 	stw     r4, CS0_CONFIG(r3)
+#endif
 
+#ifdef CONFIG_ADS5125 /* CS2 FUNC MUX must be done before CS is enabled */
+       lis     r4, (CONFIG_SYS_IOCTRL_ADDR)@h
+       ori     r4, r4, (CONFIG_SYS_IOCTRL_ADDR)@l
+       li      r5, IOCTRL_MUX_CS2
+       stb     r5, IO_CTRL_LPC_AX03(r4)
+/* change the pin muxing on PSC9 here in case it is being used as console*/
+       li      r5, IOCTRL_MUX_PSC9
+       stb     r5, IO_CTRL_I2C1_SCL(r4)
+       stb     r5, IO_CTRL_I2C1_SDA(r4)
+ 
+#endif
 	/* Master enable all CS's */
 	lis	r4, CS_CTRL_ME@h
 	ori	r4, r4, CS_CTRL_ME@l

@@ -139,7 +139,15 @@ int do_ydump (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	printf("yaffs_DumpDevStruct returning error when dumping path: , %s\n", dirname);
     return 0;
 }
-
+int mtdparts_init(void)
+{
+	return -1;
+}
+int find_dev_and_part(const char *id, struct mtd_device **dev,
+		u8 *part_num, struct part_info **part)
+{
+	return 1;
+}
 U_BOOT_CMD(
     ymount, 3,  0,  do_ymount,
     "mount yaffs",

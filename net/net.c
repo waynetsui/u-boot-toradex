@@ -303,6 +303,7 @@ NetInitLoop(proto_t protocol)
 		NetCopyIP(&NetOurIP, &bd->bi_ip_addr);
 		NetOurGatewayIP = getenv_IPaddr ("gatewayip");
 		NetOurSubnetMask= getenv_IPaddr ("netmask");
+		NetServerIP = getenv_IPaddr ("serverip");
 		NetOurVLAN = getenv_VLAN("vlan");
 		NetOurNativeVLAN = getenv_VLAN("nvlan");
 
@@ -312,7 +313,6 @@ NetInitLoop(proto_t protocol)
 #endif
 		case NETCONS:
 		case TFTP:
-			NetServerIP = getenv_IPaddr ("serverip");
 			break;
 #if defined(CONFIG_CMD_PING)
 		case PING:

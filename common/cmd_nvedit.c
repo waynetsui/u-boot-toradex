@@ -192,13 +192,16 @@ int _do_setenv (int flag, int argc, char *argv[])
 		/* Allow serial# forced overwrite with 0xdeaf4add flag */
 		    ((strcmp (name, "serial#") == 0) && (flag != 0xdeaf4add)) ||
 #else
-		    (strcmp (name, "serial#") == 0) ||
+		    (strcmp (name, "serial#") == 0) 
 #endif
+#if 0
 		    ((strcmp (name, "ethaddr") == 0)
 #if defined(CONFIG_OVERWRITE_ETHADDR_ONCE) && defined(CONFIG_ETHADDR)
 		     && (strcmp ((char *)env_get_addr(oldval),MK_STR(CONFIG_ETHADDR)) != 0)
 #endif	/* CONFIG_OVERWRITE_ETHADDR_ONCE && CONFIG_ETHADDR */
-		    ) ) {
+		    ) 
+#endif
+		    ) {
 			printf ("Can't overwrite \"%s\"\n", name);
 			return 1;
 		}
@@ -551,7 +554,22 @@ int getenv_r (char *name, char *buf, unsigned len)
 	}
 	return (-1);
 }
+#if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+int do_saveenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	extern char * env_name_spec;
 
+	printf ("Saving Environment to %s...\n", env_name_spec);
+
+	return (saveenv() ? 1 : 0);
+}
+
+U_BOOT_CMD(
+	saveenv, 1, 0,	do_saveenv,
+	"save environment variables to persistent storage",
+	NULL
+);
+#else
 #if defined(CONFIG_CMD_SAVEENV) && !defined(CONFIG_ENV_IS_NOWHERE)
 
 int do_saveenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -569,6 +587,7 @@ U_BOOT_CMD(
 	NULL
 );
 
+#endif
 #endif
 
 

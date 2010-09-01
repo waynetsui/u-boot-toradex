@@ -24,7 +24,7 @@
 #define vfree(ptr)				free(ptr)
 
 #define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
-
+#define LINUX_VERSION_CODE KERNEL_VERSION(2,6,29)
 /*
  * ..and if you can't take the strict
  * types, you can specify one yourself.

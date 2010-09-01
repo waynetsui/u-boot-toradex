@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006 Freescale Semiconductor, Inc.
+ * Copyright (C) 2004-2006, 2008-2009 Freescale Semiconductor, Inc. All right reserved.
  * (C) Copyright 2007 DENX Software Engineering
  *
  * See file CREDITS for list of people who contributed to this
@@ -46,6 +46,7 @@
 #define LPCS6AW			0x003C
 #define LPCA7AW			0x0040
 #define SRAMBAR			0x00C4
+#define NFCBAR			0x00C8
 #define LAWBAR_BAR		0xFFFFF000	/* Base address mask */
 
 #define LPC_OFFSET		0x10000
@@ -70,6 +71,7 @@
 #define SPRIDR_REVID		0x0000FFFF	/* Revision Identification */
 
 #define SPR_5121E		0x80180000
+#define SPR_5125		0x80190000
 
 /* SPCR - System Priority Configuration Register
  */
@@ -211,25 +213,28 @@
 #define CLOCK_SCCR1_PSC_EN(cn)		(0x08000000 >> (cn))
 #define CLOCK_SCCR1_PSCFIFO_EN		0x00008000
 #define CLOCK_SCCR1_SATA_EN		0x00004000
-#define CLOCK_SCCR1_FEC_EN		0x00002000
+#define CLOCK_SCCR1_FEC1_EN		0x00002000
 #define CLOCK_SCCR1_TPR_EN		0x00001000
 #define CLOCK_SCCR1_PCI_EN		0x00000800
 #define CLOCK_SCCR1_DDR_EN		0x00000400
+#define CLOCK_SCCR1_FEC2_EN		0x00000200
 
 /* System Clock Control Register 2 commands */
 #define CLOCK_SCCR2_DIU_EN		0x80000000
 #define CLOCK_SCCR2_AXE_EN		0x40000000
 #define CLOCK_SCCR2_MEM_EN		0x20000000
-#define CLOCK_SCCR2_USB2_EN		0x10000000
-#define CLOCK_SCCR2_USB1_EN		0x08000000
+#define CLOCK_SCCR2_USB1_EN		0x10000000
+#define CLOCK_SCCR2_USB2_EN		0x08000000
 #define CLOCK_SCCR2_I2C_EN		0x04000000
 #define CLOCK_SCCR2_BDLC_EN		0x02000000
-#define CLOCK_SCCR2_SDHC_EN		0x01000000
+#define CLOCK_SCCR2_AUTO_EN		0x02000000
+#define CLOCK_SCCR2_SDHC1_EN		0x01000000
 #define CLOCK_SCCR2_SPDIF_EN		0x00800000
 #define CLOCK_SCCR2_MBX_BUS_EN		0x00400000
 #define CLOCK_SCCR2_MBX_EN		0x00200000
 #define CLOCK_SCCR2_MBX_3D_EN		0x00100000
 #define CLOCK_SCCR2_IIM_EN		0x00080000
+#define CLOCK_SCCR2_SDHC2_EN		0x00020000
 
 /* PSC FIFO Command values */
 #define PSC_FIFO_RESET_SLICE		0x80
@@ -291,10 +296,10 @@
 #define FIFOC_PSC0_RX_SIZE	0x0
 #define FIFOC_PSC0_RX_ADDR	0x0
 
-#define FIFOC_PSC1_TX_SIZE	0x0
-#define FIFOC_PSC1_TX_ADDR	0x0
-#define FIFOC_PSC1_RX_SIZE	0x0
-#define FIFOC_PSC1_RX_ADDR	0x0
+#define FIFOC_PSC1_TX_SIZE	0x04
+#define FIFOC_PSC1_TX_ADDR	0x00
+#define FIFOC_PSC1_RX_SIZE	0x04
+#define FIFOC_PSC1_RX_ADDR	0x04
 
 #define FIFOC_PSC2_TX_SIZE	0x0
 #define FIFOC_PSC2_TX_ADDR	0x0
@@ -302,9 +307,9 @@
 #define FIFOC_PSC2_RX_ADDR	0x0
 
 #define FIFOC_PSC3_TX_SIZE	0x04
-#define FIFOC_PSC3_TX_ADDR	0x0
+#define FIFOC_PSC3_TX_ADDR	0x10
 #define FIFOC_PSC3_RX_SIZE	0x04
-#define FIFOC_PSC3_RX_ADDR	0x10
+#define FIFOC_PSC3_RX_ADDR	0x14
 
 #define FIFOC_PSC4_TX_SIZE	0x0
 #define FIFOC_PSC4_TX_ADDR	0x0
@@ -346,8 +351,271 @@
 #define FIFOC_PSC11_RX_SIZE	0x0
 #define FIFOC_PSC11_RX_ADDR	0x0
 
-/* IO Control Register
- */
+/* MPC5125 */
+#if (BOARD_TYPE==BOARD_TYPE_5125_MPU)
+#define IO_CTRL_MEM		0x00
+#define IO_CTRL_GBOBE		0x01
+#define IO_CTRL_LPC_CLK		0x04
+#define IO_CTRL_LPC_OE_B	0x05
+#define IO_CTRL_LPC_RWB		0x06
+#define IO_CTRL_LPC_CS0_B	0x07
+#define IO_CTRL_LPC_ACK_B	0x08
+#define IO_CTRL_LPC_AX03	0x09
+#define IO_CTRL_EMB_AX02	0x0a
+#define IO_CTRL_EMB_AX01	0x0b
+#define IO_CTRL_EMB_AX00	0x0c
+#define IO_CTRL_EMB_AD31	0x0d
+#define IO_CTRL_EMB_AD30	0x0e
+#define IO_CTRL_EMB_AD29	0x0f
+#define IO_CTRL_EMB_AD28	0x10
+#define IO_CTRL_EMB_AD27	0x11
+#define IO_CTRL_EMB_AD26	0x12
+#define IO_CTRL_EMB_AD25	0x13
+#define IO_CTRL_EMB_AD24	0x14
+#define IO_CTRL_EMB_AD23	0x15
+#define IO_CTRL_EMB_AD22	0x16
+#define IO_CTRL_EMB_AD21	0x17
+#define IO_CTRL_EMB_AD20	0x18
+#define IO_CTRL_EMB_AD19	0x19
+#define IO_CTRL_EMB_AD18	0x1a
+#define IO_CTRL_EMB_AD17	0x1b
+#define IO_CTRL_EMB_AD16	0x1c
+#define IO_CTRL_EMB_AD15	0x1d
+#define IO_CTRL_EMB_AD14	0x1e
+#define IO_CTRL_EMB_AD13	0x1f
+#define IO_CTRL_EMB_AD12	0x20
+#define IO_CTRL_EMB_AD11	0x21
+#define IO_CTRL_EMB_AD10	0x22
+#define IO_CTRL_EMB_AD09	0x23
+#define IO_CTRL_EMB_AD08	0x24
+#define IO_CTRL_EMB_AD07	0x25
+#define IO_CTRL_EMB_AD06	0x26
+#define IO_CTRL_EMB_AD05	0x27
+#define IO_CTRL_EMB_AD04	0x28
+#define IO_CTRL_EMB_AD03	0x29
+#define IO_CTRL_EMB_AD02	0x2a
+#define IO_CTRL_EMB_AD01	0x2b
+#define IO_CTRL_EMB_AD00	0x2c
+#define IO_CTRL_NFC_CE0_B	0x2d
+#define IO_CTRL_NFC_RB		0x2e
+#define IO_CTRL_DIU_CLK		0x2f
+#define IO_CTRL_DIU_DE		0x30
+#define IO_CTRL_DIU_HSYNC	0x31
+#define IO_CTRL_DIU_VSYNC	0x32
+#define IO_CTRL_DIU_LD00	0x33
+#define IO_CTRL_DIU_LD01	0x34
+#define IO_CTRL_DIU_LD02	0x35
+#define IO_CTRL_DIU_LD03	0x36
+#define IO_CTRL_DIU_LD04	0x37
+#define IO_CTRL_DIU_LD05	0x38
+#define IO_CTRL_DIU_LD06	0x39
+#define IO_CTRL_DIU_LD07	0x3a
+#define IO_CTRL_DIU_LD08	0x3b
+#define IO_CTRL_DIU_LD09	0x3c
+#define IO_CTRL_DIU_LD10	0x3d
+#define IO_CTRL_DIU_LD11	0x3e
+#define IO_CTRL_DIU_LD12	0x3f
+#define IO_CTRL_DIU_LD13	0x40
+#define IO_CTRL_DIU_LD14	0x41
+#define IO_CTRL_DIU_LD15	0x42
+#define IO_CTRL_DIU_LD16	0x43
+#define IO_CTRL_DIU_LD17	0x44
+#define IO_CTRL_DIU_LD18	0x45
+#define IO_CTRL_DIU_LD19	0x46
+#define IO_CTRL_DIU_LD20	0x47
+#define IO_CTRL_DIU_LD21	0x48
+#define IO_CTRL_DIU_LD22	0x49
+#define IO_CTRL_DIU_LD23	0x4a
+#define IO_CTRL_CAN4_RX		0x4b
+#define IO_CTRL_CAN4_TX		0x4c
+#define IO_CTRL_CAN1_TX		0x4d
+#define IO_CTRL_CAN2_TX		0x4e
+#define IO_CTRL_I2C1_SCL	0x4f
+#define IO_CTRL_I2C1_SDA	0x50
+#define IO_CTRL_FEC1_TXD_2	0x51
+#define IO_CTRL_FEC1_TXD_3	0x52
+#define IO_CTRL_FEC1_RXD_2	0x53
+#define IO_CTRL_FEC1_RXD_3	0x54
+#define IO_CTRL_FEC1_CRS	0x55
+#define IO_CTRL_FEC1_TX_ER	0x56
+#define IO_CTRL_FEC1_RXD_1	0x57
+#define IO_CTRL_FEC1_TXD_1	0x58
+#define IO_CTRL_FEC1_MDC	0x59
+#define IO_CTRL_FEC1_RX_ER	0x5a
+#define IO_CTRL_FEC1_MDIO	0x5b
+#define IO_CTRL_FEC1_RXD_0	0x5c
+#define IO_CTRL_FEC1_TXD_0	0x5d
+#define IO_CTRL_FEC1_TX_CLK	0x5e
+#define IO_CTRL_FEC1_RX_CLK	0x5f
+#define IO_CTRL_FEC1_RX_DV	0x60
+#define IO_CTRL_FEC1_TX_EN	0x61
+#define IO_CTRL_FEC1_COL	0x62
+#define IO_CTRL_USB1_DATA0	0x63
+#define IO_CTRL_USB1_DATA1	0x64
+#define IO_CTRL_USB1_DATA2	0x65
+#define IO_CTRL_USB1_DATA3	0x66
+#define IO_CTRL_USB1_DATA4	0x67
+#define IO_CTRL_USB1_DATA5	0x68
+#define IO_CTRL_USB1_DATA6	0x69
+#define IO_CTRL_USB1_DATA7	0x6a
+#define IO_CTRL_USB1_STOP	0x6b
+#define IO_CTRL_USB1_CLK	0x6c
+#define IO_CTRL_USB1_NEXT	0x6d
+#define IO_CTRL_USB1_DIR	0x6e
+#define IO_CTRL_SDHC1_CLK	0x6f
+#define IO_CTRL_SDHC1_CMD	0x70
+#define IO_CTRL_SDHC1_D0	0x71
+#define IO_CTRL_SDHC1_D1	0x72
+#define IO_CTRL_SDHC1_D2	0x73
+#define IO_CTRL_SDHC1_D3	0x74
+#define IO_CTRL_PSC_MCLK_IN	0x75
+#define IO_CTRL_PSC0_0		0x76
+#define IO_CTRL_PSC0_1		0x77
+#define IO_CTRL_PSC0_2		0x78
+#define IO_CTRL_PSC0_3		0x79
+#define IO_CTRL_PSC0_4		0x7a
+#define IO_CTRL_PSC1_0		0x7b
+#define IO_CTRL_PSC1_1		0x7c
+#define IO_CTRL_PSC1_2		0x7d
+#define IO_CTRL_PSC1_3		0x7e
+#define IO_CTRL_PSC1_4		0x7f
+#define IO_CTRL_J1850_TX	0x80
+#define IO_CTRL_J1850_RX	0x81
+
+#if 1
+#define IOCTL_MEM		0x00
+#define IOCTL_GBOBE		0x01
+#define IOCTL_LPC_CLK		0x04
+#define IOCTL_LPC_OE_B		0x05
+#define IOCTL_LPC_RWB		0x06
+#define IOCTL_LPC_CS0_B	0x07
+#define IOCTL_LPC_ACK_B	0x08
+#define IOCTL_LPC_AX03		0x09
+#define IOCTL_EMB_AX02		0x0a
+#define IOCTL_EMB_AX01		0x0b
+#define IOCTL_EMB_AX00		0x0c
+#define IOCTL_EMB_AD31		0x0d
+#define IOCTL_EMB_AD30		0x0e
+#define IOCTL_EMB_AD29		0x0f
+#define IOCTL_EMB_AD28		0x10
+#define IOCTL_EMB_AD27		0x11
+#define IOCTL_EMB_AD26		0x12
+#define IOCTL_EMB_AD25		0x13
+#define IOCTL_EMB_AD24		0x14
+#define IOCTL_EMB_AD23		0x15
+#define IOCTL_EMB_AD22		0x16
+#define IOCTL_EMB_AD21		0x17
+#define IOCTL_EMB_AD20		0x18
+#define IOCTL_EMB_AD19		0x19
+#define IOCTL_EMB_AD18		0x1a
+#define IOCTL_EMB_AD17		0x1b
+#define IOCTL_EMB_AD16		0x1c
+#define IOCTL_EMB_AD15		0x1d
+#define IOCTL_EMB_AD14		0x1e
+#define IOCTL_EMB_AD13		0x1f
+#define IOCTL_EMB_AD12		0x20
+#define IOCTL_EMB_AD11		0x21
+#define IOCTL_EMB_AD10		0x22
+#define IOCTL_EMB_AD09		0x23
+#define IOCTL_EMB_AD08		0x24
+#define IOCTL_EMB_AD07		0x25
+#define IOCTL_EMB_AD06		0x26
+#define IOCTL_EMB_AD05		0x27
+#define IOCTL_EMB_AD04		0x28
+#define IOCTL_EMB_AD03		0x29
+#define IOCTL_EMB_AD02		0x2a
+#define IOCTL_EMB_AD01		0x2b
+#define IOCTL_EMB_AD00		0x2c
+#define IOCTL_NFC_CE0_B	0x2d
+#define IOCTL_NFC_RB		0x2e
+#define IOCTL_DIU_CLK		0x2f
+#define IOCTL_DIU_DE		0x30
+#define IOCTL_DIU_HSYNC	0x31
+#define IOCTL_DIU_VSYNC	0x32
+#define IOCTL_DIU_LD00		0x33
+#define IOCTL_DIU_LD01		0x34
+#define IOCTL_DIU_LD02		0x35
+#define IOCTL_DIU_LD03		0x36
+#define IOCTL_DIU_LD04		0x37
+#define IOCTL_DIU_LD05		0x38
+#define IOCTL_DIU_LD06		0x39
+#define IOCTL_DIU_LD07		0x3a
+#define IOCTL_DIU_LD08		0x3b
+#define IOCTL_DIU_LD09		0x3c
+#define IOCTL_DIU_LD10		0x3d
+#define IOCTL_DIU_LD11		0x3e
+#define IOCTL_DIU_LD12		0x3f
+#define IOCTL_DIU_LD13		0x40
+#define IOCTL_DIU_LD14		0x41
+#define IOCTL_DIU_LD15		0x42
+#define IOCTL_DIU_LD16		0x43
+#define IOCTL_DIU_LD17		0x44
+#define IOCTL_DIU_LD18		0x45
+#define IOCTL_DIU_LD19		0x46
+#define IOCTL_DIU_LD20		0x47
+#define IOCTL_DIU_LD21		0x48
+#define IOCTL_DIU_LD22		0x49
+#define IOCTL_DIU_LD23		0x4a
+#define IOCTL_I2C2_SCL		0x4b
+#define IOCTL_I2C2_SDA		0x4c
+#define IOCTL_CAN1_TX		0x4d
+#define IOCTL_CAN2_TX		0x4e
+#define IOCTL_I2C1_SCL		0x4f
+#define IOCTL_I2C1_SDA		0x50
+#define IOCTL_FEC1_TXD_2	0x51
+#define IOCTL_FEC1_TXD_3	0x52
+#define IOCTL_FEC1_RXD_2	0x53
+#define IOCTL_FEC1_RXD_3	0x54
+#define IOCTL_FEC1_CRS		0x55
+#define IOCTL_FEC1_TX_ER	0x56
+#define IOCTL_FEC1_RXD_1	0x57
+#define IOCTL_FEC1_TXD_1	0x58
+#define IOCTL_FEC1_MDC		0x59
+#define IOCTL_FEC1_RX_ER	0x5a
+#define IOCTL_FEC1_MDIO	0x5b
+#define IOCTL_FEC1_RXD_0	0x5c
+#define IOCTL_FEC1_TXD_0	0x5d
+#define IOCTL_FEC1_TX_CLK	0x5e
+#define IOCTL_FEC1_RX_CLK	0x5f
+#define IOCTL_FEC1_RX_DV	0x60
+#define IOCTL_FEC1_TX_EN	0x61
+#define IOCTL_FEC1_COL		0x62
+#define IOCTL_USB1_DATA0	0x63
+#define IOCTL_USB1_DATA1	0x64
+#define IOCTL_USB1_DATA2	0x65
+#define IOCTL_USB1_DATA3	0x66
+#define IOCTL_USB1_DATA4	0x67
+#define IOCTL_USB1_DATA5	0x68
+#define IOCTL_USB1_DATA6	0x69
+#define IOCTL_USB1_DATA7	0x6a
+#define IOCTL_USB1_STOP	0x6b
+#define IOCTL_USB1_CLK		0x6c
+#define IOCTL_USB1_NEXT	0x6d
+#define IOCTL_USB1_DIR		0x6e
+#define IOCTL_SDHC1_CLK	0x6f
+#define IOCTL_SDHC1_CMD	0x70
+#define IOCTL_SDHC1_D0		0x71
+#define IOCTL_SDHC1_D1		0x72
+#define IOCTL_SDHC1_D2		0x73
+#define IOCTL_SDHC1_D3		0x74
+#define IOCTL_PSC_MCLK_IN	0x75
+#define IOCTL_PSC0_0		0x76
+#define IOCTL_PSC0_1		0x77
+#define IOCTL_PSC0_2		0x78
+#define IOCTL_PSC0_3		0x79
+#define IOCTL_PSC0_4		0x7a
+#define IOCTL_PSC1_0		0x7b
+#define IOCTL_PSC1_1		0x7c
+#define IOCTL_PSC1_2		0x7d
+#define IOCTL_PSC1_3		0x7e
+#define IOCTL_PSC1_4		0x7f
+#define IOCTL_J1850_TX		0x80
+#define IOCTL_J1850_RX		0x81
+#endif
+
+
+#else
+/* MPC5121 */
 #define IOCTL_MEM		0x000
 #define IOCTL_GP		0x004
 #define IOCTL_LPC_CLK		0x008
@@ -545,12 +813,16 @@
 #define IOCTL_USB2_VBUS_PWR_FAULT	0x308
 #define IOCTL_USB2_VBUS_PWR_SELECT	0x30C
 #define IOCTL_USB2_PHY_DRVV_BUS		0x310
-
+#endif
 #ifndef __ASSEMBLY__
 
 
 /* IO pin fields */
+#ifdef CONFIG_ADS5125
+#define IO_PIN_FMUX(v)	((v) << 5)	/* pin function */
+#else
 #define IO_PIN_FMUX(v)	((v) << 7)	/* pin function */
+#endif
 #define IO_PIN_HOLD(v)	((v) << 5)	/* hold time, pci only */
 #define IO_PIN_PUD(v)	((v) << 4)	/* if PUE, 0=pull-down, 1=pull-up */
 #define IO_PIN_PUE(v)	((v) << 3)	/* pull up/down enable */
@@ -561,7 +833,12 @@ typedef struct iopin_t {
 	int p_offset;		/* offset from IOCTL_MEM_OFFSET */
 	int nr_pins;		/* number of pins to set this way */
 	int bit_or;		/* or in the value instead of overwrite */
+#ifdef CONFIG_ADS5125
+	u_char val;
+	u_char res0[3];
+#else
 	u_long val;		/* value to write or or */
+#endif
 }iopin_t;
 
 void iopin_initialize(iopin_t *,int);
@@ -569,7 +846,7 @@ void iopin_initialize(iopin_t *,int);
 
 /* Indexes in regs array */
 /* Set for DDR */
-#define IOCTRL_MUX_DDR		0x00000036
+#define IOCTRL_MUX_DDR		0x00000000
 
  /* Register Offset Base */
 #define MPC512X_FEC		(CONFIG_SYS_IMMR + 0x02800)

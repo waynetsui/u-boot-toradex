@@ -110,7 +110,7 @@ struct mtd_oob_ops {
 struct mtd_info {
 	u_char type;
 	u_int32_t flags;
-	u_int32_t size;	 /* Total size of the MTD */
+	u_int64_t size;	 /* Total size of the MTD */
 
 	/* "Major" erase size for the device. Naïve users may take this
 	 * to be the only erase size available, or may use the more detailed
@@ -268,11 +268,13 @@ int default_mtd_readv(struct mtd_info *mtd, struct kvec *vecs,
 #ifdef CONFIG_MTD_PARTITIONS
 void mtd_erase_callback(struct erase_info *instr);
 #else
+/*
 static inline void mtd_erase_callback(struct erase_info *instr)
 {
 	if (instr->callback)
 		instr->callback(instr);
 }
+*/
 #endif
 
 /*

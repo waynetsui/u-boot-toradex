@@ -185,9 +185,25 @@ static void set_pcmcia_timing (int pmode);
 
 /* ------------------------------------------------------------------------- */
 
+#ifdef CONFIG_FASTBOOT
+int ide_init_skipped;
+#endif
+
 int do_ide (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
     int rcode = 0;
+
+#ifdef CONFIG_FASTBOOT
+    if (ide_init_skipped) {
+	ide_init_skipped = 0;
+#ifdef	CONFIG_IDE_8xx_PCCARD
+	puts ("PCMCIA:");
+#else
+	puts ("IDE:   ");
+#endif
+	ide_init();
+    }
+#endif
 
     switch (argc) {
     case 0:

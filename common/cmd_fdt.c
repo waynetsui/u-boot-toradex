@@ -55,7 +55,7 @@ void set_working_fdt_addr(void *addr)
 	char buf[17];
 
 	working_fdt = addr;
-
+	
 	sprintf(buf, "%lx", (unsigned long)addr);
 	setenv("fdtaddr", buf);
 }

@@ -37,13 +37,16 @@ COBJS-y	+= extable.o
 COBJS-y	+= interrupts.o
 COBJS-y	+= kgdb.o
 COBJS-y	+= time.o
+COBJS-$(CONFIG_HDMI_CHIP_SIL9022A) +=sil9022init.a
 
 SRCS	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
-
+	
+sil9022init.a:sil9022init.mtc
+	cp $< $@
 #########################################################################
 
 # defines $(obj).depend target

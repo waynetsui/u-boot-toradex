@@ -46,6 +46,10 @@
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
+#define BOOTM_DEBUG_INFO()	do{ \
+			unsigned int *buf=0; \
+			printf("%s line:%d %08x %08x %08x %08x \n",__func__,__LINE__,*buf++,*buf++,*buf++,*buf++);\			
+		}while(0)
 
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 extern ulong get_effective_memsize(void);
@@ -94,6 +98,7 @@ static void boot_jump_linux(bootm_headers_t *images)
 #endif
 
 		debug ("   Booting using OF flat tree...\n");
+		BOOTM_DEBUG_INFO();
 		(*kernel) ((bd_t *)of_flat_tree, 0, 0, EPAPR_MAGIC,
 			   CONFIG_SYS_BOOTMAPSZ, 0, 0);
 		/* does not return */

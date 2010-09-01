@@ -44,7 +44,7 @@ extern unsigned int FSL_Logo_BMP[];
 #endif
 
 static int xres, yres;
-
+#define DEBUG
 void diu_set_pixel_clock(unsigned int pixclock)
 {
 	volatile immap_t *immap = (immap_t *)CONFIG_SYS_IMMR;
@@ -68,7 +68,9 @@ void diu_set_pixel_clock(unsigned int pixclock)
 char *valid_bmp(char *addr)
 {
 	unsigned long h_addr;
-
+#if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+	return 0;
+#else
 	h_addr = simple_strtoul(addr, NULL, 16);
 	if (h_addr < CONFIG_SYS_FLASH_BASE ||
 			h_addr >= (CONFIG_SYS_FLASH_BASE + CONFIG_SYS_FLASH_SIZE - 1)) {
@@ -79,6 +81,7 @@ char *valid_bmp(char *addr)
 		return 0;
 	} else
 		return (char *)h_addr;
+#endif
 }
 
 int ads5121_diu_init(void)
@@ -87,8 +90,8 @@ int ads5121_diu_init(void)
 	char *bmp = NULL;
 	char *bmp_env;
 
-	xres = 1024;
-	yres = 768;
+	xres = 1280;
+	yres = 720;
 	pixel_format = 0x88883316;
 
 	debug("ads5121_diu_init\n");

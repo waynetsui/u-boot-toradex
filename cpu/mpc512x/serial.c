@@ -67,8 +67,10 @@ int serial_init(void)
 
 	fifo_init (psc);
 
+#ifndef ADS5125
 	/* set MR register to point to MR1 */
 	psc->command = PSC_SEL_MODE_REG_1;
+#endif
 
 	/* disable Tx/Rx */
 	psc->command = PSC_TX_DISABLE | PSC_RX_DISABLE;
@@ -79,15 +81,22 @@ int serial_init(void)
 	/* switch to UART mode */
 	psc->sicr = 0;
 
-	/* mode register points to mr1 */
 	/* configure parity, bit length and so on in mode register 1*/
+#ifdef CONFIG_ADS5125
+	psc->mr1 = PSC_MODE_8_BITS | PSC_MODE_PARNONE;
+	psc->mr2 = PSC_MODE_1_STOPBIT;
+
+	/* calculate divisor for setting PSC CTUR and CTLR registers */
+	div = gd->ips_clk/(16 * gd->baudrate);
+#else
+	/* mode register points to mr1 */
 	psc->mode = PSC_MODE_8_BITS | PSC_MODE_PARNONE;
 	/* now, mode register points to mr2 */
 	psc->mode = PSC_MODE_1_STOPBIT;
-
-	/* calculate dividor for setting PSC CTUR and CTLR registers */
+	/* calculate divisor for setting PSC CTUR and CTLR registers */
 	baseclk = (gd->ips_clk + 8) / 16;
 	div = (baseclk + (gd->baudrate / 2)) / gd->baudrate;
+#endif
 
 	psc->ctur = (div >> 8) & 0xff;
 	/* set baudrate */

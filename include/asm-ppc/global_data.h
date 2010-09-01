@@ -92,7 +92,7 @@ typedef	struct	global_data {
 #if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
 	u32 lbc_clk;
 #endif /* CONFIG_MPC85xx || CONFIG_MPC86xx */
-#if defined(CONFIG_MPC83XX) || defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
+#if defined(CONFIG_MPC83XX) || defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx) ||defined(CONFIG_ADS5125)
 	u32 i2c1_clk;
 	u32 i2c2_clk;
 #endif

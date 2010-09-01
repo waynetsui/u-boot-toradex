@@ -72,7 +72,13 @@ char * env_name_spec = "NAND";
 extern uchar environment[];
 env_t *env_ptr = (env_t *)(&environment[0]);
 #else /* ! ENV_IS_EMBEDDED */
+ #if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+ #define ENV_NAND_FLAGS	0x4d
+ env_t  environment_strct[4];
+ env_t *env_ptr=&environment_strct;
+ #else
 env_t *env_ptr = 0;
+ #endif
 #endif /* ENV_IS_EMBEDDED */
 
 
@@ -140,8 +146,41 @@ int env_init(void)
 	else if (gd->env_valid == 2)
 		env_ptr = tmp_env2;
 #else /* ENV_IS_EMBEDDED */
+ #if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+ 	unsigned int env_crc,size;
+ 	unsigned char *start,*end;
+ 	nand_read_pages(env_ptr, CONFIG_ENV_START_PAGE, sizeof(env_t));
+	if(ENV_NAND_FLAGS==env_ptr->flags)
+	{
+		gd->env_addr  = env_ptr->data;
+		gd->env_valid = 1;
+	}
+	else
+	{
+		end=start=default_environment;
+		while(1)
+		{			
+			while(*end)end++;
+			end++;
+			end++;
+			if(!(*end))break;
+			end++;
+			
+		}
+		size=end-start;
+		size=(size>ENV_SIZE)?ENV_SIZE:size;
+		
+		memcpy(env_ptr->data,default_environment,size);
+		gd->env_addr  = env_ptr->data;
+		gd->env_valid = 1;
+		
+		env_ptr->crc=crc32(0, env_ptr->data, ENV_SIZE);
+		env_ptr->flags=ENV_NAND_FLAGS;
+	}
+ #else
 	gd->env_addr  = (ulong)&default_environment[0];
 	gd->env_valid = 1;
+#endif
 #endif /* ENV_IS_EMBEDDED */
 
 	return (0);
@@ -185,6 +224,14 @@ int saveenv(void)
 {
 	size_t total;
 	int ret = 0;
+#if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+ 	puts ("Erasing Nand...\n");
+ 	nand_erase_block(CONFIG_ENV_START_PAGE, CONFIG_ENV_START_PAGE+1);
+	puts ("Writing to Nand... ");
+	env_ptr->flags=ENV_NAND_FLAGS;
+ 	nand_write_pages((u_char *) env_ptr, CONFIG_ENV_START_PAGE, CONFIG_ENV_SIZE);
+ 	puts ("done\n");
+ #else	
 	nand_erase_options_t nand_erase_options;
 
 	env_ptr->flags++;
@@ -221,6 +268,7 @@ int saveenv(void)
 
 	puts ("done\n");
 	gd->env_valid = (gd->env_valid == 2 ? 1 : 2);
+#endif
 	return ret;
 }
 #else /* ! CONFIG_ENV_OFFSET_REDUND */
@@ -228,6 +276,7 @@ int saveenv(void)
 {
 	size_t total;
 	int ret = 0;
+ 
 	nand_erase_options_t nand_erase_options;
 
 	nand_erase_options.length = CONFIG_ENV_RANGE;
@@ -248,7 +297,6 @@ int saveenv(void)
 		puts("FAILED!\n");
 		return 1;
 	}
-
 	puts ("done\n");
 	return ret;
 }
@@ -286,6 +334,22 @@ int readenv (size_t offset, u_char * buf)
 #ifdef CONFIG_ENV_OFFSET_REDUND
 void env_relocate_spec (void)
 {
+#if(BOARD_TYPE==BOARD_TYPE_5125_MPU)
+	size_t total;
+	int crc1_ok = 0, crc2_ok = 0;
+	env_t *tmp_env1, *tmp_env2;
+	if((env_ptr!=environment_strct)&&(env_ptr))
+       {
+               free(env_ptr);
+       }
+       tmp_env1 = (env_t *) malloc(CONFIG_ENV_SIZE*2);
+       tmp_env1->flags=ENV_NAND_FLAGS;
+       tmp_env1->crc=environment_strct[0].crc; 
+       memcpy(tmp_env1->data,(void *)gd->env_addr,ENV_SIZE);
+       env_ptr=tmp_env1;
+       gd->env_addr  = env_ptr->data;
+       gd->env_valid = 1;
+#else
 #if !defined(ENV_IS_EMBEDDED)
 	size_t total;
 	int crc1_ok = 0, crc2_ok = 0;
@@ -337,6 +401,7 @@ void env_relocate_spec (void)
 	}
 
 #endif /* ! ENV_IS_EMBEDDED */
+#endif
 }
 #else /* ! CONFIG_ENV_OFFSET_REDUND */
 /*

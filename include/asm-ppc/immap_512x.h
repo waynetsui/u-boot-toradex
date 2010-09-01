@@ -76,7 +76,10 @@ typedef struct wdt512x {
  * RTC Module Registers
  */
 typedef struct rtclk512x {
-	u8 fixme[0x100];
+	u8 fixme[0x24];
+	u32 atr;
+	u32 kar;
+	u8 fixme1[0xD4];
 } rtclk512x_t;
 
 /*
@@ -387,7 +390,7 @@ typedef struct fec512x {
  * ULPI
  */
 typedef struct ulpi512x {
-	u8 fixme[0x600];
+	u8 fixme[0x400];
 } ulpi512x_t;
 
 /*
@@ -408,7 +411,11 @@ typedef struct pcidma512x {
  * IO Control
  */
 typedef struct ioctrl512x {
+#ifdef CONFIG_ADS5125
+	u8 regs[0x1000];
+#else
 	u32 regs[0x400];
+#endif
 } ioctrl512x_t;
 
 /*
@@ -503,7 +510,54 @@ typedef struct pata512x {
  * PSC
  */
 typedef struct psc512x {
+#ifdef CONFIG_ADS5125
+	volatile u8	mr1;		/* PSC + 0x00 */
+	volatile u8	res0[3];
+	volatile u8	mr2;		/* PSC + 0x04 */
+	volatile u8	res0a[3];
+	volatile u16	psc_status;	/* PSC + 0x08 */
+	volatile u16	res1;
+	volatile u16	psc_clock_select;/* PSC + 0x0C mpc5125 manual has this as u8       */
+					 /* it has u8 res after it and for compatibility   */
+					 /* will keep u16 so high bits are set as before   */
+	volatile u16	res1a;
+	volatile u8	command;	/* PSC + 0x10 */
+	volatile u8	res2[3];
+	union {				/* PSC + 0x14 */
+		volatile u8	buffer_8;
+		volatile u16	buffer_16;
+		volatile u32	buffer_32;
+	} buffer;
+#define psc_buffer_8	buffer.buffer_8
+#define psc_buffer_16	buffer.buffer_16
+#define psc_buffer_32	buffer.buffer_32
+	volatile u8	psc_ipcr;	/* PSC + 0x18 */
+	volatile u8	res3[3];
+	volatile u8	psc_acr;	/* PSC + 0x1C */
+	volatile u8	res3a[3];
+	volatile u16	psc_isr;	/* PSC + 0x20 */
+	volatile u16	res4;
+	volatile u16	psc_imr;	/* PSC + 0x24 */
+	volatile u16	res4a;
+	volatile u8	ctur;		/* PSC + 0x28 */
+	volatile u8	res5[3];
+	volatile u8	ctlr;		/* PSC + 0x2c */
+	volatile u8	res6[3];
+	volatile u32	ccr;		/* PSC + 0x30 */
+	volatile u8	res7[12];
+	volatile u8	ivr;		/* PSC + 0x40 */
+	volatile u8	res8[3];
+	volatile u8	ip;		/* PSC + 0x44 */
+	volatile u8	res9[3];
+	volatile u8	op1;		/* PSC + 0x48 */
+	volatile u8	res10[3];
+	volatile u8	op0;		/* PSC + 0x4c */
+	volatile u8	res11[3];
+	volatile u32	sicr;		/* PSC + 0x50 */
+	volatile u8	res12[44];
+#else
 	volatile u8	mode;		/* PSC + 0x00 */
+					/* serves as both mr1 and mr2 (only mr1 on mpc5121 */
 	volatile u8	res0[3];
 	union {				/* PSC + 0x04 */
 		volatile u16	status;
@@ -537,7 +591,7 @@ typedef struct psc512x {
 #define psc_imr		isr_imr.imr
 	volatile u16	res4;
 	volatile u8	ctur;		/* PSC + 0x18 */
-	volatile u8	res5[3];
+	volatile u8	res5[3];/*28*/
 	volatile u8	ctlr;		/* PSC + 0x1c */
 	volatile u8	res6[3];
 	volatile u32	ccr;		/* PSC + 0x20 */
@@ -552,6 +606,7 @@ typedef struct psc512x {
 	volatile u8	res11[3];
 	volatile u32	sicr;		/* PSC + 0x40 */
 	volatile u8	res12[60];
+#endif /* FIFOC is the same for all mpc512x */
 	volatile u32	tfcmd;		/* PSC + 0x80 */
 	volatile u32	tfalarm;	/* PSC + 0x84 */
 	volatile u32	tfstat;		/* PSC + 0x88 */
@@ -561,8 +616,10 @@ typedef struct psc512x {
 	volatile u16	tfwptr;		/* PSC + 0x98 */
 	volatile u16	tfrptr;		/* PSC + 0x9A */
 	volatile u32	tfsize;		/* PSC + 0x9C */
+#ifndef ADS5125
 	volatile u8	res13[28];
-	union {				/* PSC + 0xBC */
+#endif
+	union {				/* PSC + 0xBC  */
 		volatile u8	buffer_8;
 		volatile u16	buffer_16;
 		volatile u32	buffer_32;
@@ -635,7 +692,15 @@ typedef struct immap {
 	u8			res3[0x500];
 	fec512x_t		fec;		/* Fast Ethernet Controller */
 	ulpi512x_t		ulpi;		/* USB ULPI */
-	u8			res4[0xa00];
+	u8			res4[0xc00];
+#ifdef CONFIG_ADS5125
+	ulpi512x_t		ulpi2;		/* USB ULPI */
+	u8			res5[0x400];
+	fec512x_t		fec2;		/* 2nd Fast Ethernet Controller */
+	gpt512x_t		gpt2;		/* 2nd General Purpose Timer */
+	sdhc512x_t		sdhc2;		/* 2nd SDHC */
+	u8			res6[0x3e00];
+#else
 	utmi512x_t		utmi;		/* USB UTMI */
 	u8			res5[0x1000];
 	pcidma512x_t		pci_dma;	/* PCI DMA */
@@ -644,6 +709,7 @@ typedef struct immap {
 	ios512x_t		ios;		/* PCI Sequencer */
 	pcictrl512x_t		pci_ctrl;	/* PCI Controller Control and Status */
 	u8			res7[0xa00];
+#endif
 	ddr512x_t		mddrc;		/* Multi-port DDR Memory Controller */
 	ioctrl512x_t		io_ctrl;	/* IO Control */
 	iim512x_t		iim;		/* IC Identification module */
@@ -651,9 +717,14 @@ typedef struct immap {
 	lpc512x_t		lpc;		/* LocalPlus Controller */
 	pata512x_t		pata;		/* Parallel ATA */
 	u8			res9[0xd00];
+#ifdef CONFIG_ADS5125
+	psc512x_t		psc[10];	/* PSCs */
+	u8			res10[0x500];
+#else
 	psc512x_t		psc[12];	/* PSCs */
 	u8			res10[0x300];
-	fifoc512x_t		fifoc;		/* FIFO Controller */
+#endif
+	fifoc512x_t		fifoc;		/* FIFO Controller PSC +0xF00 */
 	u8			res11[0x2000];
 	dma512x_t		dma;		/* DMA */
 	u8			res12[0xa800];

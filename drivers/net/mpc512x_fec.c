@@ -9,6 +9,7 @@
 #include <common.h>
 #include <mpc512x.h>
 #include <malloc.h>
+#include <asm/io.h>
 #include <net.h>
 #include <netdev.h>
 #include <miiphy.h>
@@ -17,6 +18,8 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #define DEBUG 0
+#define CURFEC_ADDR(devname) ((devname[3]=='2') ? \
+	(MPC512X_FEC + 0x2000) : MPC512X_FEC)
 
 #if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI) && \
 	defined(CONFIG_MPC512x_FEC)
@@ -41,13 +44,18 @@ static int rx_buff_idx = 0;
 static void mpc512x_fec_phydump (char *devname)
 {
 	uint16 phyStatus, i;
+#ifdef CONFIG_ADS5125
+	uint8 phyAddr = ((devname[3]=='2') ? CONFIG_PHY2_ADDR : CONFIG_PHY_ADDR);
+#else
 	uint8 phyAddr = CONFIG_PHY_ADDR;
+#endif
 	uint8 reg_mask[] = {
 		/* regs to print: 0...8, 21,27,31 */
-		1, 1, 1, 1,  1, 1, 1, 1,     1, 0, 0, 0,  0, 0, 0, 0,
-		0, 0, 0, 0,  0, 1, 0, 0,     0, 0, 0, 1,  0, 0, 0, 1,
+		1, 1, 1, 1,  1, 1, 1, 1,     0, 0, 0, 0,  0, 0, 0, 0,
+		0, 0, 0, 0,  1, 0, 1, 0,     0, 0, 0, 0,  1, 0, 1, 1,
 	};
 
+	printf("Dump of %s at addr %2x\n", devname, phyAddr);
 	for (i = 0; i < 32; i++) {
 		if (reg_mask[i]) {
 			miiphy_read (devname, phyAddr, i, &phyStatus);
@@ -223,7 +231,7 @@ static int mpc512x_fec_init (struct eth_device *dev, bd_t * bis)
 	mpc512x_fec_priv *fec = (mpc512x_fec_priv *)dev->priv;
 
 #if (DEBUG & 0x1)
-	printf ("mpc512x_fec_init... Begin\n");
+	printf ("mpc512x_fec_init... with eth_device %s Begin\n", dev->name);
 #endif
 
 	/* Set interrupt mask register */
@@ -239,7 +247,12 @@ static int mpc512x_fec_init (struct eth_device *dev, bd_t * bis)
 	fec->eth->op_pause = 0x00010020;
 
 	/* Frame length=1522; MII mode */
+#ifdef CONFIG_ADS5125
+	/* RMII Mode */
+	fec->eth->r_cntrl = (FEC_MAX_FRAME_LEN << 16) | 0x124;
+#else
 	fec->eth->r_cntrl = (FEC_MAX_FRAME_LEN << 16) | 0x24;
+#endif
 
 	/* Half-duplex, heartbeat disabled */
 	fec->eth->x_cntrl = 0x00000000;
@@ -277,12 +290,16 @@ static int mpc512x_fec_init (struct eth_device *dev, bd_t * bis)
 int mpc512x_fec_init_phy (struct eth_device *dev, bd_t * bis)
 {
 	mpc512x_fec_priv *fec = (mpc512x_fec_priv *)dev->priv;
-	const uint8 phyAddr = CONFIG_PHY_ADDR;	/* Only one PHY */
+#ifdef CONFIG_ADS5125
+	const uint8 phyAddr = ((dev->name[3]=='2') ? CONFIG_PHY2_ADDR : CONFIG_PHY_ADDR);
+#else
+	const uint8 phyAddr = CONFIG_PHY_ADDR;
+#endif
 	int timeout = 1;
 	uint16 phyStatus;
 
 #if (DEBUG & 0x1)
-	printf ("mpc512x_fec_init_phy... Begin\n");
+	printf ("mpc512x_fec_init_phy... with dev %s Begin\n", dev->name);
 #endif
 
 	/*
@@ -407,6 +424,7 @@ static void mpc512x_fec_halt (struct eth_device *dev)
 	int counter = 0xffff;
 
 #if (DEBUG & 0x2)
+	printf("In FEC Halt with device %s\n", dev->name);
 	if (fec->xcv_type != SEVENWIRE)
 		mpc512x_fec_phydump (dev->name);
 #endif
@@ -458,7 +476,7 @@ static int mpc512x_fec_send (struct eth_device *dev, volatile void *eth_data,
 	volatile FEC_TBD *pTbd;
 
 #if (DEBUG & 0x20)
-	printf("tbd status: 0x%04x\n", fec->tbdBase[fec->tbdIndex].status);
+	printf("%s tbd status: 0x%04x\n", dev->name, fec->bdBase->tbd[fec->tbdIndex].status);
 #endif
 
 	/*
@@ -608,14 +626,23 @@ int mpc512x_fec_initialize (bd_t * bis)
 	mpc512x_fec_priv *fec;
 	struct eth_device *dev;
 	int i;
+	char *memaddr;
 	char *tmp, *end, env_enetaddr[6];
 	void * bd;
 
+#ifdef CONFIG_ADS5125 /* 2nd RMII ethernet */
+	char *act = getenv("ethact");
+	memaddr = (char *)MPC512X_FEC;
+	if (act[3] == '2')
+		memaddr += 0x2000;
+#else
+	memaddr = (char *)MPC512X_FEC;
+#endif
 	fec = (mpc512x_fec_priv *) malloc (sizeof(*fec));
 	dev = (struct eth_device *) malloc (sizeof(*dev));
 	memset (dev, 0, sizeof *dev);
 
-	fec->eth = (ethernet_regs *) MPC512X_FEC;
+	fec->eth = (ethernet_regs *) memaddr;
 
 # ifndef CONFIG_FEC_10MBIT
 	fec->xcv_type = MII100;
@@ -623,13 +650,17 @@ int mpc512x_fec_initialize (bd_t * bis)
 	fec->xcv_type = MII10;
 # endif
 	dev->priv = (void *)fec;
-	dev->iobase = MPC512X_FEC;
+	dev->iobase = (int)memaddr;
 	dev->init = mpc512x_fec_init;
 	dev->halt = mpc512x_fec_halt;
 	dev->send = mpc512x_fec_send;
 	dev->recv = mpc512x_fec_recv;
 
 	sprintf (dev->name, "FEC ETHERNET");
+#ifdef CONFIG_ADS5125
+	if (memaddr != (char *)MPC512X_FEC)
+		sprintf (dev->name, "FEC2 ETHERNET");
+#endif
 	eth_register (dev);
 
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
@@ -638,7 +669,7 @@ int mpc512x_fec_initialize (bd_t * bis)
 #endif
 
 	/* Clean up space FEC's MIB and FIFO RAM ...*/
-	memset ((void *) MPC512X_FEC + 0x200, 0x00, 0x400);
+	memset ((void *) memaddr + 0x200, 0x00, 0x400);
 
 	/*
 	 * Malloc space for BDs  (must be quad word-aligned)
@@ -658,18 +689,26 @@ int mpc512x_fec_initialize (bd_t * bis)
 	 */
 	fec->eth->ievent = 0xffffffff;
 
+	/* rmii mode */
+	fec->eth->r_cntrl = (FEC_MAX_FRAME_LEN << 16) | 0x124;
+
 	/*
 	 * Try to set the mac address now. The fec mac address is
 	 * a garbage after reset. When not using fec for booting
 	 * the Linux fec driver will try to work with this garbage.
 	 */
 	tmp = getenv ("ethaddr");
+
+	if(!tmp)
+		tmp = "AA:BB:CC:DD:EE:FF"; // fixme
+
 	if (tmp) {
 		for (i=0; i<6; i++) {
 			env_enetaddr[i] = tmp ? simple_strtoul (tmp, &end, 16) : 0;
 			if (tmp)
 				tmp = (*end) ? end+1 : end;
 		}
+
 		mpc512x_fec_set_hwaddr (fec, env_enetaddr);
 		fec->eth->gaddr1 = 0x00000000;
 		fec->eth->gaddr2 = 0x00000000;
@@ -684,7 +723,7 @@ int mpc512x_fec_initialize (bd_t * bis)
 /********************************************************************/
 int fec512x_miiphy_read (char *devname, uint8 phyAddr, uint8 regAddr, uint16 * retVal)
 {
-	ethernet_regs *eth = (ethernet_regs *) MPC512X_FEC;
+	ethernet_regs *eth = (ethernet_regs *) CURFEC_ADDR(devname);
 	uint32 reg;		/* convenient holder for the PHY register */
 	uint32 phy;		/* convenient holder for the PHY */
 	int timeout = 0xffff;
@@ -705,7 +744,7 @@ int fec512x_miiphy_read (char *devname, uint8 phyAddr, uint8 regAddr, uint16 * r
 
 	if (timeout == 0) {
 #if (DEBUG & 0x2)
-		printf ("Read MDIO failed...\n");
+		printf ("Read MDIO addr %x failed (%s)...\n", phyAddr, devname);
 #endif
 		return -1;
 	}
@@ -726,7 +765,7 @@ int fec512x_miiphy_read (char *devname, uint8 phyAddr, uint8 regAddr, uint16 * r
 /********************************************************************/
 int fec512x_miiphy_write (char *devname, uint8 phyAddr, uint8 regAddr, uint16 data)
 {
-	ethernet_regs *eth = (ethernet_regs *) MPC512X_FEC;
+	ethernet_regs *eth = (ethernet_regs *) CURFEC_ADDR(devname);
 	uint32 reg;		/* convenient holder for the PHY register */
 	uint32 phy;		/* convenient holder for the PHY */
 	int timeout = 0xffff;
@@ -744,7 +783,7 @@ int fec512x_miiphy_write (char *devname, uint8 phyAddr, uint8 regAddr, uint16 da
 
 	if (timeout == 0) {
 #if (DEBUG & 0x2)
-		printf ("Write MDIO failed...\n");
+		printf ("Write MDIO failed (%s)...\n", devname);
 #endif
 		return -1;
 	}

@@ -22,7 +22,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-
 #include <common.h>
 #include <i2c.h>
 #include <malloc.h>
@@ -70,7 +69,82 @@ static struct fb_videomode fsl_diu_mode_1024 = {
 	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 	.vmode		= FB_VMODE_NONINTERLACED
 };
+static struct fb_videomode fsl_diu_mode_1024_768_26 = {
+	.refresh	= 26,
+	.xres		= 1024,
+	.yres		= 768,
+	.pixclock	= 36644,
+	.left_margin	= 144,
+	.right_margin	= 144,
+	.upper_margin	= 16,
+	.lower_margin	= 16,
+	.hsync_len	= 136,
+	.vsync_len	= 6,
+	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode		= FB_VMODE_NONINTERLACED
+};
 
+static struct fb_videomode fsl_diu_mode_640_480 = {
+	.refresh = 60,
+	.xres = 640,
+	.yres = 480,
+	.pixclock =39682,
+	.left_margin = 80,
+	.right_margin = 80,
+	.upper_margin =23,
+	.lower_margin = 22,
+	.hsync_len =20 ,
+	.vsync_len =13,
+	.sync =  0,
+	//.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode = FB_VMODE_NONINTERLACED
+};
+
+static struct fb_videomode fsl_diu_mode_800_600_42= {
+	.refresh = 42,
+	.xres = 800,
+	.yres = 600,
+	.pixclock =36849,
+	.left_margin = 112,
+	.right_margin = 112,
+	.upper_margin =16,
+	.lower_margin = 15,
+	.hsync_len =20 ,
+	.vsync_len =13,
+	.sync =  0,
+	//.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode = FB_VMODE_NONINTERLACED
+};
+static struct fb_videomode fsl_diu_mode_720x576= {
+	.refresh = 60,
+	.xres = 720,
+	.yres = 576,
+	.pixclock =27997,
+	.left_margin = 106,
+	.right_margin = 106,
+	.upper_margin =30,
+	.lower_margin = 30,
+	.hsync_len =20 ,
+	.vsync_len =13,
+	.sync =  0,
+	//.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode = FB_VMODE_NONINTERLACED
+};
+static struct fb_videomode fsl_diu_mode_720x480= {
+	.refresh 	= 60,
+	.xres	 = 	720,
+	.yres	 = 480,
+	.pixclock =37000,
+	.left_margin = 62,
+	.right_margin = 16,
+	.upper_margin =32,
+	.lower_margin = 10,
+	.hsync_len =60 ,
+	.vsync_len =3,
+	.sync =  0,
+	//.sync = FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode = FB_VMODE_NONINTERLACED
+};
 static struct fb_videomode fsl_diu_mode_1280 = {
 	.name		= "1280x1024-60",
 	.refresh	= 60,
@@ -86,7 +160,51 @@ static struct fb_videomode fsl_diu_mode_1280 = {
 	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 	.vmode		= FB_VMODE_NONINTERLACED
 };
-
+static struct fb_videomode fsl_diu_mode_1280x720 = {
+	.name		= "1280x720-50",
+	.refresh	= 50,
+	.xres		= 1280,
+	.yres		= 720,
+	.pixclock	= 13468,
+	.left_margin	= 440,
+	.right_margin	= 40,
+	.upper_margin	= 5,
+	.lower_margin	= 5,
+	.hsync_len	= 220,
+	.vsync_len	= 20,
+	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode		= FB_VMODE_NONINTERLACED
+};
+static struct fb_videomode fsl_diu_mode_1280x720_60 = {
+	.name		= "1280x720-60",
+	.refresh	= 60,
+	.xres		= 1280,
+	.yres		= 720,
+	.pixclock	= 13468,
+	.left_margin	= 40,
+	.right_margin	= 110,
+	.upper_margin	= 5,
+	.lower_margin	= 5,
+	.hsync_len	= 220,
+	.vsync_len	= 20,
+	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode		= FB_VMODE_NONINTERLACED
+};
+static struct fb_videomode fsl_diu_mode_800x600_60 = {
+	.name		= "800x600-60",
+	.refresh	= 60,
+	.xres		= 800,
+	.yres		= 600,
+	.pixclock	= 24996,
+	.left_margin	= 88,
+	.right_margin	= 40,
+	.upper_margin	= 23,
+	.lower_margin	= 1,
+	.hsync_len	= 128,
+	.vsync_len	= 4,
+	.sync		= FB_SYNC_COMP_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	.vmode		= FB_VMODE_NONINTERLACED
+};
 /*
  * These are the fields of area descriptor(in DDR memory) for every plane
  */
@@ -190,7 +308,25 @@ static int fsl_diu_enable_panel(struct fb_info *info);
 static int fsl_diu_disable_panel(struct fb_info *info);
 static int allocate_buf(struct diu_addr *buf, u32 size, u32 bytes_align);
 void diu_set_pixel_clock(unsigned int pixclock);
+#ifdef CONFIG_ADS5125
+#include <asm/io.h>
+#define CONFIG_SYS_IOCTL_ADDR  	CONFIG_SYS_IMMR+0xA000
+static void mpc5125_cfg_LCD_iopad_init(void)
+{
+	printf("mpc5125_cfg_LCD_iopad_init\n");
+	out_8(CONFIG_SYS_IOCTL_ADDR+0x33,0x43); /* AB9 DIU_LD00*/
+	out_8(CONFIG_SYS_IOCTL_ADDR+0x34,0x43); /* Y10 DIU_LD01*/
+	
+	out_8(CONFIG_SYS_IOCTL_ADDR+0x3b,0x43); /* W13 DIU_LD08*/
+	out_8(CONFIG_SYS_IOCTL_ADDR+0x3c,0x43); /* AB12 DIU_LD09*/
+	
+	out_8(CONFIG_SYS_IOCTL_ADDR+0x43,0x43); /* AB15 DIU_LD16*/
+	out_8(CONFIG_SYS_IOCTL_ADDR+0x44,0x43); /* AB16 DIU_LD17*/
 
+}
+#endif
+
+	
 int fsl_diu_init(int xres,
 		 unsigned int pixel_format,
 		 int gamma_fix,
@@ -203,7 +339,9 @@ int fsl_diu_init(int xres,
 	struct fb_var_screeninfo *var = &info->var;
 	unsigned char *gamma_table_base;
 	unsigned int i, j;
-
+#ifdef CONFIG_ADS5125
+	mpc5125_cfg_LCD_iopad_init();
+#endif
 	debug("Enter fsl_diu_init\n");
 	dr.diu_reg = (struct diu *) (CONFIG_SYS_DIU_ADDR);
 	hw = (struct diu *) dr.diu_reg;
@@ -211,9 +349,10 @@ int fsl_diu_init(int xres,
 	disable_lcdc();
 
 	if (xres == 1280) {
-		fsl_diu_mode_db = &fsl_diu_mode_1280;
+		fsl_diu_mode_db = &fsl_diu_mode_1280x720_60;
 	} else {
-		fsl_diu_mode_db = &fsl_diu_mode_1024;
+
+		fsl_diu_mode_db = &fsl_diu_mode_720x480;
 	}
 
 	if (0 == fb_initialized) {
@@ -324,7 +463,7 @@ int fsl_diu_init(int xres,
 			var->vsync_len << 11    |	/* PW_V  */
 			var->lower_margin;		/* FP_V  */
 
-	hw->syn_pol = 0;			/* SYNC SIGNALS POLARITY */
+	hw->syn_pol = 3;			/* SYNC SIGNALS POLARITY */
 	hw->thresholds = 0x00037800;		/* The Thresholds */
 	hw->int_status = 0;			/* INTERRUPT STATUS */
 	hw->int_mask = 0;			/* INT MASK */
@@ -506,6 +645,23 @@ int fsl_diu_display_bmp(unsigned char *bmp,
 		return 0;
 	}
 	if (bpp < 24) {
+		if(ncolors==0)
+		{
+			switch(bpp)
+			{
+			case 1:
+				ncolors=2;
+				break;
+			case 4:
+				ncolors=16;
+				break;
+			case 8:
+				ncolors=256;
+				break;
+			default:
+				break;
+			}
+		}
 		for (i = 0, offset = 54; i < ncolors; i++, offset += 4)
 			palette[i] = (bmp[offset+2] << 16)
 				+ (bmp[offset+1] << 8) + bmp[offset];
@@ -547,7 +703,7 @@ int fsl_diu_display_bmp(unsigned char *bmp,
 		for (y = height - 1; y >= 0; y--) {
 			fb_t = (unsigned int *) ((unsigned int)info->screen_base + (((y+yoffset) * info->var.xres) + xoffset)*cpp);
 			for (x = 0; x < width; x++) {
-				*fb_t++ = palette[ *bitmap++ ];
+				*fb_t++ = palette[ *bitmap++ ]|0xff000000;
 			}
 			for (i = (width / 2) % 4; i > 0; i--)
 				bitmap++;

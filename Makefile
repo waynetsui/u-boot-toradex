@@ -148,7 +148,7 @@ ifeq ($(HOSTARCH),$(ARCH))
 CROSS_COMPILE =
 else
 ifeq ($(ARCH),ppc)
-CROSS_COMPILE = ppc_8xx-
+CROSS_COMPILE = powerpc-e300c3-linux-gnu-
 endif
 ifeq ($(ARCH),arm)
 CROSS_COMPILE = arm-linux-
@@ -287,6 +287,9 @@ SUBDIRS	= tools \
 ifeq ($(CONFIG_NAND_U_BOOT),y)
 NAND_SPL = nand_spl
 U_BOOT_NAND = $(obj)u-boot-nand.bin
+ifndef NAND_PAD_SIZE
+NAND_PAD_SIZE = 16k
+endif
 endif
 
 ifeq ($(CONFIG_ONENAND_U_BOOT),y)
@@ -300,12 +303,13 @@ __LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
 #########################################################################
 #########################################################################
 
-ALL += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map $(U_BOOT_NAND) $(U_BOOT_ONENAND)
+ALL += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map $(U_BOOT_NAND) $(U_BOOT_ONENAND) $(obj)u-boot-second.bin $(obj)u-boot-second-scrip.txt $(obj)u-boot-scrip.txt
 ifeq ($(ARCH),blackfin)
 ALL += $(obj)u-boot.ldr
 endif
 
 all:		$(ALL)
+
 
 $(obj)u-boot.hex:	$(obj)u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@
@@ -334,6 +338,14 @@ $(obj)u-boot.img:	$(obj)u-boot.bin
 
 $(obj)u-boot.sha1:	$(obj)u-boot.bin
 		$(obj)tools/ubsha1 $(obj)u-boot.bin
+
+$(obj)u-boot-second.bin:$(obj)u-boot.bin
+		$(PWD)/add-uboot-head $< $@
+	
+$(obj)u-boot-second-scrip.txt:$(obj)u-boot-second.bin
+		$(PWD)/nand_program_block1_uboot  $< $@
+$(obj)u-boot-scrip.txt:$(obj)u-boot.bin
+		$(PWD)/nand_flash_program   $< $@
 
 $(obj)u-boot.dis:	$(obj)u-boot
 		$(OBJDUMP) -d $< > $@
@@ -364,7 +376,7 @@ $(NAND_SPL):	$(TIMESTAMP_FILE) $(VERSION_FILE) $(obj)include/autoconf.mk
 		$(MAKE) -C nand_spl/board/$(BOARDDIR) all
 
 $(U_BOOT_NAND):	$(NAND_SPL) $(obj)u-boot.bin $(obj)include/autoconf.mk
-		cat $(obj)nand_spl/u-boot-spl-16k.bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
+		cat $(obj)nand_spl/u-boot-spl-$(NAND_PAD_SIZE).bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
 
 $(ONENAND_IPL):	$(TIMESTAMP_FILE) $(VERSION_FILE) $(obj)include/autoconf.mk
 		$(MAKE) -C onenand_ipl/board/$(BOARDDIR) all
@@ -799,6 +811,21 @@ ads5121_rev2_config	\
 	fi
 	@$(MKCONFIG) -a ads5121 ppc mpc512x ads5121
 
+ads5125_config \
+	: unconfig
+	@mkdir -p $(obj)include
+	@$(MKCONFIG) -a ads5125 ppc mpc512x ads5125
+
+ads5125_nand_config	\
+	: unconfig
+	@mkdir -p $(obj)include
+	@mkdir -p $(obj)board/ads5125
+	@mkdir -p $(obj)nand_spl/board/ads5125
+	echo "TEXT_BASE = 0x01000000" > $(obj)board/ads5125/config.tmp ;
+	echo "#define CONFIG_NAND_U_BOOT" >> $(obj)include/config.h ;
+	@$(MKCONFIG) -a ads5125 ppc mpc512x ads5125
+	echo "CONFIG_NAND_U_BOOT = y" >> $(obj)include/config.mk ;
+	echo "NAND_PAD_SIZE = 2k" >>  $(obj)include/config.mk;
 
 #########################################################################
 ## MPC8xx Systems

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright 2007 DENX Software Engineering
  *
+ * Copyright (C) 2008-2009 Freescale Semiconductor, Inc. All Rights Reserved.
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -24,6 +26,7 @@
 #include <common.h>
 #include <mpc512x.h>
 #include <asm/bitops.h>
+#include <asm/io.h>
 #include <command.h>
 #include <asm/processor.h>
 #include <fdt_support.h>
@@ -36,10 +39,11 @@ DECLARE_GLOBAL_DATA_PTR;
 /* Clocks in use */
 #define SCCR1_CLOCKS_EN	(CLOCK_SCCR1_CFG_EN |				\
 			 CLOCK_SCCR1_LPC_EN |				\
+			 CLOCK_SCCR1_NFC_EN |				\
 			 CLOCK_SCCR1_PSC_EN(CONFIG_PSC_CONSOLE) |	\
 			 CLOCK_SCCR1_PSCFIFO_EN |			\
 			 CLOCK_SCCR1_DDR_EN |				\
-			 CLOCK_SCCR1_FEC_EN |				\
+			 CLOCK_SCCR1_FEC1_EN |				\
 			 CLOCK_SCCR1_PATA_EN |				\
 			 CLOCK_SCCR1_PCI_EN |				\
 			 CLOCK_SCCR1_TPR_EN)
@@ -51,6 +55,12 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define CSAW_START(start)	((start) & 0xFFFF0000)
 #define CSAW_STOP(start, size)	(((start) + (size) - 1) >> 16)
+
+/* Defines used to Exit Self Refresh after Hibernation */
+#define DDRC_CCR_CLOCK_ON_CMD	0x00001CFF; /* Clock ON */
+#define DDRC_CCR_CKE_HIGH_CMD	0x00003CFF; /* cke high and 200 NOP delay */
+#define DDRC_CCR_SR_CMD		0x00004200; /* Send a Self Refresh */
+#define DDRC_CCR_CMD_MODE_CMD	0x000038FF; /* Set to Normal Mode */
 
 long int fixed_sdram(void);
 
@@ -111,6 +121,40 @@ int board_early_init_f (void)
 	return 0;
 }
 
+u32 is_micron(void){
+
+	ushort brd_rev = *(vu_short *) (CONFIG_SYS_CPLD_BASE + 0x00);
+	char *mac, *end, macaddr[6];
+	u32 brddate, macchk, ismicron;
+	u32 i;
+
+	/*
+	 * MAC address has serial number with date of manufacture
+	 * Boards made before Nov-08 #1180 use Micron memory;
+	 * 001e59 is the STx vendor #
+	 */
+	ismicron = 0;
+	if (brd_rev >= 0x0400 && (mac = getenv("ethaddr"))) {
+		for (i=0; i<6; i++) {
+			macaddr[i] = mac ?
+				simple_strtoul (mac, &end, 16) : 0;
+			if (mac)
+				mac = (*end) ? end+1 : end;
+		}
+		brddate = (macaddr[3] << 16) + (macaddr[4] << 8) + macaddr[5];
+		macchk = (macaddr[0] << 16) + (macaddr[1] << 8) + macaddr[2];
+		debug("brddate = %d\n\t",brddate);
+
+		if (macchk == 0x001e59 && brddate <= 8111180)
+			ismicron = 1;
+	} else if (brd_rev < 0x400) {
+		ismicron = 1;
+	}
+	debug("Using %s Memory settings\n\t",
+			ismicron ? "Micron" : "Elpida");
+	return(ismicron);
+}
+
 phys_size_t initdram (int board_type)
 {
 	u32 msize = 0;
@@ -121,12 +165,102 @@ phys_size_t initdram (int board_type)
 }
 
 /*
+ * hibernation_check -- Check if the board is hibernating and has a kernel
+ * sleeping in RAM. If so jump there.
+ */
+void hibernation_check(void)
+{
+	volatile immap_t *im = (immap_t *) CONFIG_SYS_IMMR;
+	void (*hib_wkup_fnptr)(void);
+	volatile u32 reg;
+	u32 use_micron;
+
+#if DEBUG
+	printf("RTC_KAR -0x%x\n", im->rtc.kar);
+#endif /* DEBUG END */
+#define RTC_KAR_BC6     (1 << 8)
+	if (im->rtc.kar & RTC_KAR_BC6) {
+
+		printf("\nComing out of Hibernate !\n");
+		reg = im->rtc.kar;
+
+		/* setting the DIS_HIB mode bit */
+		reg |= 0x00000080;
+		/* Clear OFF only the WU_SRC sticky Bits */
+		reg &= 0xFFFFFFF9;
+
+		/* Writing back to KAR, this will clear the Sticky bit */
+		im->rtc.kar = reg;
+
+		/* Disabling the wake-up sources and BC6 bit used for
+		 * Hibernation.
+		 */
+		im->rtc.kar &= 0xE0FF02F9;
+
+		use_micron = is_micron();
+
+		/* Initialize MDDRC */
+	if (use_micron) {
+		im->mddrc.ddr_sys_config = (MDDRC_SYS_CFG_MICRON &
+					~(MDDRC_SYS_CFG_CLK_BIT |
+					MDDRC_SYS_CFG_CKE_BIT));  /* CMD MODE */
+		im->mddrc.ddr_time_config0 = MDDRC_TIME_CFG0;
+		im->mddrc.ddr_time_config1 = MDDRC_TIME_CFG1_MICRON;
+		im->mddrc.ddr_time_config2 = MDDRC_TIME_CFG2_MICRON;
+	} else {
+		im->mddrc.ddr_sys_config = (MDDRC_SYS_CFG_ELPIDA &
+					~(MDDRC_SYS_CFG_CLK_BIT |
+					MDDRC_SYS_CFG_CKE_BIT));  /* CMD MODE */
+		im->mddrc.ddr_time_config0 = MDDRC_TIME_CFG0;
+		im->mddrc.ddr_time_config1 = MDDRC_TIME_CFG1_ELPIDA;
+		im->mddrc.ddr_time_config2 = MDDRC_TIME_CFG2_ELPIDA;
+	}
+
+		/* Bringing the DDR out of Self-Refresh State */
+		/* Clock ON */
+		im->mddrc.ddr_compact_command = DDRC_CCR_CLOCK_ON_CMD;
+		__asm__ __volatile__ ("sync");
+		/* cke high and 200 NOP delay */
+		im->mddrc.ddr_compact_command = DDRC_CCR_CKE_HIGH_CMD;
+		__asm__ __volatile__ ("sync");
+		/* Send a Self Refresh */
+		im->mddrc.ddr_compact_command = DDRC_CCR_SR_CMD;
+		__asm__ __volatile__ ("sync");
+		/* Set to Normal Mode */
+		im->mddrc.ddr_compact_command = DDRC_CCR_CMD_MODE_CMD;
+		__asm__ __volatile__ ("sync");
+
+		/* Start MDDRC */
+		im->mddrc.ddr_time_config0 = MDDRC_TIME_CFG0_RUN;
+
+		if (use_micron)
+			im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_MICRON_RUN;
+		else
+			im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_ELPIDA_RUN;
+
+		__asm__ __volatile__ ("sync");
+		__asm__ __volatile__ ("sync");
+
+		hib_wkup_fnptr = *((void **)0x00000000);
+
+		if (hib_wkup_fnptr != NULL)
+			hib_wkup_fnptr();
+		else {
+			printf("func pointer is NULL!! returning to normal uboot intialisation\n");
+			return;
+		}
+	}
+}
+
+/*
  * fixed sdram init -- the board doesn't use memory modules that have serial presence
  * detect or similar mechanism for discovery of the DRAM settings
  */
 long int fixed_sdram (void)
 {
+	u32 use_micron = 0;
 	volatile immap_t *im = (immap_t *) CONFIG_SYS_IMMR;
+
 	u32 msize = CONFIG_SYS_DDR_SIZE * 1024 * 1024;
 	u32 msize_log2 = __ilog2 (msize);
 	u32 i;
@@ -147,68 +281,105 @@ long int fixed_sdram (void)
 	__asm__ __volatile__ ("isync");
 
 	/* Enable DDR */
-	im->mddrc.ddr_sys_config = CONFIG_SYS_MDDRC_SYS_CFG_EN;
+	im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_EN;
 
 	/* Initialize DDR Priority Manager */
-	im->mddrc.prioman_config1 = CONFIG_SYS_MDDRCGRP_PM_CFG1;
-	im->mddrc.prioman_config2 = CONFIG_SYS_MDDRCGRP_PM_CFG2;
-	im->mddrc.hiprio_config = CONFIG_SYS_MDDRCGRP_HIPRIO_CFG;
-	im->mddrc.lut_table0_main_upper = CONFIG_SYS_MDDRCGRP_LUT0_MU;
-	im->mddrc.lut_table0_main_lower = CONFIG_SYS_MDDRCGRP_LUT0_ML;
-	im->mddrc.lut_table1_main_upper = CONFIG_SYS_MDDRCGRP_LUT1_MU;
-	im->mddrc.lut_table1_main_lower = CONFIG_SYS_MDDRCGRP_LUT1_ML;
-	im->mddrc.lut_table2_main_upper = CONFIG_SYS_MDDRCGRP_LUT2_MU;
-	im->mddrc.lut_table2_main_lower = CONFIG_SYS_MDDRCGRP_LUT2_ML;
-	im->mddrc.lut_table3_main_upper = CONFIG_SYS_MDDRCGRP_LUT3_MU;
-	im->mddrc.lut_table3_main_lower = CONFIG_SYS_MDDRCGRP_LUT3_ML;
-	im->mddrc.lut_table4_main_upper = CONFIG_SYS_MDDRCGRP_LUT4_MU;
-	im->mddrc.lut_table4_main_lower = CONFIG_SYS_MDDRCGRP_LUT4_ML;
-	im->mddrc.lut_table0_alternate_upper = CONFIG_SYS_MDDRCGRP_LUT0_AU;
-	im->mddrc.lut_table0_alternate_lower = CONFIG_SYS_MDDRCGRP_LUT0_AL;
-	im->mddrc.lut_table1_alternate_upper = CONFIG_SYS_MDDRCGRP_LUT1_AU;
-	im->mddrc.lut_table1_alternate_lower = CONFIG_SYS_MDDRCGRP_LUT1_AL;
-	im->mddrc.lut_table2_alternate_upper = CONFIG_SYS_MDDRCGRP_LUT2_AU;
-	im->mddrc.lut_table2_alternate_lower = CONFIG_SYS_MDDRCGRP_LUT2_AL;
-	im->mddrc.lut_table3_alternate_upper = CONFIG_SYS_MDDRCGRP_LUT3_AU;
-	im->mddrc.lut_table3_alternate_lower = CONFIG_SYS_MDDRCGRP_LUT3_AL;
-	im->mddrc.lut_table4_alternate_upper = CONFIG_SYS_MDDRCGRP_LUT4_AU;
-	im->mddrc.lut_table4_alternate_lower = CONFIG_SYS_MDDRCGRP_LUT4_AL;
+	im->mddrc.prioman_config1 = MDDRCGRP_PM_CFG1;
+	im->mddrc.prioman_config2 = MDDRCGRP_PM_CFG2;
+	im->mddrc.hiprio_config = MDDRCGRP_HIPRIO_CFG;
+	im->mddrc.lut_table0_main_upper = MDDRCGRP_LUT0_MU;
+	im->mddrc.lut_table0_main_lower = MDDRCGRP_LUT0_ML;
+	im->mddrc.lut_table1_main_upper = MDDRCGRP_LUT1_MU;
+	im->mddrc.lut_table1_main_lower = MDDRCGRP_LUT1_ML;
+	im->mddrc.lut_table2_main_upper = MDDRCGRP_LUT2_MU;
+	im->mddrc.lut_table2_main_lower = MDDRCGRP_LUT2_ML;
+	im->mddrc.lut_table3_main_upper = MDDRCGRP_LUT3_MU;
+	im->mddrc.lut_table3_main_lower = MDDRCGRP_LUT3_ML;
+	im->mddrc.lut_table4_main_upper = MDDRCGRP_LUT4_MU;
+	im->mddrc.lut_table4_main_lower = MDDRCGRP_LUT4_ML;
+	im->mddrc.lut_table0_alternate_upper = MDDRCGRP_LUT0_AU;
+	im->mddrc.lut_table0_alternate_lower = MDDRCGRP_LUT0_AL;
+	im->mddrc.lut_table1_alternate_upper = MDDRCGRP_LUT1_AU;
+	im->mddrc.lut_table1_alternate_lower = MDDRCGRP_LUT1_AL;
+	im->mddrc.lut_table2_alternate_upper = MDDRCGRP_LUT2_AU;
+	im->mddrc.lut_table2_alternate_lower = MDDRCGRP_LUT2_AL;
+	im->mddrc.lut_table3_alternate_upper = MDDRCGRP_LUT3_AU;
+	im->mddrc.lut_table3_alternate_lower = MDDRCGRP_LUT3_AL;
+	im->mddrc.lut_table4_alternate_upper = MDDRCGRP_LUT4_AU;
+	im->mddrc.lut_table4_alternate_lower = MDDRCGRP_LUT4_AL;
+
+	/* This function will not return if system was hibernating */
+	hibernation_check();
+
+	/* determine which memory settings to use Micron or Elpida */
+	use_micron = is_micron();
 
 	/* Initialize MDDRC */
-	im->mddrc.ddr_sys_config = CONFIG_SYS_MDDRC_SYS_CFG;
-	im->mddrc.ddr_time_config0 = CONFIG_SYS_MDDRC_TIME_CFG0;
-	im->mddrc.ddr_time_config1 = CONFIG_SYS_MDDRC_TIME_CFG1;
-	im->mddrc.ddr_time_config2 = CONFIG_SYS_MDDRC_TIME_CFG2;
+	if (use_micron) {
+		im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_MICRON;
+		im->mddrc.ddr_time_config0 = MDDRC_TIME_CFG0;
+		im->mddrc.ddr_time_config1 = MDDRC_TIME_CFG1_MICRON;
+		im->mddrc.ddr_time_config2 = MDDRC_TIME_CFG2_MICRON;
+	} else {
+		im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_ELPIDA;
+		im->mddrc.ddr_time_config0 = MDDRC_TIME_CFG0;
+		im->mddrc.ddr_time_config1 = MDDRC_TIME_CFG1_ELPIDA;
+		im->mddrc.ddr_time_config2 = MDDRC_TIME_CFG2_ELPIDA;
+	}
 
 	/* Initialize DDR */
 	for (i = 0; i < 10; i++)
-		im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
+		im->mddrc.ddr_command = DDR_NOP;
 
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_PCHG_ALL;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_RFSH;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_RFSH;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_INIT_DEV_OP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_EM2;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_PCHG_ALL;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_EM2;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_EM3;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_EN_DLL;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_INIT_DEV_OP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_PCHG_ALL;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_RFSH;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_INIT_DEV_OP;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_OCD_DEFAULT;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_PCHG_ALL;
-	im->mddrc.ddr_command = CONFIG_SYS_MICRON_NOP;
+	im->mddrc.ddr_command = DDR_PCHG_ALL;
+	im->mddrc.ddr_command = DDR_NOP;
+	im->mddrc.ddr_command = DDR_RFSH;
+	im->mddrc.ddr_command = DDR_NOP;
+	im->mddrc.ddr_command = DDR_RFSH;
+	im->mddrc.ddr_command = DDR_NOP;
 
+	if (use_micron) {
+		/* Micron init sequence */
+		im->mddrc.ddr_command = MICRON_INIT_DEV_OP;
+		im->mddrc.ddr_command = DDR_NOP;
+		im->mddrc.ddr_command = DDR_EM2;
+		im->mddrc.ddr_command = DDR_NOP;
+		im->mddrc.ddr_command = DDR_PCHG_ALL;
+		im->mddrc.ddr_command = DDR_EM2;
+		im->mddrc.ddr_command = DDR_EM3;
+		im->mddrc.ddr_command = DDR_EN_DLL;
+		im->mddrc.ddr_command = MICRON_INIT_DEV_OP;
+		im->mddrc.ddr_command = DDR_PCHG_ALL;
+		im->mddrc.ddr_command = DDR_RFSH;
+		im->mddrc.ddr_command = DDR_RFSH;
+		im->mddrc.ddr_command = DDR_RFSH;
+		im->mddrc.ddr_command = MICRON_INIT_DEV_OP;
+		udelay(200);
+	} else {
+		/* Elpida init -works for Micron too but runs more slowly */
+		im->mddrc.ddr_command = DDR_EM2;
+		im->mddrc.ddr_command = DDR_EM3;
+		im->mddrc.ddr_command = DDR_EN_DLL;
+		im->mddrc.ddr_command = DDR_RES_DLL;
+		im->mddrc.ddr_command = DDR_PCHG_ALL;
+		im->mddrc.ddr_command = DDR_RFSH;
+		im->mddrc.ddr_command = DDR_RFSH;
+		im->mddrc.ddr_command = DDR_RFSH;
+		im->mddrc.ddr_command = ELPIDA_INIT_DEV_OP;
+		udelay(200);
+	}
+	im->mddrc.ddr_command = DDR_OCD_DEFAULT;
+	im->mddrc.ddr_command = DDR_OCD_EXIT;
+	im->mddrc.ddr_command = DDR_NOP;
+	for (i = 0; i < 10; i++)
+		im->mddrc.ddr_command = DDR_NOP;
 	/* Start MDDRC */
-	im->mddrc.ddr_time_config0 = CONFIG_SYS_MDDRC_TIME_CFG0_RUN;
-	im->mddrc.ddr_sys_config = CONFIG_SYS_MDDRC_SYS_CFG_RUN;
+	im->mddrc.ddr_time_config0 = MDDRC_TIME_CFG0_RUN;
+
+	if (use_micron)
+		im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_MICRON_RUN;
+	else
+		im->mddrc.ddr_sys_config = MDDRC_SYS_CFG_ELPIDA_RUN;
 
 	return msize;
 }
@@ -225,17 +396,21 @@ int misc_init_r(void)
 	i2c_set_bus_num(2);
 	tmp_val = 0xBF;
 	i2c_write(0x38, 0x08, 1, &tmp_val, sizeof(tmp_val));
+#if DEBUG
 	/* Verify if enabled */
 	tmp_val = 0;
 	i2c_read(0x38, 0x08, 1, &tmp_val, sizeof(tmp_val));
 	debug("DVI Encoder Read: 0x%02lx\n", tmp_val);
+#endif
 
 	tmp_val = 0x10;
 	i2c_write(0x38, 0x0A, 1, &tmp_val, sizeof(tmp_val));
+#if DEBUG
 	/* Verify if enabled */
 	tmp_val = 0;
 	i2c_read(0x38, 0x0A, 1, &tmp_val, sizeof(tmp_val));
 	debug("DVI Encoder Read: 0x%02lx\n", tmp_val);
+#endif
 
 #ifdef CONFIG_FSL_DIU_FB
 #if	!(defined(CONFIG_VIDEO) || defined(CONFIG_CFB_CONSOLE))
@@ -430,3 +605,17 @@ int ide_preinit (void)
 }
 
 #endif /* defined(CONFIG_CMD_IDE) && defined(CONFIG_IDE_RESET) */
+
+#if defined(CONFIG_NAND_FSL_NFC)
+void ads5121_fsl_nfc_board_cs(int chip)
+{
+	unsigned char *csreg = (unsigned char *)CONFIG_SYS_CPLD_BASE + 0x09;
+	u8 v;
+
+	v = in_8(csreg);
+	v |= 0xf;
+	v &= ~(1<<chip);
+
+	out_8(csreg, v);
+}
+#endif

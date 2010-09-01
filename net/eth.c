@@ -56,6 +56,10 @@ static struct {
 static unsigned int eth_rcv_current = 0, eth_rcv_last = 0;
 #endif
 
+#ifdef CONFIG_FASTBOOT
+int eth_init_skipped;
+#endif
+
 static struct eth_device *eth_devices, *eth_current;
 
 struct eth_device *eth_get_dev(void)
@@ -329,6 +333,15 @@ u32 ether_crc (size_t len, unsigned char const *p)
 int eth_init(bd_t *bis)
 {
 	struct eth_device* old_current;
+
+#ifdef CONFIG_FASTBOOT
+	if (eth_init_skipped) {
+		DECLARE_GLOBAL_DATA_PTR;
+		eth_init_skipped = 0;
+		printf("Net:   ");
+		eth_initialize(gd->bd);
+	}
+#endif
 
 	if (!eth_current) {
 		puts ("No ethernet found.\n");

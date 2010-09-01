@@ -2454,6 +2454,9 @@ static void nand_set_defaults(struct nand_chip *chip, int busw)
 /*
  * Get the flash and manufacturer id and lookup if the type is supported
  */
+ #ifdef CONFIG_ADS5125
+ extern u8 mpc5125_nfc_get_id(struct mtd_info *mtd,int col);
+ #endif
 static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 						  struct nand_chip *chip,
 						  int busw, int *maf_id)
@@ -2473,11 +2476,11 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 
 	/* Send the command for reading device ID */
 	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
-
+	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
 	/* Read manufacturer and device IDs */
+
 	*maf_id = chip->read_byte(mtd);
 	dev_id = chip->read_byte(mtd);
-
 	/* Try again to make sure, as some systems the bus-hold or other
 	 * interface concerns can cause random data which looks like a
 	 * possibly credible NAND flash to appear. If the two results do
@@ -2487,10 +2490,9 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
 
 	/* Read manufacturer and device IDs */
-
+	
 	tmp_manf = chip->read_byte(mtd);
 	tmp_id = chip->read_byte(mtd);
-
 	if (tmp_manf != *maf_id || tmp_id != dev_id) {
 		printk(KERN_INFO "%s: second ID read did not match "
 		       "%02x,%02x against %02x,%02x\n", __func__,
@@ -2762,7 +2764,9 @@ int nand_scan_tail(struct mtd_info *mtd)
 		chip->ecc.mode = NAND_ECC_SOFT;
 
 	case NAND_ECC_SOFT:
+#ifndef CONFIG_NAND_SPL
 		chip->ecc.calculate = nand_calculate_ecc;
+#endif
 		chip->ecc.correct = nand_correct_data;
 		chip->ecc.read_page = nand_read_page_swecc;
 		chip->ecc.read_subpage = nand_read_subpage;
@@ -2774,8 +2778,10 @@ int nand_scan_tail(struct mtd_info *mtd)
 		break;
 
 	case NAND_ECC_NONE:
+		/*
 		printk(KERN_WARNING "NAND_ECC_NONE selected by board driver. "
 		       "This is not recommended !!\n");
+		       */
 		chip->ecc.read_page = nand_read_page_raw;
 		chip->ecc.write_page = nand_write_page_raw;
 		chip->ecc.read_oob = nand_read_oob_std;

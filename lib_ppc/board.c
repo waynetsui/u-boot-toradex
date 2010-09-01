@@ -2,6 +2,9 @@
  * (C) Copyright 2000-2006
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * Copyright (C) 2009 Freescale Semiconductor Inc. All rights reserved.
+ * John Rigby <jrigby@freescale.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -96,6 +99,15 @@ void doc_init (void);
 #endif
 #include <spi.h>
 #include <nand.h>
+/*add*/
+#include <mpc512x.h>
+
+#define CONFIG_SYS_NO_FLASH
+/*
+#undef CONFIG_CMD_NAND
+*/
+/*#undef CONFIG_CMD_NET*/
+#undef CONFIG_SYS_UPDATE_FLASH_SIZE
 
 static char *failed = "*** failed ***\n";
 
@@ -240,6 +252,7 @@ static int init_func_i2c (void)
 	puts ("I2C:   ");
 	i2c_init (CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 	puts ("ready\n");
+	
 	return (0);
 }
 #endif
@@ -415,7 +428,7 @@ void board_init_f (ulong bootflag)
 			hang ();
 		}
 	}
-
+	
 	/*
 	 * Now that we have DRAM mapped and working, we can
 	 * relocate the code and continue running from DRAM.
@@ -673,7 +686,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	serial_initialize();
 #endif
 
+#ifdef CONFIG_CW
+	printf ("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
+#else
 	debug ("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
+#endif
 
 	WATCHDOG_RESET ();
 
@@ -795,7 +812,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	update_flash_size (flash_size);
 #endif
 
-
 # if defined(CONFIG_PCU_E) || defined(CONFIG_OXC) || defined(CONFIG_RMU)
 	/* flash mapped at end of memory map */
 	bd->bi_flashoffset = TEXT_BASE + flash_size;
@@ -836,9 +852,9 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 	/* relocate environment function pointers etc. */
-	env_relocate ();
+//	env_relocate ();
 
-	/*
+ 	/*
 	 * Fill in missing fields of bd_info.
 	 * We do this here, where we have "normal" access to the
 	 * environment; we used to do this still running from ROM,
@@ -878,7 +894,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	mac_read_from_eeprom();
 #endif
 
-	s = getenv ("ethaddr");
+ 	s = getenv ("ethaddr");
 #if defined (CONFIG_MBX) || \
     defined (CONFIG_RPXCLASSIC) || \
     defined(CONFIG_IAD210) || \
@@ -990,7 +1006,18 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/*
 	 * Do pci configuration
 	 */
+#ifdef CONFIG_FASTBOOT
+	s = getenv ("skippcicheck");
+	if (s && (*s == 'y')) {
+		extern int pci_init_skipped;
+		pci_init_skipped = 1;
+	}
+	else {
+		pci_init ();
+	};
+#else
 	pci_init ();
+#endif
 #endif
 
 /** leave this here (after malloc(), environment and PCI are working) **/
@@ -1007,6 +1034,9 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r ();
+/*
+	printf("%s line:%d\n",__func__,__LINE__);
+*/	
 
 #if defined(CONFIG_CCM)		|| \
     defined(CONFIG_COGENT)	|| \
@@ -1022,7 +1052,9 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/* miscellaneous platform dependent initialisations */
 	misc_init_r ();
 #endif
-
+/*
+	printf("%s line:%d\n",__func__,__LINE__);
+*/	
 #ifdef	CONFIG_HERMES
 	if (bd->bi_ethspeed != 0xFFFF)
 		hermes_start_lxt980 ((int) bd->bi_ethspeed);
@@ -1033,14 +1065,18 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	puts ("KGDB:  ");
 	kgdb_init ();
 #endif
-
+/*
+	printf("%s line:%d\n",__func__,__LINE__);
+*/	
 	debug ("U-Boot relocated to %08lx\n", dest_addr);
 
 	/*
 	 * Enable Interrupts
 	 */
 	interrupt_init ();
-
+/*	
+	printf("%s line:%d\n",__func__,__LINE__);
+*/	
 	/* Must happen after interrupts are initialized since
 	 * an irq handler gets installed
 	 */
@@ -1053,13 +1089,18 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 	udelay (20);
-
+/*
+	printf("%s line:%d\n",__func__,__LINE__);
+*/	
 	set_timer (0);
 
 	/* Initialize from environment */
 	if ((s = getenv ("loadaddr")) != NULL) {
 		load_addr = simple_strtoul (s, NULL, 16);
 	}
+/*	
+	printf("%s line:%d\n",__func__,__LINE__);
+*/	
 #if defined(CONFIG_CMD_NET)
 	if ((s = getenv ("bootfile")) != NULL) {
 		copy_filename (BootFile, s, sizeof (BootFile));
@@ -1089,12 +1130,30 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	doc_init ();
 #endif
 
+#if 1
 #if defined(CONFIG_CMD_NET)
+#if defined(CONFIG_FASTBOOT)
+#if defined(CONFIG_NET_MULTI)
+	WATCHDOG_RESET ();
+#endif
+
+	s = getenv ("skipnetcheck");
+	if (s && (*s == 'y')) {
+		extern int eth_init_skipped;
+		eth_init_skipped = 1;
+	}
+	else {
+		puts ("Net:   ");
+		eth_initialize (bd);
+	};
+
+#else
 #if defined(CONFIG_NET_MULTI)
 	WATCHDOG_RESET ();
 	puts ("Net:   ");
 #endif
 	eth_initialize (bd);
+#endif
 #endif
 
 #if defined(CONFIG_CMD_NET) && ( \
@@ -1117,6 +1176,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	debug ("Reset Ethernet PHY\n");
 	reset_phy ();
 #endif
+#endif
 
 #ifdef CONFIG_POST
 	post_run (NULL, POST_RAM | post_bootmode_get(0));
@@ -1129,20 +1189,38 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	pcmcia_init ();
 #endif
 
+#ifdef CONFIG_FASTBOOT
+#if defined(CONFIG_CMD_IDE)
+	WATCHDOG_RESET ();
+	s = getenv ("skipidecheck");
+	if (s && (*s == 'y')) {
+		extern int ide_init_skipped;
+		ide_init_skipped = 1;
+	} else {
+# ifdef	CONFIG_IDE_8xx_PCCARD
+		puts ("PCMCIA:");
+# else
+		puts ("IDE:   ");
+#endif
+		ide_init ();
+	}
+#endif /* CFG_CMD_IDE */
+#else
 #if defined(CONFIG_CMD_IDE)
 	WATCHDOG_RESET ();
 # ifdef	CONFIG_IDE_8xx_PCCARD
 	puts ("PCMCIA:");
 # else
 	puts ("IDE:   ");
-#endif
+# endif /* CONFIG_IDE_8xx_PCCARD */
 #if defined(CONFIG_START_IDE)
 	if (board_start_ide())
 		ide_init ();
 #else
 	ide_init ();
-#endif
-#endif
+#endif /* CONFIG_START_IDE */
+#endif /* CONFIG_CMD_IDE */
+#endif /* CONFIG_FASTBOOT */
 
 #ifdef CONFIG_LAST_STAGE_INIT
 	WATCHDOG_RESET ();
@@ -1200,9 +1278,12 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	 do_mdm_init = gd->do_mdm_init;
  }
 #endif
-
 	/* Initialization complete - start the monitor */
-
+	env_relocate();
+#if (HDMI_CHIP_SELECT==HDMI_CHIP_SIL9022A)//HDMI sil9022a,enable hdmi signal
+	//TPI_Init();
+	//OnHdmiCableConnected();
+#endif
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {
 		WATCHDOG_RESET ();

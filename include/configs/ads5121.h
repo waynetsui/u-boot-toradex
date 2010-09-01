@@ -33,6 +33,7 @@
  *
  * 0x0000_0000 - 0x0FFF_FFFF	DDR RAM (256 MB)
  * 0x3000_0000 - 0x3001_FFFF	SRAM (128 KB)
+ * 0x4000_0000 - 0x400F_FFFF	NFC (1 MB)
  * 0x8000_0000 - 0x803F_FFFF	IMMR (4 MB)
  * 0x8200_0000 - 0x8200_001F	CPLD (32 B)
  * 0x8400_0000 - 0x82FF_FFFF	PCI I/O space (16 MB)
@@ -65,6 +66,10 @@
 #define CONFIG_SYS_MPC512X_CLKIN	33333333	/* in Hz */
 #define CONFIG_PCI
 #endif
+/*
+ * Enable Fast boot
+ */
+#define CONFIG_FASTBOOT
 
 #define CONFIG_BOARD_EARLY_INIT_F		/* call board_early_init_f() */
 #define CONFIG_MISC_INIT_R
@@ -130,54 +135,65 @@
  *	[09:05]	DRAM tRP:
  *	[04:00] DRAM tRPA
  */
+#define MDDRC_SYS_CFG_RUN		~(0x10000000)
 #ifdef CONFIG_ADS5121_REV2
-#define CONFIG_SYS_MDDRC_SYS_CFG	0xF8604A00
-#define CONFIG_SYS_MDDRC_SYS_CFG_RUN	0xE8604A00
-#define CONFIG_SYS_MDDRC_TIME_CFG1	0x54EC1168
-#define CONFIG_SYS_MDDRC_TIME_CFG2	0x35210864
+#define MDDRC_SYS_CFG_MICRON		0xF8604A00
+#define MDDRC_TIME_CFG1_MICRON		0x54EC1168
+#define MDDRC_TIME_CFG2_MICRON		0x35210864
 #else
-#define CONFIG_SYS_MDDRC_SYS_CFG	 0xFA804A00
-#define CONFIG_SYS_MDDRC_SYS_CFG_RUN	 0xEA804A00
-#define CONFIG_SYS_MDDRC_TIME_CFG1	 0x68EC1168
-#define CONFIG_SYS_MDDRC_TIME_CFG2	 0x34310864
+#define MDDRC_SYS_CFG_MICRON	 	0xFA804A00
+#define MDDRC_SYS_CFG_MICRON_RUN	0xEA804A00
+#define MDDRC_TIME_CFG1_MICRON		0x68EC1168
+#define MDDRC_TIME_CFG2_MICRON		0x34310864
 #endif
-#define CONFIG_SYS_MDDRC_SYS_CFG_EN	0xF0000000
-#define CONFIG_SYS_MDDRC_TIME_CFG0	0x00003D2E
-#define CONFIG_SYS_MDDRC_TIME_CFG0_RUN	0x06183D2E
+#define MDDRC_SYS_CFG_ELPIDA	 	0xFA802B00
+#define MDDRC_SYS_CFG_ELPIDA_RUN	0xEA802B00
+#define MDDRC_TIME_CFG1_ELPIDA		0x690e1189
+#define MDDRC_TIME_CFG2_ELPIDA		0x35310864
+#define MDDRC_TIME_CFG0			0x00003D2E
+#define MDDRC_TIME_CFG0_RUN		0x06183D2E
+#define MDDRC_SYS_CFG_EN		0xF0000000
+#define MDDRC_SYS_CFG_CLK_BIT		(1 << 29)
+#define MDDRC_SYS_CFG_CKE_BIT		(1 << 30)
 
-#define CONFIG_SYS_MICRON_NOP		0x01380000
-#define CONFIG_SYS_MICRON_PCHG_ALL	0x01100400
-#define CONFIG_SYS_MICRON_EM2		0x01020000
-#define CONFIG_SYS_MICRON_EM3		0x01030000
-#define CONFIG_SYS_MICRON_EN_DLL	0x01010000
-#define CONFIG_SYS_MICRON_RFSH		0x01080000
-#define CONFIG_SYS_MICRON_INIT_DEV_OP	0x01000432
-#define CONFIG_SYS_MICRON_OCD_DEFAULT	0x01010780
+#define DDR_MRS_CAS(n)		(n << 4)
+#define DDR_MRS_WR(n)		((n-1) << 9)
+#define MICRON_INIT_DEV_OP	0x01000002 | DDR_MRS_WR(2) | DDR_MRS_CAS(3)
+#define ELPIDA_INIT_DEV_OP	0x01000002 | DDR_MRS_WR(4) | DDR_MRS_CAS(4)
+#define DDR_NOP			0x01380000
+#define DDR_PCHG_ALL		0x01100400
+#define DDR_EM2			0x01020000
+#define DDR_EM3			0x01030000
+#define DDR_EN_DLL		0x01010000
+#define DDR_RES_DLL		0x01000932
+#define DDR_RFSH		0x01080000
+#define DDR_OCD_DEFAULT		0x01010780
+#define DDR_OCD_EXIT		0x01010400
 
 /* DDR Priority Manager Configuration */
-#define CONFIG_SYS_MDDRCGRP_PM_CFG1	0x00077777
-#define CONFIG_SYS_MDDRCGRP_PM_CFG2	0x00000000
-#define CONFIG_SYS_MDDRCGRP_HIPRIO_CFG	0x00000001
-#define CONFIG_SYS_MDDRCGRP_LUT0_MU	0xFFEEDDCC
-#define CONFIG_SYS_MDDRCGRP_LUT0_ML	0xBBAAAAAA
-#define CONFIG_SYS_MDDRCGRP_LUT1_MU	0x66666666
-#define CONFIG_SYS_MDDRCGRP_LUT1_ML	0x55555555
-#define CONFIG_SYS_MDDRCGRP_LUT2_MU	0x44444444
-#define CONFIG_SYS_MDDRCGRP_LUT2_ML	0x44444444
-#define CONFIG_SYS_MDDRCGRP_LUT3_MU	0x55555555
-#define CONFIG_SYS_MDDRCGRP_LUT3_ML	0x55555558
-#define CONFIG_SYS_MDDRCGRP_LUT4_MU	0x11111111
-#define CONFIG_SYS_MDDRCGRP_LUT4_ML	0x11111122
-#define CONFIG_SYS_MDDRCGRP_LUT0_AU	0xaaaaaaaa
-#define CONFIG_SYS_MDDRCGRP_LUT0_AL	0xaaaaaaaa
-#define CONFIG_SYS_MDDRCGRP_LUT1_AU	0x66666666
-#define CONFIG_SYS_MDDRCGRP_LUT1_AL	0x66666666
-#define CONFIG_SYS_MDDRCGRP_LUT2_AU	0x11111111
-#define CONFIG_SYS_MDDRCGRP_LUT2_AL	0x11111111
-#define CONFIG_SYS_MDDRCGRP_LUT3_AU	0x11111111
-#define CONFIG_SYS_MDDRCGRP_LUT3_AL	0x11111111
-#define CONFIG_SYS_MDDRCGRP_LUT4_AU	0x11111111
-#define CONFIG_SYS_MDDRCGRP_LUT4_AL	0x11111111
+#define MDDRCGRP_PM_CFG1	0x00077777
+#define MDDRCGRP_PM_CFG2	0x00000000
+#define MDDRCGRP_HIPRIO_CFG	0x00000001
+#define MDDRCGRP_LUT0_MU	0xFFEEDDCC
+#define MDDRCGRP_LUT0_ML	0xBBAAAAAA
+#define MDDRCGRP_LUT1_MU	0x66666666
+#define MDDRCGRP_LUT1_ML	0x55555555
+#define MDDRCGRP_LUT2_MU	0x44444444
+#define MDDRCGRP_LUT2_ML	0x44444444
+#define MDDRCGRP_LUT3_MU	0x55555555
+#define MDDRCGRP_LUT3_ML	0x55555558
+#define MDDRCGRP_LUT4_MU	0x11111111
+#define MDDRCGRP_LUT4_ML	0x11111122
+#define MDDRCGRP_LUT0_AU	0xaaaaaaaa
+#define MDDRCGRP_LUT0_AL	0xaaaaaaaa
+#define MDDRCGRP_LUT1_AU	0x66666666
+#define MDDRCGRP_LUT1_AL	0x66666666
+#define MDDRCGRP_LUT2_AU	0x11111111
+#define MDDRCGRP_LUT2_AL	0x11111111
+#define MDDRCGRP_LUT3_AU	0x11111111
+#define MDDRCGRP_LUT3_AL	0x11111111
+#define MDDRCGRP_LUT4_AU	0x11111111
+#define MDDRCGRP_LUT4_AL	0x11111111
 
 /*
  * NOR FLASH on the Local Bus
@@ -198,6 +214,42 @@
 #define CONFIG_SYS_MAX_FLASH_SECT	256		/* max sectors per device */
 
 #undef CONFIG_SYS_FLASH_CHECKSUM
+
+/*
+ * NAND FLASH
+ * drivers/mtd/nand/mpc5121_mpc.c (rev 2 silicon/rev 4 boards only)
+ */
+#define CONFIG_NAND_FSL_NFC
+#ifdef CONFIG_NAND_FSL_NFC
+#ifdef CONFIG_NAND_SPL
+#define CONFIG_SYS_NAND_BASE		0xFFF00000
+#else
+#define CONFIG_SYS_NAND_BASE		0x40000000
+#endif
+#define CONFIG_CMD_NAND 1
+/*
+ * The flash on ADS5121 board is two flash chips in one package
+ */
+#define CONFIG_SYS_MAX_NAND_DEVICE	2
+#define NAND_MAX_CHIPS		CONFIG_SYS_MAX_NAND_DEVICE
+#define CONFIG_SYS_NAND_SELECT_DEVICE	1
+/*
+ * Configuration parameters for MPC5121 NAND driver
+ */
+#define CONFIG_FSL_NFC_WIDTH 1
+#define CONFIG_FSL_NFC_WRITE_SIZE 2048
+#define CONFIG_FSL_NFC_SPARE_SIZE 64
+#define CONFIG_FSL_NFC_CHIPS 2
+
+#ifndef __ASSEMBLY__
+/*
+ * ADS board as a custom chip select
+ */
+extern void ads5121_fsl_nfc_board_cs(int);
+#define CONFIG_FSL_NFC_BOARD_CS_FUNC ads5121_fsl_nfc_board_cs
+#endif /* __ASSEMBLY__ */
+#endif /* CONFIG_NAND_FSL_NFC */
+
 
 /*
  * CPLD registers area is really only 32 bytes in size, but the smallest possible LP
@@ -222,7 +274,7 @@
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE		/* Start of monitor */
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024)		/* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN		(512 * 1024)		/* Reserve 512 kB for Mon */
 #ifdef	CONFIG_FSL_DIU_FB
 #define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024)	/* Reserved for malloc */
 #else
@@ -238,6 +290,7 @@
 /*
  * Serial console configuration
  */
+#define CONFIG_SYS_CONSOLE_INFO_QUIET 1
 #define CONFIG_PSC_CONSOLE	3	/* console is on PSC3 */
 #if CONFIG_PSC_CONSOLE != 3
 #error CONFIG_PSC_CONSOLE must be 3
@@ -318,12 +371,6 @@
 #define CONFIG_HAS_ETH0
 
 /*
- * Configure on-board RTC
- */
-#define CONFIG_RTC_M41T62			/* use M41T62 rtc via i2 */
-#define CONFIG_SYS_I2C_RTC_ADDR		0x68	/* at address 0x68		*/
-
-/*
  * Environment
  */
 #define CONFIG_ENV_IS_IN_FLASH	1
@@ -349,12 +396,13 @@
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_MII
-#define CONFIG_CMD_NFS
+#undef CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
 #define CONFIG_CMD_EEPROM
-#define CONFIG_CMD_DATE
-#undef CONFIG_CMD_FUSE
+#undef CONFIG_CMD_DATE
+#define CONFIG_IMM		/* needed for CONFIG_CMD_FUSE */
+#define CONFIG_CMD_FUSE
 #define CONFIG_CMD_IDE
 #define CONFIG_CMD_EXT2
 
@@ -410,8 +458,8 @@
 #define CONFIG_SYS_CACHELINE_SHIFT	5	/*log base 2 of the above value*/
 #endif
 
-#define CONFIG_SYS_HID0_INIT	0x000000000
-#define CONFIG_SYS_HID0_FINAL	HID0_ENABLE_MACHINE_CHECK
+#define CONFIG_SYS_HID0_INIT	HID0_ICE | HID0_ICFI
+#define CONFIG_SYS_HID0_FINAL	HID0_ENABLE_MACHINE_CHECK | HID0_ICE
 #define CONFIG_SYS_HID2	HID2_HBE
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
@@ -462,12 +510,14 @@
 	"u-boot=ads5121/u-boot.bin\0"					\
 	"bootfile=ads5121/uImage\0"					\
 	"fdtfile=ads5121/ads5121.dtb\0"					\
-	"rootpath=/opt/eldk/ppc_6xx\n"					\
+	"rootpath=/opt/eldk/ppc_6xx\0"					\
 	"netdev=eth0\0"							\
 	"consdev=ttyPSC0\0"						\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
-		"nfsroot=${serverip}:${rootpath}\0"			\
-	"ramargs=setenv bootargs root=/dev/ram rw\0"			\
+		"nfsroot=${serverip}:${rootpath} ${othbootargs}\0"	\
+	"ramargs=setenv bootargs root=/dev/ram rw ${othbootargs}\0"	\
+	"jffs2args=setenv bootargs root=/dev/mtdblock1 rw "		\
+		"rootfstype=jffs2 ${othbootargs}\0"			\
 	"addip=setenv bootargs ${bootargs} "				\
 		"ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}"	\
 		":${hostname}:${netdev}:off panic=1\0"			\
@@ -486,6 +536,8 @@
 		"tftp ${fdt_addr_r} ${fdtfile};"			\
 		"run ramargs addip addtty;"				\
 		"bootm ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}\0"\
+	"flash_jffs2=run jffs2args addtty;"				\
+		"bootm ${kernel_addr} - ${fdt_addr}\0"			\
 	"load=tftp ${u-boot_addr_r} ${u-boot}\0"			\
 	"update=protect off ${u-boot_addr} +${filesize};"		\
 		"era ${u-boot_addr} +${filesize};"			\
@@ -493,7 +545,7 @@
 	"upd=run load update\0"						\
 	""
 
-#define CONFIG_BOOTCOMMAND	"run flash_self"
+#define CONFIG_BOOTCOMMAND	"run flash_jffs2"
 
 #define CONFIG_OF_LIBFDT	1
 #define CONFIG_OF_BOARD_SETUP	1

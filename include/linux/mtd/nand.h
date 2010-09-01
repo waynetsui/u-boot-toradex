@@ -396,7 +396,7 @@ struct nand_chip {
 	int		bbt_erase_shift;
 	int		chip_shift;
 	int		numchips;
-	unsigned long	chipsize;
+	u64		chipsize;
 	int		pagemask;
 	int		pagebuf;
 	int		subpagesize;
@@ -454,7 +454,7 @@ struct nand_flash_dev {
 	char *name;
 	int id;
 	unsigned long pagesize;
-	unsigned long chipsize;
+	u64 chipsize;
 	unsigned long erasesize;
 	unsigned long options;
 };

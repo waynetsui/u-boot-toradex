@@ -185,8 +185,8 @@ int yaffs_StartUp(void)
 		nBlocks = mtd->size / mtd->erasesize;
 
 		flashDev->nCheckpointReservedBlocks = 10;
-		flashDev->startBlock = 0;
-		flashDev->endBlock = nBlocks - 1;
+		flashDev->startBlock = CONFIG_UBOOT_YAFFS2_START/mtd->erasesize;
+		flashDev->endBlock =(CONFIG_UBOOT_YAFFS2_START+CONFIG_UBOOT_YAFFS2_SIZE)/mtd->erasesize- 1;
 	}
 	else
 	{

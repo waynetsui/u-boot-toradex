@@ -340,11 +340,14 @@ $(obj)u-boot.sha1:	$(obj)u-boot.bin
 		$(obj)tools/ubsha1 $(obj)u-boot.bin
 
 $(obj)u-boot-second.bin:$(obj)u-boot.bin
+		chmod +x $(PWD)/add-uboot-head
 		$(PWD)/add-uboot-head $< $@
 	
 $(obj)u-boot-second-scrip.txt:$(obj)u-boot-second.bin
+		chmod +x $(PWD)/nand_program_block1_uboot
 		$(PWD)/nand_program_block1_uboot  $< $@
 $(obj)u-boot-scrip.txt:$(obj)u-boot.bin
+		chmod +x $(PWD)/nand_flash_program
 		$(PWD)/nand_flash_program   $< $@
 
 $(obj)u-boot.dis:	$(obj)u-boot

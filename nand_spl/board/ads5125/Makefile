@@ -54,6 +54,7 @@ $(nandobj)u-boot-spl.bin:	$(nandobj)u-boot-spl
 	$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
 $(nandobj)loader-script-5125.txt:$(nandobj)u-boot-spl-2k.bin
+	chmod +x $(TOPDIR)/nand_load_program
 	$(TOPDIR)/nand_load_program $< $@
 
 $(nandobj)u-boot-spl:	$(OBJS) 

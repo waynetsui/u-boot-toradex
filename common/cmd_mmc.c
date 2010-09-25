@@ -153,9 +153,9 @@ int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			if (!mmc)
 				return 1;
 
-			mmc_init(mmc);
+			rc = mmc_init(mmc);
 
-			return 0;
+			return rc;
 		}
 
 	case 0:

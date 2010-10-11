@@ -651,10 +651,24 @@ static void extract_model_number_revision(struct product_id_data *p, char *buf, 
 	}
 }
 
+/* Return positive non-zero if productID indicates there's
+ * NOR flash on the device - return is size of flash as log2 in bytes */
+int productID_has_NOR_flash(void)
+{
+	if (!production_data_valid)
+		return -1;
+
+	/* Flash exists if its size is non-zero, but 0xff is known to be
+	 * a non-programmed value */
+	if (product_id_data.d.zone2.nor0_size == 0x00
+	    || product_id_data.d.zone2.nor0_size == 0xff)
+		return 0;
+
+	return product_id_data.d.zone2.nor0_size;
+}
+
 int fetch_production_data(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	int err = 0;
 	char buf[36];
 	int header_version;
@@ -714,6 +728,28 @@ int fetch_production_data(void)
 	product_id_data.d.zone2.features = le32_to_cpu(product_id_data.d.zone2.features);
 	product_id_data.d.zone2.platform_bits = le32_to_cpu(product_id_data.d.zone2.platform_bits);
 
+ out:
+	production_data_valid = !err;
+
+	// Restore pins back to their intended use
+	gpio_i2c_restore_pins();
+
+	// Clone the production data into SRAM
+	checksum = calculate_checksum(&product_id_data.d, sizeof(product_id_data.d));
+	product_id_data.checksum = checksum;
+	*(struct product_id_data *)(SRAM_BASE) = product_id_data;
+
+	return err;
+}
+
+void dump_production_data(void)
+{
+	DECLARE_GLOBAL_DATA_PTR;
+	char buf[36];
+
+	if (!production_data_valid)
+		return;
+
 	// Print out the name, model number, and set MAC addresses
 	extract_product_id_part_number(&product_id_data, buf, sizeof(buf));
 
@@ -733,18 +769,4 @@ int fetch_production_data(void)
 		       product_id_data.d.zone2.mac[1][0],
 		       product_id_data.d.zone2.mac[1][1],
 		       product_id_data.d.zone2.mac[1][2]);
-
- out:
-	production_data_valid = !err;
-
-	// Restore pins back to their intended use
-	gpio_i2c_restore_pins();
-
-	// Clone the production data into SRAM
-	checksum = calculate_checksum(&product_id_data.d, sizeof(product_id_data.d));
-	product_id_data.checksum = checksum;
-	*(struct product_id_data *)(SRAM_BASE) = product_id_data;
-
-	return err;
 }
-

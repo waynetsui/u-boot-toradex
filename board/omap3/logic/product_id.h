@@ -87,4 +87,6 @@ static inline int calculate_checksum(void *p, int len)
 }
 
 extern int fetch_production_data(void);
+extern void dump_production_data(void);
 extern void board_get_nth_enetaddr (unsigned char *enetaddr, int which, int position);
+extern int productID_has_NOR_flash(void);

@@ -171,6 +171,12 @@ int misc_init_r(void)
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
 
+	/* Turn on vaux1 to make sure voltage is to the product ID chip.
+	 * Extract production data from ID chip, used to selectively
+	 * initialize portions of the system */
+	init_vaux1_voltage();
+	fetch_production_data();
+
 #if defined(CONFIG_CMD_NET)
 	setup_net_chip();
 #endif
@@ -178,7 +184,6 @@ int misc_init_r(void)
 	/* Setup access to the isp1760 chip on CS6 */
 	setup_isp1760_chip();
 
-	/* Fix the flash sync */
 	twl4030_power_init();
 	twl4030_led_init();
 
@@ -195,6 +200,7 @@ int misc_init_r(void)
 
 	gd->bd->bi_arch_number = logic_identify();
 
+	/* Fix the flash sync */
 	fix_flash_sync();
 
 	dieid_num_r();
@@ -243,9 +249,7 @@ int board_late_init(void)
 
 	// DECLARE_GLOBAL_DATA_PTR;
 
-	// Turn on vaux1 to make sure voltage is to the product ID chip
-	init_vaux1_voltage();
-	fetch_production_data(); // Extract production data
+	dump_production_data(); // Dump production data
 
 	// Fetch the ethaddr of the LAN
 	board_get_nth_enetaddr(enetaddr, 0, 0);
@@ -386,6 +390,12 @@ static void fix_flash_sync(void)
 	arch_number = gd->bd->bi_arch_number;
 	if (arch_number == MACH_TYPE_OMAP3_TORPEDO)
 		return;
+
+	/* If no NOR in product, then return */
+	if (productID_has_NOR_flash() <= 0) {
+		printf("NOR: None installed\n");
+		return;
+	}
 
 	/* Check CS2 config, if its already in sync, then return */
 	if (!(readl(&gpmc_cfg->cs[2].config1) & TYPE_READTYPE)) {

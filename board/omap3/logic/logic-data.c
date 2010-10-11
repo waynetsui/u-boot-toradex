@@ -515,6 +515,15 @@ int production_data_valid;
 
 struct product_id_data product_id_data;
 
+int valid_mac_address(unsigned char mac[3])
+{
+	if (mac[0] == 0xff && mac[1] == 0xff && mac[2] == 0xff)
+		return 0;
+	if (mac[0] == 0x00 && mac[1] == 0x00 && mac[2] == 0x00)
+		return 0;
+	return !0;
+}
+
 /*
  * Extract/set an ethernet address.
  * Which is the address in the environment, position is which MAC address
@@ -538,15 +547,18 @@ void board_get_nth_enetaddr (unsigned char *enetaddr, int which, int position)
 
 	memset(enetaddr, '\0', 6);
 	if (!production_data_valid || 
-	    (mac[0] == 0xff && mac[1] == 0xff && mac[2] == 0xff)
-	    || (mac[0] == 0x00 && mac[1] == 0x00 && mac[2] == 0x00)) {
+		!valid_mac_address(mac)) {
 		s = getenv("ethaddr");
 
 #ifdef CONFIG_ETHADDR
 		if (!s)
 			s = MK_STR(CONFIG_ETHADDR);
 #endif
-		printf("%s which %d %s\n", __FUNCTION__, which, s);
+
+		/* If no ethaddr found in productID or environment, then punt*/
+		if (!s)
+			return;
+
 		for (i = 0; i < 6; ++i) {
 			enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
 			if (s)
@@ -670,7 +682,6 @@ int productID_has_NOR_flash(void)
 int fetch_production_data(void)
 {
 	int err = 0;
-	char buf[36];
 	int header_version;
 	int checksum;
 	int i;
@@ -759,14 +770,16 @@ void dump_production_data(void)
 		printf("Model Name   : %s\n", buf);
 	extract_serial_number(&product_id_data, buf, sizeof(buf));
 	printf("Serial Number: %s\n", buf);
-	printf("Wired Lan MAC: 00:08:ee:%02x:%02x:%02x\n",
-	       product_id_data.d.zone2.mac[0][0],
-	       product_id_data.d.zone2.mac[0][1],
-	       product_id_data.d.zone2.mac[0][2]);
+	if (valid_mac_address(product_id_data.d.zone2.mac[1]))
+		printf("Wired Lan MAC: 00:08:ee:%02x:%02x:%02x\n",
+			product_id_data.d.zone2.mac[0][0],
+			product_id_data.d.zone2.mac[0][1],
+			product_id_data.d.zone2.mac[0][2]);
 
 	if (gd->bd->bi_arch_number == MACH_TYPE_OMAP3530_LV_SOM)
-		printf("Wirless   MAC: 00:08:ee:%02x:%02x:%02x\n",
-		       product_id_data.d.zone2.mac[1][0],
-		       product_id_data.d.zone2.mac[1][1],
-		       product_id_data.d.zone2.mac[1][2]);
+		if (valid_mac_address(product_id_data.d.zone2.mac[1]))
+			printf("Wirless   MAC: 00:08:ee:%02x:%02x:%02x\n",
+				product_id_data.d.zone2.mac[1][0],
+				product_id_data.d.zone2.mac[1][1],
+				product_id_data.d.zone2.mac[1][2]);
 }

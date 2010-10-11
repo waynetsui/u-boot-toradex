@@ -442,7 +442,8 @@ static int smc911x_detect_chip(struct eth_device *dev)
 
 	val = smc911x_reg_read(dev, BYTE_TEST);
 	if (val != 0x87654321) {
-		printf(DRIVERNAME ": Invalid chip endian 0x%08lx\n", val);
+		if (val == 0x21436587  || val == 0x43218765 || val == 0x65872143)
+			printf(DRIVERNAME ": Invalid chip endian 0x%08lx\n", val);
 		return -1;
 	}
 
@@ -455,7 +456,7 @@ static int smc911x_detect_chip(struct eth_device *dev)
 		return -1;
 	}
 
-	printf(DRIVERNAME ": detected %s controller\n", chip_ids[i].name);
+	// printf(DRIVERNAME ": detected %s controller\n", chip_ids[i].name);
 
 	return 0;
 }

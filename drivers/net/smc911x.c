@@ -253,6 +253,9 @@ int smc911x_initialize(u8 dev_num, int base_addr)
 
 	dev->iobase = base_addr;
 
+	if (smc911x_detect_chip(dev))
+		return 0;
+
 	addrh = smc911x_get_mac_csr(dev, ADDRH);
 	addrl = smc911x_get_mac_csr(dev, ADDRL);
 	dev->enetaddr[0] = addrl;

@@ -64,8 +64,6 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_ENV_SIZE			SZ_128K	/* Total Size Environment */
-						/* Sector */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + SZ_128K)
 #define CONFIG_SYS_GBL_DATA_SIZE	128	/* bytes reserved for */
 						/* initial data */
@@ -324,7 +322,9 @@
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
 
 #define CONFIG_ENV_IS_IN_NAND		1
-#define SMNAND_ENV_OFFSET		0xffe0000 /* environment starts here */
+#define CONFIG_ENV_SIZE			SZ_128K	/* Total Size Environment */
+#define CONFIG_ENV_RANGE		(CONFIG_ENV_SIZE * 2)	/* Total Size Environment */
+#define SMNAND_ENV_OFFSET		(SZ_256M - CONFIG_ENV_RANGE) /* environment starts here */
 
 #define CONFIG_SYS_ENV_SECT_SIZE	boot_flash_sec
 #define CONFIG_ENV_OFFSET		boot_flash_off

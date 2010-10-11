@@ -168,24 +168,53 @@ int writeenv(size_t offset, u_char *buf)
 	size_t blocksize, len;
 
 	u_char *char_ptr;
+	size_t ncopies = 0;
 
 	blocksize = nand_info[0].erasesize;
 	len = min(blocksize, CONFIG_ENV_SIZE);
 
-	while (amount_saved < CONFIG_ENV_SIZE && offset < end) {
-		if (nand_block_isbad(&nand_info[0], offset)) {
+	/* If the environment fits into a single block, then write that block
+	 * into each block of the range.  This allows readenv to pick *any*
+	 * good block to pull the environment out of which helps if a block
+	 * goes bad between the write and next read.  If envrironment is
+	 * larger than one block, just write one copy of the environment.
+	 */
+
+	if (CONFIG_ENV_SIZE <= blocksize) {
+		while (offset < end) {
+			if (!nand_block_isbad(&nand_info[0], offset)) {
+				char_ptr = &buf[amount_saved];
+				if (nand_write(&nand_info[0], offset, &len,
+					       char_ptr)) {
+					/* write failed, skip it */
+				} else {
+					amount_saved += len;
+					if (amount_saved >= CONFIG_ENV_SIZE) {
+						ncopies++;
+						amount_saved = 0;
+					}
+				}
+			}
 			offset += blocksize;
-		} else {
-			char_ptr = &buf[amount_saved];
-			if (nand_write(&nand_info[0], offset, &len,
-					char_ptr))
-				return 1;
-			offset += blocksize;
-			amount_saved += len;
 		}
+		if (!ncopies)
+			return 1;
+	} else {
+		while (amount_saved < CONFIG_ENV_SIZE && offset < end) {
+			if (nand_block_isbad(&nand_info[0], offset)) {
+				offset += blocksize;
+			} else {
+				char_ptr = &buf[amount_saved];
+				if (nand_write(&nand_info[0], offset, &len,
+						char_ptr))
+					return 1;
+				offset += blocksize;
+				amount_saved += len;
+			}
+		}
+		if (amount_saved != CONFIG_ENV_SIZE)
+			return 1;
 	}
-	if (amount_saved != CONFIG_ENV_SIZE)
-		return 1;
 
 	return 0;
 }

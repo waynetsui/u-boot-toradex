@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008
+ * (C) Copyright 2008-2010
  * Logic Produc Development, <www.logicpd.com>
  * Peter Barada <peter.barada@logicpd.com>
  *
@@ -32,7 +32,8 @@
 #include "product_id.h"
 #include "logic-gpio.h"
 
-// GPIO i2c code to access at88 chip
+static int header_version = -1;
+/* GPIO i2c code to access at88 chip */
 
 enum {
 	RX_MODE_FIRST_BYTE,
@@ -141,7 +142,7 @@ static void gpio_i2c_init(int bps)
 {
 	gpio_i2c_bus_state = GPIO_I2C_UNINIT;
 
-	// Config SCLK, SDATA pins
+	/* Config SCLK, SDATA pins */
 	gpio_i2c_config_pin(GPIO_I2C_SCLK, GPIO_I2C_OUTPUT);
 	gpio_i2c_set_pin_level(GPIO_I2C_SCLK, 1);
 
@@ -149,7 +150,7 @@ static void gpio_i2c_init(int bps)
 
 	gpio_i2c_config_pins();
 
-	// Assume 1:1 clock duty cycle
+	/* Assume 1:1 clock duty cycle */
 	gpio_i2c_clock_high_width = gpio_i2c_clock_low_width
 	  = 1000000 / bps / 2;
 
@@ -166,15 +167,15 @@ static void gpio_i2c_tx_stop(void)
 	if (gpio_i2c_bus_state == GPIO_I2C_STARTED) {
 		udelay(gpio_i2c_coarse_delay);
 
-		// Pull SDATA low
+		/* Pull SDATA low */
 		gpio_i2c_set_pin_level(GPIO_I2C_SDATA, 0);
 		udelay(gpio_i2c_coarse_delay);
 
-		// Push SCLK high
+		/* Push SCLK high */
 		gpio_i2c_set_pin_level(GPIO_I2C_SCLK, 1);
 		udelay(gpio_i2c_coarse_delay);
 
-		// Now drive SDATA high - thats a STOP.
+		/* Now drive SDATA high - thats a STOP. */
 		gpio_i2c_set_pin_level(GPIO_I2C_SDATA, 1);
 		udelay(gpio_i2c_coarse_delay);
 		gpio_i2c_bus_state = GPIO_I2C_STOPPED;
@@ -198,7 +199,7 @@ static void gpio_i2c_tx_start(void)
 	}
 }
 
-// Return !0 if NACK
+/* Return !0 if NACK */
 static int gpio_i2c_tx_byte(uint8_t data)
 {
 	uint8_t clock, tx_bit_mask=0x80, nack;
@@ -281,7 +282,7 @@ static int send_packet(uint8_t *data, int len, uint8_t *rxbuf, int rxlen)
 		printf("%s: %s\n", __FUNCTION__, buf);
 	}
 
-	// Wait for bus
+	/* Wait for bus */
 	while (gpio_i2c_busy() && timeout--)
 		udelay(100);
 
@@ -295,7 +296,7 @@ static int send_packet(uint8_t *data, int len, uint8_t *rxbuf, int rxlen)
 			gpio_i2c_tx_stop();
 			gpio_i2c_tx_start();
 
-			// send cmd
+			/* send cmd */
 			err = gpio_i2c_tx_byte(data[0]);
 			tick++;
 		} while (err && tick < 100);
@@ -314,7 +315,7 @@ static int send_packet(uint8_t *data, int len, uint8_t *rxbuf, int rxlen)
 	if (err)
 		return err;
 
-	// Are we expecting a response?
+	/* Are we expecting a response? */
 	if (rxbuf) {
 		for (idx = 0; idx < rxlen; ++idx) {
 			if (rxlen == 1)
@@ -345,67 +346,66 @@ static int send_packet(uint8_t *data, int len, uint8_t *rxbuf, int rxlen)
  */
 struct device_param {
 	char *name;
-	unsigned char reset[8];	// ATR for part
-	unsigned int zones;		// number of zones
-	unsigned int zonesize;	// bytes per zone
+	unsigned char reset[8];	/* ATR for part */
+	unsigned int zones;	/* number of zones */
+	unsigned int zonesize;	/* bytes per zone */
 };
 
 static const struct device_param answers[] = {
-
-  {
-	.name = "AT88SC0104C",
-	.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x01},
-	.zones = 4,
-	.zonesize = 32
-  },
-  {
-	.name = "AT88SC0204C",
-	.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x02},
-	.zones = 4,
-	.zonesize = 64
-  },
-  {
-	.name = "AT88SC0404C",
-	.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x04},
-	.zones = 4,
-	.zonesize = 128
-  },
-  {
-	.name = "AT88SC0808C",
-	.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x08},
-	.zones = 8,
-	.zonesize = 128
-  },
-  {
-	.name = "AT88SC1616C",
-	.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x16},
-	.zones = 16,
-	.zonesize = 128
-  },
-  {
-	.name = "AT88SC3216C",
-	.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x00, 0x32},
-	.zones = 16,
-	.zonesize = 256
-  },
-  {
-	.name = "AT88SC6416C",
-	.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x00, 0x64},
-	.zones = 16,
-	.zonesize = 512
-  },
-  {
-	.name = "AT88SC12816C",
-	.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x01, 0x28},
-	.zones = 16,
-	.zonesize = 1024
-  },
-  {
-	.name = "AT88SC25616C",
-	.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x02, 0x56},
-	.zones = 16,
-	.zonesize = 2048
-  },
+	{
+		.name = "AT88SC0104C",
+		.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x01},
+		.zones = 4,
+		.zonesize = 32
+	},
+	{
+		.name = "AT88SC0204C",
+		.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x02},
+		.zones = 4,
+		.zonesize = 64
+	},
+	{
+		.name = "AT88SC0404C",
+		.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x04},
+		.zones = 4,
+		.zonesize = 128
+	},
+	{
+		.name = "AT88SC0808C",
+		.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x08},
+		.zones = 8,
+		.zonesize = 128
+	},
+	{
+		.name = "AT88SC1616C",
+		.reset = {0x3B, 0xB2, 0x11, 0x00, 0x10, 0x80, 0x00, 0x16},
+		.zones = 16,
+		.zonesize = 128
+	},
+	{
+		.name = "AT88SC3216C",
+		.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x00, 0x32},
+		.zones = 16,
+		.zonesize = 256
+	},
+	{
+		.name = "AT88SC6416C",
+		.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x00, 0x64},
+		.zones = 16,
+		.zonesize = 512
+	},
+	{
+		.name = "AT88SC12816C",
+		.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x01, 0x28},
+		.zones = 16,
+		.zonesize = 1024
+	},
+	{
+		.name = "AT88SC25616C",
+		.reset = {0x3B, 0xB3, 0x11, 0x00, 0x00, 0x00, 0x02, 0x56},
+		.zones = 16,
+		.zonesize = 2048
+	},
 };
 
 static const struct device_param *devptr; /* pointer to ID'd device */
@@ -427,7 +427,7 @@ identify_device(void)
 
 	if (DEBUG_PRODUCTION_DATA)
 		printf("%s: ident %02x %02x %02x %02x %02x %02x %02x %02x\n", __FUNCTION__,
-		       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+			buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
 
 	for (p=answers,i=0; i<sizeof(answers)/sizeof(answers[0]); ++i,++p) {
 		for (j=0; j<8 && (p->reset[j] == buf[j]); ++j)
@@ -435,16 +435,16 @@ identify_device(void)
 		if (j==8) {
 			devptr = p;
 
-		if (DEBUG_PRODUCTION_DATA)
-			printf("%s: device %s zones %u zonesize %u\n", __FUNCTION__,
-			       devptr->name, devptr->zones, devptr->zonesize);
+			if (DEBUG_PRODUCTION_DATA)
+				printf("%s: device %s zones %u zonesize %u\n", __FUNCTION__,
+					devptr->name, devptr->zones, devptr->zonesize);
 
-		return 0;
+			return 0;
 		}
 	}
 
-	printf("%s: ID %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x unknown!\n", __FUNCTION__,
-	       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+	if (DEBUG_PRODUCTION_DATA)
+		printf("%s: Huh? couldn't ID productID device\n", __FUNCTION__);
 
 	return -1;
 }
@@ -465,47 +465,69 @@ set_user_zone(int zone)
 #define CMD_READ_USER_ZONE  0xB2
 
 static int
-read_user_zone(unsigned int offset, unsigned char *buf, int len)
+read_user_zone(unsigned int startzone, unsigned int offset,unsigned char *buf, int len)
 {
 	unsigned char cmd[] = { CMD_READ_USER_ZONE, 0x00, 0x00, 0x00 };
 	int ret;
-	unsigned int startzone, endzone;
+	unsigned int endzone;
+	unsigned int nbytes, zone_offset;
 
 	if (DEBUG_PRODUCTION_DATA)
 		printf("%s: offset %u len %d\n", __FUNCTION__, offset, len);
 
-	// abort if we're not in one zone, or past the end of the device
-	startzone = offset / devptr->zonesize;
-	endzone = (offset + (len - 1)) / devptr->zonesize;
-	if (startzone != endzone) {
-	  printf("%s: startzone %d != endzone %d (len %d, offset %d)\n", __FUNCTION__, startzone, endzone, offset, len);
-		return -1;
-	}  
-	if (endzone > devptr->zones) {
-		printf("%s: endzone %d > numzones\n", __FUNCTION__, endzone);
-		return -1;
-	}
+	/* If zone is non-zero, then we use zone/offset addressing, not
+	   offset from start of chip */
 
-	// Set the zone
-	if (set_user_zone(startzone))
-		return -1;
-
-	cmd[2] = offset % devptr->zonesize;
-	cmd[3] = len;
-	ret = send_packet(cmd, sizeof(cmd), buf, len);
-
-	if (DEBUG_PRODUCTION_DATA_BUF) {
-		char obuf[128];
-		int i,j,offset;
-		for (i = 0, offset=0; i<len; i+=16) {
-			for (j = 0; j<16 && i+j<len; ++j)
-				if (!j)
-					offset = sprintf(obuf, "%02x", buf[i+j]);
-				else
-					offset += sprintf(&obuf[offset], " %02x", buf[i+j]);
-			printf("%s\n", obuf);
+	/* abort if we'll go past the end of the device */
+	if (startzone) {
+		if (offset > devptr->zonesize) {
+			printf("%s: offset %u > zonesize %u\n", __FUNCTION__, offset, devptr->zonesize);
+			return -1;
 		}
+		if (startzone > devptr->zones) {
+			printf("%s: startzone %u > numzones %u\n", __FUNCTION__, startzone, devptr->zones);
+			return -1;
+		}
+	} else {
+		startzone = offset / devptr->zonesize;
 	}
+	endzone = (offset + (len - 1)) / devptr->zonesize;
+	if (endzone > devptr->zones) {
+		printf("%s: endzone %u > numzones %u\n", __FUNCTION__, endzone, devptr->zones);
+		return -1;
+	}
+
+	do {
+		/* Set the zone */
+		if (set_user_zone(startzone))
+			return -1;
+
+		zone_offset = offset % devptr->zonesize;
+		nbytes = devptr->zonesize - zone_offset;
+		if (nbytes > len)
+			nbytes = len;
+
+		cmd[2] = zone_offset;
+		cmd[3] = nbytes;
+		ret = send_packet(cmd, sizeof(cmd), buf, nbytes);
+		if (DEBUG_PRODUCTION_DATA_BUF) {
+			char obuf[128];
+			int i,j,offset;
+			for (i = 0, offset=0; i<len; i+=16) {
+				for (j = 0; j<16 && i+j<len; ++j)
+					if (!j)
+						offset = sprintf(obuf, "%02x", buf[i+j]);
+					else
+						offset += sprintf(&obuf[offset], " %02x", buf[i+j]);
+				printf("%s\n", obuf);
+			}
+		}
+
+		buf += nbytes;
+		len -= nbytes;
+		offset += nbytes;
+		startzone++;
+	} while (len);
 	return ret;
 }
 
@@ -513,15 +535,69 @@ read_user_zone(unsigned int offset, unsigned char *buf, int len)
 #define MK_STR(x)	XMK_STR(x)
 int production_data_valid;
 
-struct product_id_data product_id_data;
+static struct product_id_data product_id_data;
 
-int valid_mac_address(unsigned char mac[3])
+static int valid_mac_address(unsigned char mac[3])
 {
 	if (mac[0] == 0xff && mac[1] == 0xff && mac[2] == 0xff)
 		return 0;
 	if (mac[0] == 0x00 && mac[1] == 0x00 && mac[2] == 0x00)
 		return 0;
 	return !0;
+}
+
+static int valid_full_mac_address(unsigned char mac[6])
+{
+	return (valid_mac_address(&mac[0]) && valid_mac_address(&mac[3]));
+}
+
+int extract_mac_address(struct product_id_data *p, int position, unsigned char mac[6])
+{
+	unsigned char *m = NULL;
+	if (!production_data_valid)
+		return -1;
+
+	if (DEBUG_PRODUCTION_DATA)
+		printf("%s: position %d\n", __FUNCTION__, position);
+	switch(position) {
+	case 0:
+		if (header_version >= 2) {
+			if (valid_full_mac_address(p->d.u_zone0.pz_0r2.full_mac)) {
+				memcpy(mac, p->d.u_zone0.pz_0r2.full_mac, 6);
+				goto out;
+			}
+		}
+		m = p->d.zone2.pz_2r0.mac0;
+		break;
+	case 1:
+		m = p->d.zone2.pz_2r0.mac1;
+		break;
+	case 2:
+		m = p->d.zone2.pz_2r0.mac2;
+		break;
+	case 3:
+		m = p->d.zone2.pz_2r0.mac3;
+		break;
+	default:
+		return -1;
+	}
+	if (valid_mac_address(m)) {
+		mac[0] = 0x00;
+		mac[1] = 0x08;
+		mac[2] = 0xee;
+		mac[3] = m[0];
+		mac[4] = m[1];
+		mac[5] = m[2];
+	} else {
+		return -1;
+	}
+
+out:
+	if (DEBUG_PRODUCTION_DATA)
+		printf("%s:%d valid %d position %d %02x:%02x:%02x:%02x:%02x:%02x\n", __FUNCTION__, __LINE__,
+			production_data_valid, position,
+			mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return 0;
 }
 
 /*
@@ -531,23 +607,28 @@ int valid_mac_address(unsigned char mac[3])
  */
 void board_get_nth_enetaddr (unsigned char *enetaddr, int which, int position)
 {
-	unsigned char *mac = &product_id_data.d.zone2.mac[position][0];
+	unsigned char mac[6];
+	char buf[32];
 	char *s = NULL, *e;
 	int i;
 	char ethbuf[18];
+	int ret;
 
-	// We only handle the first two interfaces (LAN/WiFi)...
+	/* We only handle the first two interfaces (LAN/WiFi)... */
 	if (which >= 2)
 		return;
 
+	ret = extract_mac_address(&product_id_data, position, mac);
 	if (DEBUG_PRODUCTION_DATA)
-		printf("%s: valid %d which %d %02x:%02x:%02x\n", __FUNCTION__,
-		       production_data_valid, which,
-		       mac[0], mac[1], mac[2]);
+		printf("%s: ret %d valid %d which %d position %d %02x:%02x:%02x:%02x:%02x:%02x\n", __FUNCTION__,
+			ret, production_data_valid, which, position,
+			mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
 	memset(enetaddr, '\0', 6);
 	if (!production_data_valid || 
-		!valid_mac_address(mac)) {
+		!valid_full_mac_address(mac)) {
+		if (DEBUG_PRODUCTION_DATA)
+			printf("%s: no valid address\n", __FUNCTION__);
 		s = getenv("ethaddr");
 
 #ifdef CONFIG_ETHADDR
@@ -567,32 +648,30 @@ void board_get_nth_enetaddr (unsigned char *enetaddr, int which, int position)
 		goto set_it;
 	}
 
-	// Use Logic's prefix
-	enetaddr[0] = 0x00;
-	enetaddr[1] = 0x08;
-	enetaddr[2] = 0xee;
-	enetaddr[3] = mac[0];
-	enetaddr[4] = mac[1];
-	enetaddr[5] = mac[2];
+	memcpy(enetaddr, mac, 6);
 
- set_it:
+set_it:
 	if (which == 0) {
 		sprintf(ethbuf, "%02x:%02x:%02x:%02x:%02x:%02x", enetaddr[0], enetaddr[1], enetaddr[2], enetaddr[3], enetaddr[4], enetaddr[5]);
-		setenv("ethaddr", ethbuf);
+		sprintf(buf, "ethaddr");
 	} else {
-		char buf[32];
 		sprintf(ethbuf, "%02x:%02x:%02x:%02x:%02x:%02x", enetaddr[0], enetaddr[1], enetaddr[2], enetaddr[3], enetaddr[4], enetaddr[5]);
 		sprintf(buf, "eth%daddr", which);
-		setenv(buf, ethbuf);
 	}
+	if (DEBUG_PRODUCTION_DATA)
+		printf("setenv '%s' '%s'\n", __FUNCTION__, ethbuf);
+	setenv(buf, ethbuf);
 }
 
 static int extract_product_id_part_number(struct product_id_data *p, char *buf, int buflen)
 {
 	int size;
 
+	if (!production_data_valid)
+		return -1;
+
 	buf[0] = '\0';
-	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_0) {
+	if (header_version == LOGIC_HEADER_VERSION_0) {
 		size = sizeof(p->d.u_zone0.pz_0r0.part_number);
 		if (buflen < sizeof(p->d.u_zone0.pz_0r0.part_number))
 			size = buflen;
@@ -601,12 +680,22 @@ static int extract_product_id_part_number(struct product_id_data *p, char *buf, 
 		return 0;
 	}
 
-	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_1) {
+	if (header_version == LOGIC_HEADER_VERSION_1) {
 		size = sizeof(p->d.u_zone0.pz_0r1.part_number);
 		if (buflen < sizeof(p->d.u_zone0.pz_0r1.part_number))
 			size = buflen;
 		strncpy(buf, p->d.u_zone0.pz_0r1.part_number, sizeof(p->d.u_zone0.pz_0r1.part_number));
 		buf[sizeof(p->d.u_zone0.pz_0r1.part_number)] = '\0';
+		return 0;
+	}
+
+	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_2
+		|| p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_3) {
+		size = sizeof(p->d.u_zone0.pz_0r2.part_number);
+		if (buflen < sizeof(p->d.u_zone0.pz_0r2.part_number))
+			size = buflen;
+		strncpy(buf, p->d.u_zone0.pz_0r2.part_number, sizeof(p->d.u_zone0.pz_0r2.part_number));
+		buf[sizeof(p->d.u_zone0.pz_0r2.part_number)] = '\0';
 		return 0;
 	}
 
@@ -626,7 +715,13 @@ static int extract_header_version(struct product_id_data *p, int *header_version
 		return 0;
 	}
 
-	*header_version = p->d.u_zone0.pz_0r0.header_version;
+	if (p->d.u_zone0.pz_0r2.header_version == LOGIC_HEADER_VERSION_2
+		|| p->d.u_zone0.pz_0r2.header_version == LOGIC_HEADER_VERSION_3) {
+		*header_version = p->d.u_zone0.pz_0r2.header_version;
+		return 0;
+	}
+
+	*header_version = -1;
 	return -1;
   
 }
@@ -634,16 +729,27 @@ static int extract_header_version(struct product_id_data *p, int *header_version
 static int extract_serial_number(struct product_id_data *p, char *buf, int buflen)
 {
 	buf[0] = '\0';
-	if (p->d.u_zone0.pz_0r0.header_version == LOGIC_HEADER_VERSION_0) {
+
+	if (!production_data_valid)
+		return -1;
+
+	if (header_version == LOGIC_HEADER_VERSION_0) {
 		sprintf(buf, "%02d%02d%c%05d", p->d.u_zone0.pz_0r0.sn_week,
 			 p->d.u_zone0.pz_0r0.sn_year, p->d.u_zone0.pz_0r0.sn_site,
 			 p->d.u_zone0.pz_0r0.sn_cnt);
 		return 0;
 	}
-	if (p->d.u_zone0.pz_0r1.header_version == LOGIC_HEADER_VERSION_1) {
+	if (header_version == LOGIC_HEADER_VERSION_1) {
 		sprintf(buf, "%02d%02d%c%05d", p->d.u_zone0.pz_0r1.sn_week,
 			 p->d.u_zone0.pz_0r1.sn_year, p->d.u_zone0.pz_0r1.sn_site,
 			 p->d.u_zone0.pz_0r1.sn_cnt);
+		return 0;
+	}
+	if (header_version == LOGIC_HEADER_VERSION_2
+		|| header_version == LOGIC_HEADER_VERSION_3) {
+		sprintf(buf, "%02d%02d%c%05d", p->d.u_zone0.pz_0r2.sn_week,
+			 p->d.u_zone0.pz_0r2.sn_year, p->d.u_zone0.pz_0r2.sn_site,
+			 p->d.u_zone0.pz_0r2.sn_cnt);
 		return 0;
 	}
 	return -1;
@@ -655,11 +761,13 @@ static void extract_model_number_revision(struct product_id_data *p, char *buf, 
 
 	strncpy(buf, product_id_data.d.zone1.model_number, buflen);
 	buf[buflen-1] = '\0';
-	i = strlen(buf);
-	if (i && (i + 3 < buflen)) {
-		buf[i] = '-';
-		buf[i+1] = product_id_data.d.zone1.model_revision;
-		buf[i+2] = '\0';
+	if (header_version < LOGIC_HEADER_VERSION_2) {
+		i = strlen(buf);
+		if (i + 3 < buflen) {
+			buf[i] = '-';
+			buf[i+1] = product_id_data.d.zone1.model_revision;
+			buf[i+2] = '\0';
+		}
 	}
 }
 
@@ -667,26 +775,36 @@ static void extract_model_number_revision(struct product_id_data *p, char *buf, 
  * NOR flash on the device - return is size of flash as log2 in bytes */
 int productID_has_NOR_flash(void)
 {
+	char nor0_size;
+
 	if (!production_data_valid)
 		return -1;
 
+	if (header_version <= LOGIC_HEADER_VERSION_1) {
+		nor0_size = product_id_data.d.zone2.pz_2r0.nor0_size;
+	} else if (header_version <= LOGIC_HEADER_VERSION_2) {
+		nor0_size = product_id_data.d.zone2.pz_2r2.nor0_size;
+	} else 
+		nor0_size = product_id_data.d.zone2.pz_2r3.nor0_size;
+
 	/* Flash exists if its size is non-zero, but 0xff is known to be
 	 * a non-programmed value */
-	if (product_id_data.d.zone2.nor0_size == 0x00
-	    || product_id_data.d.zone2.nor0_size == 0xff)
+	if (nor0_size == 0x00
+	    || nor0_size == 0xff)
 		return 0;
 
-	return product_id_data.d.zone2.nor0_size;
+	return nor0_size;
 }
 
 int fetch_production_data(void)
 {
 	int err = 0;
-	int header_version;
 	int checksum;
 	int i;
 
-	// Make sure voltage is to productID chip!
+	production_data_valid = 0;
+
+	/* Make sure voltage is to productID chip! */
 	gpio_i2c_init(50000);
 
 	/* The productID chip wants at least 5 clocks to wake it up... */
@@ -707,47 +825,62 @@ int fetch_production_data(void)
 		goto out;
 	}
 
-	if (read_user_zone(0, (unsigned char *)&product_id_data.d.u_zone0, sizeof(product_id_data.d.u_zone0))) {
+	if (read_user_zone(0, 0, (unsigned char *)&product_id_data.d.u_zone0, sizeof(product_id_data.d.u_zone0))) {
 		printf("failed!\n");
 		err = -1;
 		goto out;
 	}
 
-	// If the header doesn't match, we can't map any of the data
+	/* If the header doesn't match, we can't map any of the data */
 	if (extract_header_version(&product_id_data, &header_version)) {
 		printf("failed - invalid header version %d!\n", header_version);
 		err = -2;
 		goto out;
 	}
 
-	if (read_user_zone(32, (unsigned char *)&product_id_data.d.zone1, sizeof(product_id_data.d.zone1))) {
-		printf("failed!\n");
+	if (read_user_zone(0, 32, (unsigned char *)&product_id_data.d.zone1, sizeof(product_id_data.d.zone1))) {
+		printf("failed reading zone1 data!\n");
 		err = -3;
 		goto out;
 	}
 
-	if (read_user_zone(64, (unsigned char *)&product_id_data.d.zone2, sizeof(product_id_data.d.zone2))) {
-		printf("failed!\n");
+	if (read_user_zone(0, 64, (unsigned char *)&product_id_data.d.zone2, sizeof(product_id_data.d.zone2))) {
+		printf("failed reading zone2 data!\n");
 		err = -4;
 		goto out;
 	}
 
 	printf("done\n");
 
-	// Correct endianess issues
-	product_id_data.d.zone2.processor_type = le16_to_cpu(product_id_data.d.zone2.processor_type);
-	product_id_data.d.zone2.features = le32_to_cpu(product_id_data.d.zone2.features);
-	product_id_data.d.zone2.platform_bits = le32_to_cpu(product_id_data.d.zone2.platform_bits);
+	production_data_valid = 1;
+	/* Correct endianess issues */
+	product_id_data.d.zone2.pz_2r0.processor_type = le16_to_cpu(product_id_data.d.zone2.pz_2r0.processor_type);
 
- out:
-	production_data_valid = !err;
+	if (header_version < 2) 
+		product_id_data.d.zone2.pz_2r0.feature_bits = le32_to_cpu(product_id_data.d.zone2.pz_2r0.feature_bits);
 
-	// Restore pins back to their intended use
+	product_id_data.d.zone2.pz_2r0.platform_bits = le32_to_cpu(product_id_data.d.zone2.pz_2r0.platform_bits);
+
+	/* WiFi config data starts at begining of zone 2.  Don't bother
+	   reading it if we know it can't fit in the productID chip */
+	if (2 + sizeof(product_id_data.d.wifi_config_data.data) / devptr->zonesize < devptr->zones) {
+		if (read_user_zone(2, 0, (unsigned char *)&product_id_data.d.wifi_config_data.data, sizeof(product_id_data.d.wifi_config_data.data))) {
+			printf("failed reading wifi_config data!\n");
+		} else
+			product_id_data.d.wifi_config_data.valid = 1;
+	}
+
+out:
+
+	/* Restore pins back to their intended use */
 	gpio_i2c_restore_pins();
 
-	// Clone the production data into SRAM
-	checksum = calculate_checksum(&product_id_data.d, sizeof(product_id_data.d));
+	/* Calculate a checksum for the data and copy the
+	 * production data to the start of SRAM */
+	checksum = calculate_checksum(&product_id_data.d,
+				sizeof(product_id_data.d));
 	product_id_data.checksum = checksum;
+
 	*(struct product_id_data *)(SRAM_BASE) = product_id_data;
 
 	return err;
@@ -757,29 +890,33 @@ void dump_production_data(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 	char buf[36];
+	unsigned char mac[6];
+	int ret;
+	int i;
 
 	if (!production_data_valid)
 		return;
 
-	// Print out the name, model number, and set MAC addresses
+	/* Print out the name, model number, and set MAC addresses */
 	extract_product_id_part_number(&product_id_data, buf, sizeof(buf));
-
 	printf("Part Number  : %s\n", buf);
+
 	extract_model_number_revision(&product_id_data, buf, sizeof(buf));
 	if (strlen(buf))
 		printf("Model Name   : %s\n", buf);
+
 	extract_serial_number(&product_id_data, buf, sizeof(buf));
 	printf("Serial Number: %s\n", buf);
-	if (valid_mac_address(product_id_data.d.zone2.mac[1]))
-		printf("Wired Lan MAC: 00:08:ee:%02x:%02x:%02x\n",
-			product_id_data.d.zone2.mac[0][0],
-			product_id_data.d.zone2.mac[0][1],
-			product_id_data.d.zone2.mac[0][2]);
 
-	if (gd->bd->bi_arch_number == MACH_TYPE_OMAP3530_LV_SOM)
-		if (valid_mac_address(product_id_data.d.zone2.mac[1]))
-			printf("Wirless   MAC: 00:08:ee:%02x:%02x:%02x\n",
-				product_id_data.d.zone2.mac[1][0],
-				product_id_data.d.zone2.mac[1][1],
-				product_id_data.d.zone2.mac[1][2]);
+	ret = extract_mac_address(&product_id_data, 0, mac);
+	if (!ret) {
+		printf("LAN ethaddr  : %02x:%02x:%02x:%02x:%02x:%02x\n",
+			mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	}
+
+	for (i=1; i<4; ++i) {
+		if (!extract_mac_address(&product_id_data, i, mac))
+			printf("LAN[%d] = %02x:%02x:%02x:%02x:%02x:%02x\n",
+				i, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	}
 }

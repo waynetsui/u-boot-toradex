@@ -36,6 +36,7 @@
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_OMAP3430		1	/* which is in a 3430 */
 #define CONFIG_OMAP3_LV_SOM	1	/* working with LV_SOM */
+#define CONFIG_OMAP3_LOGIC	1	/* working with LV_SOM/Torpedo */
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap3.h>
@@ -326,6 +327,11 @@
 #define CONFIG_SYS_ENV_SECT_SIZE	boot_flash_sec
 #define CONFIG_ENV_OFFSET		boot_flash_off
 #define CONFIG_ENV_ADDR			SMNAND_ENV_OFFSET
+
+#if 0
+#define CONFIG_MTD_DEBUG 1
+#define CONFIG_MTD_DEBUG_VERBOSE 2 // Loud MTD debug messages
+#endif
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup

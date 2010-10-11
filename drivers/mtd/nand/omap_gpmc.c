@@ -148,7 +148,9 @@ static int omap_correct_data(struct mtd_info *mtd, uint8_t *dat,
 			 */
 			if ((orig_ecc == 0x0FFF0FFF) && (new_ecc == 0x00000000))
 				return 0;
+#if 0
 			printf("Error: Bad compare! failed\n");
+#endif
 			/* detected 2 bit error */
 			return -1;
 		}
@@ -267,12 +269,12 @@ void omap_nand_switch_ecc(int32_t hardware)
 		nand->ecc.correct = omap_correct_data;
 		nand->ecc.calculate = omap_calculate_ecc;
 		omap_hwecc_init(nand);
-		printf("HW ECC selected\n");
+		printf("NAND: HW ECC selected\n");
 	} else {
 		nand->ecc.mode = NAND_ECC_SOFT;
 		/* Use mtd default settings */
 		nand->ecc.layout = NULL;
-		printf("SW ECC selected\n");
+		printf("NAND: SW ECC selected\n");
 	}
 
 	/* Update NAND handling after ECC mode switch */
@@ -296,6 +298,15 @@ void omap_nand_switch_ecc(int32_t hardware)
  *   nand_scan about special functionality. See the defines for further
  *   explanation
  */
+
+static uint8_t omap3_lv_som_scan_ff_pattern[] = { 0xff, 0xff };
+static struct nand_bbt_descr omap3_lv_som_largepage_memorybased = {
+	.options = 0,
+	.offs = 0,
+	.len = 2,
+	.pattern = omap3_lv_som_scan_ff_pattern
+};
+
 int board_nand_init(struct nand_chip *nand)
 {
 	int32_t gpmc_config = 0;
@@ -339,6 +350,9 @@ int board_nand_init(struct nand_chip *nand)
 	nand->chip_delay = 100;
 	/* Default ECC mode */
 	nand->ecc.mode = NAND_ECC_SOFT;
+
+	/* Use our specific bad-block definition (first byte only) */
+	nand->badblock_pattern = &omap3_lv_som_largepage_memorybased;
 
 	return 0;
 }

@@ -182,7 +182,11 @@ static void do_nand_status(nand_info_t *nand)
 	int last_status = -1;
 
 	struct nand_chip *nand_chip = nand->priv;
-	/* check the WP bit */
+
+	/* Check the WP bit. To do so requires resetting the device to
+	   force the status back to its reset value (so WP becomes whether
+	   the WP pin is set). */
+	nand_chip->cmdfunc(nand, NAND_CMD_RESET, -1, -1);
 	nand_chip->cmdfunc(nand, NAND_CMD_STATUS, -1, -1);
 	printf("device is %swrite protected\n",
 		(nand_chip->read_byte(nand) & 0x80 ?
@@ -283,7 +287,8 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	    strncmp(cmd, "read", 4) != 0 && strncmp(cmd, "write", 5) != 0 &&
 	    strcmp(cmd, "scrub") != 0 && strcmp(cmd, "markbad") != 0 &&
 	    strcmp(cmd, "biterr") != 0 &&
-	    strcmp(cmd, "lock") != 0 && strcmp(cmd, "unlock") != 0 )
+	    strcmp(cmd, "lock") != 0 && strcmp(cmd, "unlock") != 0 &&
+	    strcmp(cmd, "debug") != 0 && strcmp(cmd, "features") != 0)
 		goto usage;
 
 	/* the following commands operate on the current device */
@@ -399,8 +404,12 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			opts.blockalign = 1;
 			opts.quiet      = quiet;
 			opts.writeoob	= 1;
+#if 1
+			/* Use current ecc layout */
+#else
 			opts.autoplace	= 1;
 			opts.forceyaffs = 1;
+#endif
 			nand_write_opts(nand, &opts);
 		} else if (!strcmp(s, ".oob")) {
 			/* out-of-band data */
@@ -456,6 +465,26 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		return 1;
 	}
 
+#ifdef CONFIG_MTD_DEBUG
+	if (strcmp(cmd, "debug") == 0) {
+		if (argc == 3) {
+			ulong val = simple_strtoul(argv[2], NULL, 16);
+			mtd_debug_verbose = val;
+		} else
+			printf("%d\n", mtd_debug_verbose);
+		return 1;
+	}
+#endif
+
+	if (strcmp(cmd, "features") == 0) {
+		uint8_t features[5];
+		addr = simple_strtoul(argv[2], NULL, 16);
+		nand_get_features(nand, addr, features);
+		printf("%02x %02x %02x %02x %02x\n", features[0],
+			features[1], features[2], features[3], features[4]);
+		return 1;
+	}
+
 #ifdef CONFIG_CMD_NAND_LOCK_UNLOCK
 	if (strcmp(cmd, "lock") == 0) {
 		int tight = 0;
@@ -483,6 +512,8 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		if (arg_off_size(argc - 2, argv + 2, nand, &off, &size) < 0)
 			return 1;
 
+		printf ("nand_unlock: start: %08x, length: %#x\n",
+			(int)off, (int)size);
 		if (!nand_unlock(nand, off, size)) {
 			puts("NAND flash successfully unlocked\n");
 		} else {
@@ -515,12 +546,17 @@ U_BOOT_CMD(nand, CONFIG_SYS_MAXARGS, 1, do_nand,
 	"nand dump[.oob] off - dump page\n"
 	"nand scrub - really clean NAND erasing bad blocks (UNSAFE)\n"
 	"nand markbad off [...] - mark bad block(s) at offset (UNSAFE)\n"
-	"nand biterr off - make a bit error at offset (UNSAFE)"
+	"nand biterr off - make a bit error at offset (UNSAFE)\n"
+	"features addr - dump the features addr"
 #ifdef CONFIG_CMD_NAND_LOCK_UNLOCK
 	"\n"
 	"nand lock [tight] [status]\n"
 	"    bring nand to lock state or display locked pages\n"
 	"nand unlock [offset] [size] - unlock section"
+#endif
+#ifdef CONFIG_MTD_DEBUG
+	"\n"
+	"nand debug [level] - display or set MTD debug level"
 #endif
 );
 

@@ -47,6 +47,7 @@
 #include <net.h>
 #include <serial.h>
 #include <nand.h>
+#include <asm/arch/sys_proto.h>
 #include <onenand_uboot.h>
 #include <mmc.h>
 
@@ -363,9 +364,13 @@ void start_armboot (void)
 #if defined(CONFIG_CMD_NAND)
 	puts ("NAND:  ");
 	nand_init();		/* go init the NAND */
-#endif
 #if defined(CONFIG_OMAP3_LOGIC)
-	omap_nand_switch_ecc(1);	/* switch to HW ECC mode */
+	if (omap_nand_chip_has_ecc()) {
+		omap_nand_switch_ecc(OMAP_ECC_CHIP);	/* Use the chip's ECC */
+	} else {
+		omap_nand_switch_ecc(OMAP_ECC_HW);	/* switch to HW ECC mode */
+	}
+#endif
 #endif
 
 #if defined(CONFIG_CMD_ONENAND)

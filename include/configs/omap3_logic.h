@@ -114,6 +114,7 @@
 #define CONFIG_CMD_I2C		/* I2C serial bus support	*/
 #define CONFIG_CMD_MMC		/* MMC support			*/
 #define CONFIG_CMD_NAND		/* NAND support			*/
+#define CONFIG_CMD_NAND_LOCK_UNLOCK
 
 #undef CONFIG_CMD_FLASH		/* flinfo, erase, protect	*/
 #undef CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
@@ -164,7 +165,6 @@
 /* Environment information */
 #define CONFIG_BOOTDELAY		10
 
-#if 1
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"display=15\0"		  \
 	"loadaddr=0x81000000\0"	  \
@@ -177,54 +177,12 @@
 	"nfsboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/nfs rw nfsroot=${serverip}:${rootpath}${nfsoptions} ip=dhcp ${otherbootargs};tftpboot ${loadaddr} ${kernelimage};bootm ${loadaddr}\0" \
 	"ramboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};tftpboot ${loadaddr} ${kernelimage};tftpboot ${rootfsaddr} rootfs.ext2.gz.uboot;bootm ${loadaddr} ${rootfsaddr}\0" \
 	"xipboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=/dev/ram rw ramdisk_size=${ramdisksize} ${otherbootargs};bootm ${loadaddr} ${rootfsaddr}\0" \
-	"rootdevice=/dev/mtdblock4\0" \
+	"rootdevice=/dev/mtdblock3\0" \
 	"rootfstype=yaffs\0" \
 	"mtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=${rootdevice} rootfstype=${rootfstype} rw ${otherbootargs};bootm ${loadaddr}\0" \
 	"sdmtdboot=setenv bootargs display=${display} console=${consoledev},${baudrate} root=${rootdevice} rootfstype=${rootfstype} rw ${otherbootargs};mmcinit;fatload mmc0 ${loadaddr} ${kernelimage}; bootm ${loadaddr}\0"
 
 #define CONFIG_BOOTCOMMAND "run xipboot"
-
-#else
-
-// Beagle ENV_SETTINGS
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"loadaddr=0x82000000\0" \
-	"console=ttyS2,115200n8\0" \
-	"videomode=1024x768@60,vxres=1024,vyres=768\0" \
-	"videospec=omapfb:vram:2M,vram:4M\0" \
-	"mmcargs=setenv bootargs console=${console} " \
-		"video=${videospec},mode:${videomode} " \
-		"root=/dev/mmcblk0p2 rw " \
-		"rootfstype=ext3 rootwait\0" \
-	"nandargs=setenv bootargs console=${console} " \
-		"video=${videospec},mode:${videomode} " \
-		"root=/dev/mtdblock4 rw " \
-		"rootfstype=jffs2\0" \
-	"loadbootscript=fatload mmc 0 ${loadaddr} boot.scr\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source ${loadaddr}\0" \
-	"loaduimage=fatload mmc 0 ${loadaddr} uImage\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"bootm ${loadaddr}\0" \
-	"nandboot=echo Booting from nand ...; " \
-		"run nandargs; " \
-		"nand read ${loadaddr} 280000 400000; " \
-		"bootm ${loadaddr}\0" \
-
-// Beagle BOOTCOMMAND
-#define CONFIG_BOOTCOMMAND \
-	"if mmc init; then " \
-		"if run loadbootscript; then " \
-			"run bootscript; " \
-		"else " \
-			"if run loaduimage; then " \
-				"run mmcboot; " \
-			"else run nandboot; " \
-			"fi; " \
-		"fi; " \
-	"else run nandboot; fi"
-#endif
 
 #define CONFIG_PREBOOT \
 	"echo ======================NOTICE============================;"    \
@@ -330,10 +288,8 @@
 #define CONFIG_ENV_OFFSET		boot_flash_off
 #define CONFIG_ENV_ADDR			SMNAND_ENV_OFFSET
 
-#if 0
 #define CONFIG_MTD_DEBUG 1
-#define CONFIG_MTD_DEBUG_VERBOSE 2 // Loud MTD debug messages
-#endif
+#define CONFIG_MTD_DEBUG_VERBOSE -1 // No MTD debug messages
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup

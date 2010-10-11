@@ -454,9 +454,24 @@ static int nand_default_block_markbad(struct mtd_info *mtd, loff_t ofs)
 static int nand_check_wp(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd->priv;
-	/* Check the WP bit */
+
+	/* Check the WP bit. To do so requires resetting the device to
+	   force the status back to its reset value (so WP becomes whether
+	   the WP pin is set). */
+	chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
 	chip->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
 	return (chip->read_byte(mtd) & NAND_STATUS_WP) ? 0 : 1;
+}
+
+static void nand_set_feature(struct mtd_info *mtd, int feature_address, uint8_t *params)
+{
+	struct nand_chip *chip = mtd->priv;
+
+	chip->cmd_ctrl(mtd, NAND_CMD_SETFEATURE, NAND_CTRL_CLE);
+	chip->cmd_ctrl(mtd, feature_address, NAND_CTRL_ALE);
+	chip->cmd_ctrl(mtd, NAND_CMD_NONE, NAND_CTRL_CHANGE | NAND_NCE);
+	udelay(100);
+	chip->write_buf(mtd, params, 4);
 }
 
 /**
@@ -1217,6 +1232,26 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 				sndcmd = 0;
 			}
 
+			/* If in chip ECC mode, need to read the status
+			   to see if an ECC error occurred. */
+			if (chip->ecc.mode == NAND_ECC_CHIP) {
+				int status;
+				chip->cmd_ctrl(mtd, NAND_CMD_STATUS,
+					NAND_CTRL_CLE | NAND_CTRL_CHANGE);
+				chip->cmd_ctrl(mtd,
+					NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
+				status = chip->read_byte(mtd);
+				chip->cmd_ctrl(mtd, NAND_CMD_READ0,
+					NAND_NCE | NAND_CLE | NAND_CTRL_CHANGE);
+				chip->cmd_ctrl(mtd, NAND_CMD_NONE,
+					NAND_NCE | NAND_CTRL_CHANGE);
+
+				if (status & 0x1)
+					mtd->ecc_stats.failed++;
+				else if (status & 0x10)
+					mtd->ecc_stats.corrected++;
+			}
+
 			/* Now read the page into the buffer */
 			if (unlikely(ops->mode == MTD_OOB_RAW))
 				ret = chip->ecc.read_page_raw(mtd, chip, bufpoi);
@@ -1420,6 +1455,8 @@ static int nand_write_oob_std(struct mtd_info *mtd, struct nand_chip *chip,
 	chip->cmdfunc(mtd, NAND_CMD_PAGEPROG, -1, -1);
 
 	status = chip->waitfunc(mtd, chip);
+	if ((~status) & NAND_STATUS_WP)
+	  return -EPERM;
 
 	return status & NAND_STATUS_FAIL ? -EIO : 0;
 }
@@ -1479,6 +1516,8 @@ static int nand_write_oob_syndrome(struct mtd_info *mtd,
 
 	chip->cmdfunc(mtd, NAND_CMD_PAGEPROG, -1, -1);
 	status = chip->waitfunc(mtd, chip);
+	if ((~status) & NAND_STATUS_WP)
+	  return -EPERM;
 
 	return status & NAND_STATUS_FAIL ? -EIO : 0;
 }
@@ -1768,6 +1807,11 @@ static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 		 * See if operation failed and additional status checks are
 		 * available
 		 */
+		if ((~status) & NAND_STATUS_WP) {
+			printf("%s: failed to write to write-protected page\n", __FUNCTION__);
+			return -EPERM;
+		}
+
 		if ((status & NAND_STATUS_FAIL) && (chip->errstat))
 			status = chip->errstat(mtd, chip, FL_WRITING, status,
 					       page);
@@ -1777,6 +1821,10 @@ static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	} else {
 		chip->cmdfunc(mtd, NAND_CMD_CACHEDPROG, -1, -1);
 		status = chip->waitfunc(mtd, chip);
+		if ((~status) & NAND_STATUS_WP) {
+			printf("%s: failed to write to write-protected page\n", __FUNCTION__);
+			return -EPERM;
+		}
 	}
 
 #ifdef CONFIG_MTD_NAND_VERIFY_WRITE
@@ -2005,7 +2053,7 @@ static int nand_do_write_oob(struct mtd_info *mtd, loff_t to,
 	/* Do not allow write past end of page */
 	if ((ops->ooboffs + ops->ooblen) > len) {
 		MTDDEBUG (MTD_DEBUG_LEVEL0, "nand_write_oob: "
-		          "Attempt to write past end of page\n");
+			"Attempt to write past end of page (%d+%d>%d)\n", ops->ooboffs, ops->ooblen, len);
 		return -EINVAL;
 	}
 
@@ -2249,7 +2297,7 @@ int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 		chip->erase_cmd(mtd, page & chip->pagemask);
 
 		status = chip->waitfunc(mtd, chip);
-
+		
 		/*
 		 * See if operation failed and additional status checks are
 		 * available
@@ -2257,6 +2305,14 @@ int nand_erase_nand(struct mtd_info *mtd, struct erase_info *instr,
 		if ((status & NAND_STATUS_FAIL) && (chip->errstat))
 			status = chip->errstat(mtd, chip, FL_ERASING,
 					       status, page);
+
+		/* If block is write-protected, skip to next */
+		if ((~status) & NAND_STATUS_WP) {
+			printk(KERN_WARNING "nand_erase: attempt to erase a "
+			       "write-protected block at page 0x%08x\n", page);
+			instr->state = MTD_ERASE_FAILED;
+			goto erase_exit;
+		}
 
 		/* See if block erase succeeded */
 		if (status & NAND_STATUS_FAIL) {
@@ -2501,6 +2557,9 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		       *maf_id, dev_id, tmp_manf, tmp_id);
 		return ERR_PTR(-ENODEV);
 	}
+
+	chip->maf_id = tmp_manf;
+	chip->dev_id = tmp_id;
 
 	/* Lookup the flash id */
 	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
@@ -2777,6 +2836,26 @@ int nand_scan_tail(struct mtd_info *mtd)
 		chip->ecc.write_oob = nand_write_oob_std;
 		chip->ecc.size = 256;
 		chip->ecc.bytes = 3;
+		if (chip->has_chip_ecc) {
+			/* Put chip into no-ECC mode */
+			uint8_t params[4] = {0x00, 0x00, 0x00, 0x00};
+			nand_set_feature(mtd, 0x90, params);
+		}
+		break;
+
+	case NAND_ECC_CHIP:
+		chip->ecc.read_page = nand_read_page_raw;
+		chip->ecc.write_page = nand_write_page_raw;
+		chip->ecc.read_oob = nand_read_oob_std;
+		chip->ecc.write_oob = nand_write_oob_std;
+		chip->ecc.size = mtd->writesize;
+		chip->ecc.bytes = 0;
+
+		if (chip->has_chip_ecc) {
+			/* Put chip into ECC mode */
+			uint8_t params[4] = {0x08, 0x00, 0x00, 0x00};
+			nand_set_feature(mtd, 0x90, params);
+		}
 		break;
 
 	case NAND_ECC_NONE:
@@ -2788,6 +2867,13 @@ int nand_scan_tail(struct mtd_info *mtd)
 		chip->ecc.write_oob = nand_write_oob_std;
 		chip->ecc.size = mtd->writesize;
 		chip->ecc.bytes = 0;
+
+		if (chip->has_chip_ecc) {
+			/* Put chip into ECC mode */
+			uint8_t params[4] = {0x00, 0x00, 0x00, 0x00};
+			nand_set_feature(mtd, 0x90, params);
+		}
+
 		break;
 
 	default:
@@ -2805,6 +2891,7 @@ int nand_scan_tail(struct mtd_info *mtd)
 		chip->ecc.layout->oobavail +=
 			chip->ecc.layout->oobfree[i].length;
 	mtd->oobavail = chip->ecc.layout->oobavail;
+	MTDDEBUG(MTD_DEBUG_LEVEL3, "%s: oobavail %d\n", __FUNCTION__, mtd->oobavail);
 
 	/*
 	 * Set the number of read / write steps for one page depending on ECC

@@ -38,6 +38,8 @@
 #include <asm/arch/gpio.h>
 #include <asm/mach-types.h>
 #include "logic.h"
+#include "product_id.h"
+#include <nand.h>
 
 /*
  * Routine: logic_identify
@@ -47,7 +49,7 @@
  */
 unsigned int logic_identify(void)
 {
-	unsigned int val;
+	unsigned int val = 0;
 	int i;
 
 	MUX_LOGIC_HSUSB0_D5_GPIO_MUX();
@@ -64,17 +66,64 @@ unsigned int logic_identify(void)
 		omap_set_gpio_direction(189, 1);
 		val = omap_get_gpio_datain(189);
 		omap_free_gpio(189);
-	}
 
-	printf("Board: ");
-	if (val) {
-		printf("Torpedo\n");
-		val = MACH_TYPE_OMAP3_TORPEDO;
-	} else {
-		printf("LV SOM\n");
-		val = MACH_TYPE_OMAP3530_LV_SOM;
+		printf("Board: ");
+		if (val) {
+			printf("Torpedo\n");
+			val = MACH_TYPE_OMAP3_TORPEDO;
+		} else {
+			printf("LV SOM\n");
+			val = MACH_TYPE_OMAP3530_LV_SOM;
+		}
 	}
 	return val;
+}
+
+
+#define LOGIC_NAND_GPMC_CONFIG1	0x00001800
+#define LOGIC_NAND_GPMC_CONFIG2	0x00090900
+#define LOGIC_NAND_GPMC_CONFIG3	0x00090902
+#define LOGIC_NAND_GPMC_CONFIG4	0x07020702
+#define LOGIC_NAND_GPMC_CONFIG5	0x00080909
+#define LOGIC_NAND_GPMC_CONFIG6	0x000002CF
+#define LOGIC_NAND_GPMC_CONFIG7	0x00000C70
+
+static void setup_nand_settings(void)
+{
+	/* Configure GPMC registers */
+	writel(0x00000000, &gpmc_cfg->cs[0].config7);
+	sdelay(1000);
+	writel(LOGIC_NAND_GPMC_CONFIG1, &gpmc_cfg->cs[0].config1);
+	writel(LOGIC_NAND_GPMC_CONFIG2, &gpmc_cfg->cs[0].config2);
+	writel(LOGIC_NAND_GPMC_CONFIG3, &gpmc_cfg->cs[0].config3);
+	writel(LOGIC_NAND_GPMC_CONFIG4, &gpmc_cfg->cs[0].config4);
+	writel(LOGIC_NAND_GPMC_CONFIG5, &gpmc_cfg->cs[0].config5);
+	writel(LOGIC_NAND_GPMC_CONFIG6, &gpmc_cfg->cs[0].config6);
+	writel(LOGIC_NAND_GPMC_CONFIG7, &gpmc_cfg->cs[0].config7);
+	sdelay(2000);
+}
+
+#define LOGIC_CF_GPMC_CONFIG1	0x00001210
+#define LOGIC_CF_GPMC_CONFIG2	0x00131000
+#define LOGIC_CF_GPMC_CONFIG3	0x001f1f01
+#define LOGIC_CF_GPMC_CONFIG4	0x10030e03
+#define LOGIC_CF_GPMC_CONFIG5	0x010f1411
+#define LOGIC_CF_GPMC_CONFIG6	0x80030600
+#define LOGIC_CF_GPMC_CONFIG7	0x00000f58
+
+static void setup_cf_gpmc_setup(void)
+{
+	/* Configure GPMC registers */
+	writel(0x00000000, &gpmc_cfg->cs[3].config7);
+	sdelay(1000);
+	writel(LOGIC_CF_GPMC_CONFIG1, &gpmc_cfg->cs[3].config1);
+	writel(LOGIC_CF_GPMC_CONFIG2, &gpmc_cfg->cs[3].config2);
+	writel(LOGIC_CF_GPMC_CONFIG3, &gpmc_cfg->cs[3].config3);
+	writel(LOGIC_CF_GPMC_CONFIG4, &gpmc_cfg->cs[3].config4);
+	writel(LOGIC_CF_GPMC_CONFIG5, &gpmc_cfg->cs[3].config5);
+	writel(LOGIC_CF_GPMC_CONFIG6, &gpmc_cfg->cs[3].config6);
+	writel(LOGIC_CF_GPMC_CONFIG7, &gpmc_cfg->cs[3].config7);
+	sdelay(2000);
 }
 
 /*
@@ -86,6 +135,15 @@ int board_init(void)
 	DECLARE_GLOBAL_DATA_PTR;
 
 	gpmc_init(); /* in SRAM or SDRAM, finish GPMC */
+
+	/* Update NAND settings */
+	setup_nand_settings();
+
+#if 0
+	/* Update CF settings */
+	setup_cf_gpmc_setup();
+#endif
+
 	/* board id for Linux (placeholder until can ID board) */
 	gd->bd->bi_arch_number = MACH_TYPE_OMAP3530_LV_SOM;
 	/* boot param addr */
@@ -93,7 +151,6 @@ int board_init(void)
 
 	return 0;
 }
-
 
 static void setup_net_chip(void);
 static void setup_isp1760_chip(void);
@@ -196,6 +253,11 @@ int board_late_init(void)
 	// Fetch the ethaddr of the WiFi
 	board_get_nth_enetaddr(enetaddr, 1, 1);
 #endif
+
+#ifdef CONFIG_CMD_NAND_LOCK_UNLOCK
+	// Unlock the whole chip
+	nand_unlock(&nand_info[0], 0x0, nand_info[0].size);
+#endif
 	return 0;
 }
 
@@ -212,11 +274,11 @@ void set_muxconf_regs(void)
 
 // GPMC settings for LV SOM Ethernet chip
 #define LOGIC_NET_GPMC_CONFIG1  0x00001000
-#define LOGIC_NET_GPMC_CONFIG2  0x00080802
+#define LOGIC_NET_GPMC_CONFIG2  0x00080701
 #define LOGIC_NET_GPMC_CONFIG3  0x00000000
-#define LOGIC_NET_GPMC_CONFIG4  0x08020802
+#define LOGIC_NET_GPMC_CONFIG4  0x08010702
 #define LOGIC_NET_GPMC_CONFIG5  0x00080a0a
-#define LOGIC_NET_GPMC_CONFIG6  0x00000000
+#define LOGIC_NET_GPMC_CONFIG6  0x03000280
 #define LOGIC_NET_GPMC_CONFIG7  0x00000f48
 
 /*

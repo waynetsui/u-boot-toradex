@@ -331,18 +331,27 @@ static int do_switch_ecc(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	nand = mtd->priv;
 
 	if (argc == 1) {
-		if (nand->ecc.mode == NAND_ECC_SOFT)
+		switch(nand->ecc.mode) {
+		case NAND_ECC_SOFT:
 			printf("Software ECC\n");
-		else
+			break;
+		case NAND_ECC_HW:
 			printf("Hardware ECC\n");
+			break;
+		case NAND_ECC_CHIP:
+			printf("Internal to NAND Hardware ECC\n");
+			break;
+		}
 		return 0;
 	}	  
 	if (argc != 2)
 		goto usage;
 	if (strncmp(argv[1], "hw", 2) == 0)
-		omap_nand_switch_ecc(1);
+		omap_nand_switch_ecc(OMAP_ECC_HW);
 	else if (strncmp(argv[1], "sw", 2) == 0)
-		omap_nand_switch_ecc(0);
+		omap_nand_switch_ecc(OMAP_ECC_SOFT);
+	else if (strncmp(argv[1], "chip", 4) == 0)
+		omap_nand_switch_ecc(OMAP_ECC_CHIP);
 	else
 		goto usage;
 
@@ -356,7 +365,7 @@ usage:
 U_BOOT_CMD(
 	nandecc, 2, 1,	do_switch_ecc,
 	"nandecc - switch OMAP3 NAND ECC calculation algorithm",
-	"[hw/sw] - Switch between NAND hardware (hw) or software (sw) ecc algorithm"
+	"[hw/sw/chip] - Switch between NAND hardware (hw), software (sw), or chip (chip) ecc algorithm"
 );
 
 #endif /* CONFIG_NAND_OMAP_GPMC */

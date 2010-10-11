@@ -11,6 +11,10 @@
 #include <linux/mtd/compat.h>
 #include <ubi_uboot.h>
 
+#ifdef CONFIG_MTD_DEBUG
+int mtd_debug_verbose = CONFIG_MTD_DEBUG_VERBOSE;
+#endif
+
 struct mtd_info *mtd_table[MAX_MTD_DEVICES];
 
 int add_mtd_device(struct mtd_info *mtd)

@@ -339,6 +339,7 @@ int nand_lock(struct mtd_info *mtd, int tight)
 int nand_get_lock_status(struct mtd_info *mtd, loff_t offset)
 {
 	int ret = 0;
+	int flags = 0;
 	int chipnr;
 	int page;
 	struct nand_chip *chip = mtd->priv;
@@ -360,9 +361,19 @@ int nand_get_lock_status(struct mtd_info *mtd, loff_t offset)
 	page = (int)(offset >> chip->page_shift);
 	chip->cmdfunc(mtd, NAND_CMD_LOCK_STATUS, -1, page & chip->pagemask);
 
-	ret = chip->read_byte(mtd) & (NAND_LOCK_STATUS_TIGHT
-					  | NAND_LOCK_STATUS_LOCK
-					  | NAND_LOCK_STATUS_UNLOCK);
+	ret = chip->read_byte(mtd);
+
+	ret &= (NAND_LOCK_STATUS_TIGHT | NAND_LOCK_STATUS_LOCK | NAND_LOCK_STATUS_UNLOCK);
+
+	if (ret & NAND_LOCK_STATUS_TIGHT)
+		flags |= NAND_LOCK_STATUS_TIGHT;
+
+	if (ret & NAND_LOCK_STATUS_UNLOCK)
+		flags |= NAND_LOCK_STATUS_UNLOCK;
+	else
+		flags |= NAND_LOCK_STATUS_LOCK;
+
+	ret = flags;
 
  out:
 	/* de-select the NAND device */
@@ -370,6 +381,32 @@ int nand_get_lock_status(struct mtd_info *mtd, loff_t offset)
 	return ret;
 }
 
+int nand_get_features(struct mtd_info *mtd, uint8_t faddr, uint8_t *features)
+{
+	struct nand_chip *chip = mtd->priv;
+	int i;
+
+	chip->select_chip(mtd, 0);
+
+	/* Send the status command */
+	chip->cmd_ctrl(mtd, NAND_CMD_GET_FEATURES, NAND_CTRL_CHANGE | NAND_CTRL_CLE);
+
+	/* Send the feature address */
+	chip->cmd_ctrl(mtd, faddr, NAND_CTRL_CHANGE | NAND_CTRL_ALE);
+	/* Switch to data access */
+	chip->cmd_ctrl(mtd, NAND_CMD_NONE, NAND_CTRL_CHANGE | NAND_NCE);
+
+	ndelay(100);
+
+	for (i=0; i<5; ++i)
+		features[i] = chip->read_byte(mtd);
+
+#if 0
+	printf("%s: %02x %02x %02x %02x %02x\n", __FUNCTION__, features[0],
+		features[1], features[2], features[3], features[4]);
+#endif
+	return 0;
+}
 /**
  * nand_unlock: - Unlock area of NAND pages
  *		  only one consecutive area can be unlocked at one time!
@@ -388,12 +425,18 @@ int nand_unlock(struct mtd_info *mtd, ulong start, ulong length)
 	int status;
 	int page;
 	struct nand_chip *chip = mtd->priv;
+#if 0
 	printf ("nand_unlock: start: %08x, length: %d!\n",
 		(int)start, (int)length);
-
+#endif
 	/* select the NAND device */
 	chipnr = (int)(start >> chip->chip_shift);
 	chip->select_chip(mtd, chipnr);
+
+	/* Check the WP bit. To do so requires resetting the device to
+	   force the status back to its reset value (so WP becomes whether
+	   the WP pin is set). */
+	chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
 
 	/* check the WP bit */
 	chip->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
@@ -732,7 +775,11 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 				.ooblen = meminfo->ecclayout->oobavail,
 				.oobretlen = 0,
 				.ooboffs = 0,
+#if 1
+				.datbuf = data_buf,
+#else
 				.datbuf = NULL,
+#endif
 				.oobbuf = oob_buf,
 			};
 
@@ -744,19 +791,20 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 				goto restoreoob;
 			}
 			imglen -= meminfo->oobsize;
-		}
+		} else {
 
-		/* write out the page data */
-		result = meminfo->write(meminfo,
-					mtdoffset,
-					meminfo->writesize,
-					&written,
-					(unsigned char *) &data_buf);
+			/* write out the page data */
+			result = meminfo->write(meminfo,
+						mtdoffset,
+						meminfo->writesize,
+						&written,
+						(unsigned char *) &data_buf);
 
-		if (result != 0) {
-			printf("writing NAND page at offset 0x%lx failed\n",
-			       mtdoffset);
-			goto restoreoob;
+			if (result != 0) {
+				printf("writing NAND page at offset 0x%lx failed\n",
+					mtdoffset);
+				goto restoreoob;
+			}
 		}
 		imglen -= readlen;
 

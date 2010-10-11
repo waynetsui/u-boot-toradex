@@ -335,7 +335,7 @@ usage:
 
 U_BOOT_CMD(
 	nandecc, 2, 1,	do_switch_ecc,
-	"nandecc - switch OMAP3 NAND ECC calculation algorithm\n",
+	"nandecc - switch OMAP3 NAND ECC calculation algorithm",
 	"[hw/sw] - Switch between NAND hardware (hw) or software (sw) ecc algorithm"
 );
 

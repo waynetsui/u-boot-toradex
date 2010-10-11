@@ -3084,6 +3084,9 @@ omap3_zoom1_config :	unconfig
 omap3_zoom2_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 zoom2 omap3 omap3
 
+omap3_logic_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 logic omap3 omap3
+
 #########################################################################
 ## XScale Systems
 #########################################################################

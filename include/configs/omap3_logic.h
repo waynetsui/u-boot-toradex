@@ -122,6 +122,7 @@
 #define CONFIG_CMD_PING		/* ping */
 #define CONFIG_CMD_DHCP		/* dhcp */
 #undef CONFIG_CMD_NFS		/* NFS support			*/
+#define CONFIG_CMD_ASKENV	/* askenv */
 
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SYS_I2C_SPEED		100000

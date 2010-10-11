@@ -96,6 +96,7 @@ int board_init(void)
 
 
 static void setup_net_chip(void);
+static void setup_isp1760_chip(void);
 
 /*
  * Routine: misc_init_r
@@ -115,6 +116,9 @@ int misc_init_r(void)
 #if defined(CONFIG_CMD_NET)
 	setup_net_chip();
 #endif
+
+	/* Setup access to the isp1760 chip on CS6 */
+	setup_isp1760_chip();
 
 	twl4030_power_init();
 	twl4030_led_init();
@@ -157,8 +161,6 @@ void set_muxconf_regs(void)
 #define LOGIC_NET_GPMC_CONFIG6  0x00000000
 #define LOGIC_NET_GPMC_CONFIG7  0x00000f48
 
-#define LOGIC_NET_BASE 0x08000000
-
 /*
  * Routine: setup_net_chip
  * Description: Setting up the configuration GPMC registers specific to the
@@ -186,6 +188,35 @@ static void setup_net_chip(void)
 		&ctrl_base->gpmc_nadv_ale);
 
 }
+
+// GPMC settings for LOGIC 1760 chip
+#define LOGIC_ISP1760_GPMC_CONFIG1  0x00001200
+#define LOGIC_ISP1760_GPMC_CONFIG2  0x00090901
+#define LOGIC_ISP1760_GPMC_CONFIG3  0x00091001
+#define LOGIC_ISP1760_GPMC_CONFIG4  0x07031002
+#define LOGIC_ISP1760_GPMC_CONFIG5  0x00080c0a
+#define LOGIC_ISP1760_GPMC_CONFIG6  0x08030200
+#define LOGIC_ISP1760_GPMC_CONFIG7  0x00000f5c
+
+/*
+ * Routine: setup_net_chip
+ * Description: Setting up the configuration GPMC registers specific to the
+ *		Ethernet hardware.
+ */
+static void setup_isp1760_chip(void)
+{
+	struct ctrl *ctrl_base = (struct ctrl *)OMAP34XX_CTRL_BASE;
+
+	/* Configure GPMC registers */
+	writel(LOGIC_ISP1760_GPMC_CONFIG1, &gpmc_cfg->cs[6].config1);
+	writel(LOGIC_ISP1760_GPMC_CONFIG2, &gpmc_cfg->cs[6].config2);
+	writel(LOGIC_ISP1760_GPMC_CONFIG3, &gpmc_cfg->cs[6].config3);
+	writel(LOGIC_ISP1760_GPMC_CONFIG4, &gpmc_cfg->cs[6].config4);
+	writel(LOGIC_ISP1760_GPMC_CONFIG5, &gpmc_cfg->cs[6].config5);
+	writel(LOGIC_ISP1760_GPMC_CONFIG6, &gpmc_cfg->cs[6].config6);
+	writel(LOGIC_ISP1760_GPMC_CONFIG7, &gpmc_cfg->cs[6].config7);
+}
+
 
 int board_eth_init(bd_t *bis)
 {

@@ -144,6 +144,26 @@ int misc_init_r(void)
 	return 0;
 }
 
+/******************************************************************************
+ * Routine: late_board_init
+ * Description: Late hardware init.
+ *****************************************************************************/
+int board_late_init(void)
+{
+	unsigned char enetaddr[6];
+
+	// DECLARE_GLOBAL_DATA_PTR;
+
+	fetch_production_data(); // Extract production data
+	// Fetch the ethaddr of the LAN
+	board_get_nth_enetaddr(enetaddr, 0);
+#ifdef CONFIG_HAS_ETH1
+	// Fetch the ethaddr of the WiFi
+	board_get_nth_enetaddr(enetaddr, 1);
+#endif
+	return 0;
+}
+
 /*
  * Routine: set_muxconf_regs
  * Description: Setting up the configuration Mux registers specific to the

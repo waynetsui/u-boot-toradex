@@ -87,4 +87,4 @@ static inline int calculate_checksum(void *p, int len)
 }
 
 extern int fetch_production_data(void);
-extern void board_get_nth_enetaddr (unsigned char *enetaddr, int which);
+extern void board_get_nth_enetaddr (unsigned char *enetaddr, int which, int position);

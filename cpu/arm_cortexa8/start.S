@@ -433,11 +433,16 @@ v7_flush_dcache_all:
 	cmp	r0, #0x3			@ check if the device type is
 						@ GP
 	moveq r12, #0x1				@ set up to invalide L2
+#ifndef CONFIG_OMAP3_LOGIC
+	@ On OMAP3_LOGIC boards, u-boot is launched from LoLo
+	@ which does the SMI call to invalidate the cache.  If done
+	@ twice, the OMAP35x chip resets....
 smi:	.word 0x01600070			@ Call SMI monitor (smieq)
 	cmp	r7, #0x3			@ compare again in case its
 						@ lost
 	beq	finished_inval			@ if GP device, inval done
 						@ above
+#endif
 
 	mrc	p15, 1, r0, c0, c0, 1		@ read clidr
 	ands	r3, r0, #0x7000000		@ extract loc from clidr

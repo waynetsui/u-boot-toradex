@@ -324,6 +324,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	bd_t *bd = gd->bd;
 
 	print_num ("arch_number",	bd->bi_arch_number);
+#ifdef CONFIG_OMAP3_LOGIC
+	print_num ("env offset",	CONFIG_ENV_OFFSET);
+#endif
 	print_num ("env_t",		(ulong)bd->bi_env);
 	print_num ("boot_params",	(ulong)bd->bi_boot_params);
 

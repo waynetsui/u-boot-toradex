@@ -370,6 +370,13 @@ void start_armboot (void)
 	} else {
 		omap_nand_switch_ecc(OMAP_ECC_HW);	/* switch to HW ECC mode */
 	}
+	{
+		int size;
+		size = nand_info[0].size;
+
+		/* Set the u-boot environment offset to be at the end of NAND */
+		boot_flash_off = size - CONFIG_ENV_RANGE;
+	}
 #endif
 #endif
 

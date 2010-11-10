@@ -405,11 +405,31 @@ static int esdhc_init(struct mmc *mmc)
 	return 0;
 }
 
+static void esdhc_reset(struct fsl_esdhc *regs)
+{
+	unsigned long timeout;
+
+	/* reset the controller */
+	out_be32(&regs->sysctl, SYSCTL_RSTA);
+
+	/* wait max 100 ms */
+	timeout = 100;
+	/* hardware clears the bit when it is done */
+	while ((in_be32(&regs->sysctl) & SYSCTL_RSTA) && timeout--)
+		udelay(1000);
+	if (!timeout)
+	printf("MMC/SD: Reset never completed.\n");
+	udelay(1000);
+}
+
 static int esdhc_initialize(bd_t *bis)
 {
 	struct fsl_esdhc *regs = (struct fsl_esdhc *)CONFIG_SYS_FSL_ESDHC_ADDR;
 	struct mmc *mmc;
 	u32 caps, voltage_caps;
+
+	/* First reset the eSDHC controller */
+	esdhc_reset(regs);
 
 	mmc = malloc(sizeof(struct mmc));
 

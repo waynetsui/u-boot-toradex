@@ -713,7 +713,12 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 	"console=$consoledev,$baudrate $othbootargs;"	\
 	"nand read 2000000 $nandbootaddr $nandimgsize;"	\
 	"nand read 3000000 $nandfdtaddr $nandfdtsize;"	\
-	"bootm 2000000 - 3000000;\0"
+	"bootm 2000000 - 3000000;\0"	\
+	"sdboot=setenv bdev mmcblk0p2;setenv bootargs root=/dev/$bdev rw "	\
+	"rootdelay=30 console=$consoledev,$baudrate $othbootargs;mmcinfo;"	\
+	"ext2load mmc 0:2 $loadaddr /boot/$bootfile;"	\
+	"ext2load mmc 0:2 $fdtaddr /boot/$fdtfile;"	\
+	"bootm $loadaddr - $fdtaddr;\0"
 
 #define CONFIG_NFSBOOTCOMMAND		\
 	"setenv bootargs root=/dev/nfs rw "	\

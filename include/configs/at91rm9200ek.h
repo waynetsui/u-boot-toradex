@@ -156,6 +156,7 @@
 #endif
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_AT91C_USE_RMII
+#define CONFIG_RMII
 
 /*
  * AC Characteristics

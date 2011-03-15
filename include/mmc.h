@@ -305,6 +305,7 @@ void print_mmc_devices(char separator);
 int get_mmc_num(void);
 int board_mmc_getcd(u8 *cd, struct mmc *mmc);
 int mmc_switch_part(int dev_num, unsigned int part_num);
+int initialize_mmc_device(int dev);
 
 #ifdef CONFIG_GENERIC_MMC
 int atmel_mci_init(void *regs);

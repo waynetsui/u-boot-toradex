@@ -27,6 +27,13 @@
 
 static int curr_device = -1;
 #ifndef CONFIG_GENERIC_MMC
+
+/* TODO: temporary hack for factory bring up; remove/rewrite when necessary */
+int get_mmc_current_device(void)
+{
+	return curr_device;
+}
+
 int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	int dev;

@@ -359,6 +359,7 @@ void board_init_f (ulong bootflag)
 #endif /* CONFIG_FB_ADDR */
 #endif /* CONFIG_LCD */
 
+#ifndef CONFIG_SYS_SKIP_ARM_RELOCATION
 	/*
 	 * reserve memory for U-Boot code, data & bss
 	 * round down to next 4 kB limit
@@ -367,6 +368,7 @@ void board_init_f (ulong bootflag)
 	addr &= ~(4096 - 1);
 
 	debug ("Reserving %ldk for U-Boot at: %08lx\n", gd->mon_len >> 10, addr);
+#endif
 
 #ifndef CONFIG_PRELOADER
 	/*
@@ -418,6 +420,9 @@ void board_init_f (ulong bootflag)
 	dram_init_banksize();
 	display_dram_config();	/* and display it */
 
+#ifdef CONFIG_SYS_SKIP_ARM_RELOCATION
+	addr = _TEXT_BASE;
+#endif
 	gd->relocaddr = addr;
 	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - _TEXT_BASE;

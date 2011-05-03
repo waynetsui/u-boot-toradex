@@ -38,6 +38,10 @@
 static ulong TftpTimeoutMSecs = TIMEOUT;
 static int TftpTimeoutCountMax = TIMEOUT_COUNT;
 
+#ifdef CONFIG_TFTP_SPEED
+static ulong time_start;   /* Record time we started tftp */
+#endif
+
 /*
  * These globals govern the timeout behavior when attempting a connection to a
  * TFTP server. TftpRRQTimeoutMSecs specifies the number of milliseconds to
@@ -511,6 +515,15 @@ TftpHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src,
 			}
 #endif
 			puts("\ndone\n");
+#ifdef CONFIG_TFTP_SPEED
+			time_start = get_timer(time_start);
+			if (time_start > 0) {
+				puts ("  ");
+				print_size(NetBootFileXferSize /
+					time_start * 1000, "/s");
+			}
+#endif
+			puts("\ndone\n");
 			NetState = NETLOOP_SUCCESS;
 		}
 		break;
@@ -645,6 +658,9 @@ TftpStart(void)
 
 	puts("Loading: *\b");
 
+#ifdef CONFIG_TFTP_SPEED
+	time_start = get_timer(0);
+#endif
 	TftpTimeoutCountMax = TftpRRQTimeoutCountMax;
 
 	NetSetTimeout(TftpTimeoutMSecs, TftpTimeout);

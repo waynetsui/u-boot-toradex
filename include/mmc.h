@@ -313,8 +313,6 @@ int atmel_mci_init(void *regs);
 struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode);
 #else
 int mmc_legacy_init(int verbose);
-/* TODO: temporary hack for factory bring up; remove/rewrite when necessary */
-int get_mmc_current_device(void);
 #endif
 
 #endif /* _MMC_H_ */

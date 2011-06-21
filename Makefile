@@ -216,6 +216,7 @@ LIBS += lib/lzo/liblzo.o
 LIBS += lib/zlib/libz.o
 LIBS += lib/chromeos/libchromeos.a
 LIBS += lib/vbexport/libvbexport.a
+LIBS += lib/vboot/libvboot.a
 LIBS += board/$(VENDOR)/chromeos/libchromeos_hardware_interface.a
 LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
 	"board/$(VENDOR)/common/lib$(VENDOR).o"; fi)

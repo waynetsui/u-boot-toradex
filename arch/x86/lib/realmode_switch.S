@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2002
- * Daniel Engström, Omicron Ceti AB, daniel@omicron.se
+ * Daniel Engstrï¿½m, Omicron Ceti AB, daniel@omicron.se
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -20,6 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
+
+#include <config.h>
+
+#if !defined CONFIG_NO_REALMODE_CODE
 
 /* 32bit -> 16bit -> 32bit mode switch code */
 
@@ -219,3 +223,5 @@ saved_protected_mode_esp:
 return_ptr:
 	.long	protected_mode
 	.word	0x10
+
+#endif

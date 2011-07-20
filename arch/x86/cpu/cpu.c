@@ -3,7 +3,7 @@
  * Graeme Russ, <graeme.russ@gmail.com>
  *
  * (C) Copyright 2002
- * Daniel Engström, Omicron Ceti AB, <daniel@omicron.se>
+ * Daniel Engstrï¿½m, Omicron Ceti AB, <daniel@omicron.se>
  *
  * (C) Copyright 2002
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
@@ -84,6 +84,14 @@ static void reload_gdt(void)
 		     "movl %%ecx, %%ss" \
 		     : : "m" (gdt) : "ecx");
 }
+
+int x86_cleanup_before_linux(void)
+{
+	return 0;
+}
+int cleanup_before_linux(void)
+	__attribute__((weak, alias("x86_cleanup_before_linux")));
+
 
 int x86_cpu_init_f(void)
 {

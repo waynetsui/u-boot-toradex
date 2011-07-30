@@ -75,6 +75,9 @@ SECTIONS
 		__bss_end__ = .;
 	}
 
+	/* We must relocate everything from the start to here */
+	__reloc_end__ = .;
+
 	/DISCARD/ : { *(.dynstr*) }
 	/DISCARD/ : { *(.dynamic*) }
 	/DISCARD/ : { *(.plt*) }

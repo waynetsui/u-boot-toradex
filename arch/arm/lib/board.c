@@ -310,7 +310,7 @@ void board_init_f (ulong bootflag)
 
 	memset ((void*)gd, 0, sizeof (gd_t));
 
-	gd->mon_len = _bss_end_ofs;
+	gd->mon_len = _reloc_end_ofs;
 #ifdef CONFIG_OF_EMBED
 	/* Get a pointer to the FDT */
 	gd->blob = _binary_dt_dtb_start;

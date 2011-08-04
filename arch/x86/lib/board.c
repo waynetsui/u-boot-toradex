@@ -3,7 +3,7 @@
  * Graeme Russ, <graeme.russ@gmail.com>
  *
  * (C) Copyright 2002
- * Daniel Engström, Omicron Ceti AB, <daniel@omicron.se>
+ * Daniel Engstrï¿½m, Omicron Ceti AB, <daniel@omicron.se>
  *
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
@@ -42,6 +42,7 @@
 #include <ide.h>
 #include <serial.h>
 #include <asm/u-boot-x86.h>
+#include <spi.h>
 #include <elf.h>
 
 #ifdef CONFIG_BITBANGMII
@@ -353,6 +354,10 @@ void board_init_r(gd_t *id, ulong dest_addr)
 
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r();
+
+#ifdef CONFIG_CMD_SPI
+	spi_init();
+#endif
 
 #ifdef CONFIG_MISC_INIT_R
 	/* miscellaneous platform dependent initialisations */

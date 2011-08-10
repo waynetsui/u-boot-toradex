@@ -40,7 +40,11 @@ COBJS-$(CONFIG_OMAP3_SPI) += omap3_spi.o
 COBJS-$(CONFIG_SOFT_SPI) += soft_spi.o
 COBJS-$(CONFIG_SH_SPI) += sh_spi.o
 COBJS-$(CONFIG_FSL_ESPI) += fsl_espi.o
+ifdef CONFIG_NEW_SPI_XFER
+COBJS-$(CONFIG_TEGRA2_SPI) += tegra2_spi_new.o
+else
 COBJS-$(CONFIG_TEGRA2_SPI) += tegra2_spi.o
+endif
 COBJS-$(CONFIG_DUMMY_SPI) += dummy_spi.o
 
 COBJS	:= $(COBJS-y)

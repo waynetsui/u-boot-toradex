@@ -353,6 +353,8 @@ void main_loop (void)
 	char bcs_set[16];
 #endif /* CONFIG_BOOTCOUNT_LIMIT */
 
+	bootstage_mark(BOOTSTAGE_MAIN_LOOP, "main_loop");
+
 #ifdef CONFIG_BOOTCOUNT_LIMIT
 	bootcount = bootcount_load();
 	bootcount++;

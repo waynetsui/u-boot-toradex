@@ -218,7 +218,6 @@ LIBS += lib/zlib/libz.o
 ifdef VBOOT
 LIBS += lib/chromeos/libchromeos.a
 LIBS += lib/vbexport/libvbexport.a
-LIBS += lib/vboot/libvboot.a
 endif
 
 LIBS += board/$(VENDOR)/chromeos/libchromeos_board.a

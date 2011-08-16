@@ -236,7 +236,7 @@
 
 	nand-controller@0x70008000 {
 		status = "ok";
-		wp-gpio = <&gpio 59 0>;		/* PH3 */
+		wp-gpio = <&gpio 59 3>;		/* PH3 */
 		width = <8>;
 	};
 };

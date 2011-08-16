@@ -31,7 +31,10 @@
 #include <asm/arch/pinmux.h>
 #include <asm/arch/gpio.h>
 #include <asm/errno.h>
+#include <fdt_decode.h>
 #include "tegra2_nand.h"
+
+DECLARE_GLOBAL_DATA_PTR;
 
 #define NAND_CMD_TIMEOUT_MS		10
 
@@ -51,32 +54,6 @@ enum {
 	ECC_DATA_ERROR = 1 << 1
 };
 
-enum {
-	TIMING_MAX_TRP_TREA,
-	TIMING_TWB,
-	TIMING_MAX_TCR_TAR_TRR,
-	TIMING_TWHR,
-	TIMING_MAX_TCS_TCH_TALS_TALH,
-	TIMING_TWH,
-	TIMING_TWP,
-	TIMING_TRH,
-	TIMING_TADL,
-
-	TIMING_COUNT
-};
-
-struct nand_config {
-	int	bus_width;	/* n bits */
-	int	page_data_bytes; /* n bytes in the data area of each page */
-	int	page_spare_bytes;/* n bytes in the spare area of each page */
-	int	skipped_spare_bytes;	/* At the beginning of spare area. */
-	int	rs_data_ecc_bytes;	/* How many ECC bytes for data area */
-	int	tag_bytes;	/* How many tag bytes in spare area */
-	int	tag_ecc_bytes;	/* How many ECC bytes for tag bytes */
-	int	wp_gpio;	/* GPIO to enable WRITE */
-	int	timing[TIMING_COUNT];	/* Timing information */
-};
-
 struct nand_info {
 	struct nand_ctlr *reg;
 /*
@@ -87,8 +64,8 @@ struct nand_info {
  * for NAND_CMD_READID.
  * And our controller returns 4 bytes at once in register RESP_0.
  */
-	int	pio_byte_index;
-	struct nand_config config;
+	int pio_byte_index;
+	struct fdt_nand config;
 };
 
 struct nand_info nand_ctrl;
@@ -497,10 +474,10 @@ static void stop_command(struct nand_ctlr *reg)
  * @param *reg_val: address of reg_val
  * @return: value is set in reg_val
  */
-static void set_bus_width_page_size(struct nand_config *config,
+static void set_bus_width_page_size(struct fdt_nand *config,
 	u32 *reg_val)
 {
-	if (config->bus_width == 8)
+	if (config->width == 8)
 		*reg_val = CFG_BUS_WIDTH_8BIT;
 	else
 		*reg_val = CFG_BUS_WIDTH_16BIT;
@@ -536,7 +513,7 @@ static int nand_rw_page(struct mtd_info *mtd, struct nand_chip *chip,
 	u32 tag_buf[128];
 	char *tag_ptr;
 	struct nand_info *info;
-	struct nand_config *config;
+	struct fdt_nand *config;
 
 	if (((int) buf) & 0x03) {
 		printf("buf 0x%X has to be 4-byte aligned\n", (u32) buf);
@@ -888,39 +865,40 @@ static int nand_write_oob(struct mtd_info *mtd, struct nand_chip *chip,
 	return nand_rw_oob(mtd, chip, page, 0, 1);
 }
 
-static void setup_timing(int timing[TIMING_COUNT], struct nand_ctlr *reg)
+static void setup_timing(int timing[FDT_NAND_TIMING_COUNT],
+			 struct nand_ctlr *reg)
 {
 	u32 reg_val, clk_rate, clk_period, time_val;
 
 	clk_rate = (u32) clock_get_periph_rate(PERIPH_ID_NDFLASH,
 		CLOCK_ID_PERIPH) / 1000000;
 	clk_period = 1000 / clk_rate;
-	reg_val = ((timing[TIMING_MAX_TRP_TREA] / clk_period) <<
+	reg_val = ((timing[FDT_NAND_MAX_TRP_TREA] / clk_period) <<
 		TIMING_TRP_RESP_CNT_SHIFT) & TIMING_TRP_RESP_CNT_MASK;
-	reg_val |= ((timing[TIMING_TWB] / clk_period) <<
+	reg_val |= ((timing[FDT_NAND_TWB] / clk_period) <<
 		TIMING_TWB_CNT_SHIFT) & TIMING_TWB_CNT_MASK;
-	time_val = timing[TIMING_MAX_TCR_TAR_TRR] / clk_period;
+	time_val = timing[FDT_NAND_MAX_TCR_TAR_TRR] / clk_period;
 	if (time_val > 2)
 		reg_val |= ((time_val - 2) << TIMING_TCR_TAR_TRR_CNT_SHIFT) &
 			TIMING_TCR_TAR_TRR_CNT_MASK;
-	reg_val |= ((timing[TIMING_TWHR] / clk_period) <<
+	reg_val |= ((timing[FDT_NAND_TWHR] / clk_period) <<
 		TIMING_TWHR_CNT_SHIFT) & TIMING_TWHR_CNT_MASK;
-	time_val = timing[TIMING_MAX_TCS_TCH_TALS_TALH] / clk_period;
+	time_val = timing[FDT_NAND_MAX_TCS_TCH_TALS_TALH] / clk_period;
 	if (time_val > 1)
 		reg_val |= ((time_val - 1) << TIMING_TCS_CNT_SHIFT) &
 			TIMING_TCS_CNT_MASK;
-	reg_val |= ((timing[TIMING_TWH] / clk_period) <<
+	reg_val |= ((timing[FDT_NAND_TWH] / clk_period) <<
 		TIMING_TWH_CNT_SHIFT) & TIMING_TWH_CNT_MASK;
-	reg_val |= ((timing[TIMING_TWP] / clk_period) <<
+	reg_val |= ((timing[FDT_NAND_TWP] / clk_period) <<
 		TIMING_TWP_CNT_SHIFT) & TIMING_TWP_CNT_MASK;
-	reg_val |= ((timing[TIMING_TRH] / clk_period) <<
+	reg_val |= ((timing[FDT_NAND_TRH] / clk_period) <<
 		TIMING_TRH_CNT_SHIFT) & TIMING_TRH_CNT_MASK;
-	reg_val |= ((timing[TIMING_MAX_TRP_TREA] / clk_period) <<
+	reg_val |= ((timing[FDT_NAND_MAX_TRP_TREA] / clk_period) <<
 		TIMING_TRP_CNT_SHIFT) & TIMING_TRP_CNT_MASK;
 	writel(reg_val, &reg->timing);
 
 	reg_val = 0;
-	time_val = timing[TIMING_TADL] / clk_period;
+	time_val = timing[FDT_NAND_TADL] / clk_period;
 	if (time_val > 2)
 		reg_val = (time_val - 2) & TIMING2_TADL_CNT_MASK;
 	writel(reg_val, &reg->timing2);
@@ -934,35 +912,49 @@ static void setup_timing(int timing[TIMING_COUNT], struct nand_ctlr *reg)
 int board_nand_init(struct nand_chip *nand)
 {
 	struct nand_info *info = &nand_ctrl;
-	struct nand_config *config = &info->config;
+	struct fdt_nand *config = &info->config;
+
+#ifdef CONFIG_OF_CONTROL
+	int node;
+
+	node = fdt_node_offset_by_compatible(gd->blob, 0, "nand-flash");
+	if (node < 0)
+		return -1;
+	if (fdt_decode_nand(gd->blob, node, config)) {
+		printf("Could not decode nand-flash in device tree\n");
+		return -1;
+	}
+	info->reg = config->reg;
+#else
+	int gpio;
 
 	/* get configuration settings from header file */
 	info->reg = (struct nand_ctlr *) CONFIG_SYS_NAND_BASE;
-	config->bus_width = CONFIG_NAND_BUS_WIDTH;
+	config->width = CONFIG_NAND_BUS_WIDTH;
 	config->page_data_bytes = CONFIG_NAND_PAGE_DATA_BYTES;
 	config->page_spare_bytes = CONFIG_NAND_PAGE_SPARE_BYTES;
 	config->skipped_spare_bytes = CONFIG_NAND_SKIPPED_SPARE_BYTES;
-	config->rs_data_ecc_bytes = CONFIG_NAND_RS_DATA_ECC_BYTES;
+	config->data_ecc_bytes = CONFIG_NAND_RS_DATA_ECC_BYTES;
 	config->tag_bytes = CONFIG_NAND_TAG_BYTES;
 	config->tag_ecc_bytes = CONFIG_NAND_TAG_ECC_BYTES;
 
-	config->timing[TIMING_MAX_TRP_TREA] = CONFIG_NAND_MAX_TRP_TREA;
-	config->timing[TIMING_TWB] = CONFIG_NAND_TWB;
-	config->timing[TIMING_MAX_TCR_TAR_TRR] =CONFIG_NAND_MAX_TCR_TAR_TRR;
-	config->timing[TIMING_TWHR] = CONFIG_NAND_TWHR;
-	config->timing[TIMING_MAX_TCS_TCH_TALS_TALH] =
+	config->timing[FDT_NAND_MAX_TRP_TREA] = CONFIG_NAND_MAX_TRP_TREA;
+	config->timing[FDT_NAND_TWB] = CONFIG_NAND_TWB;
+	config->timing[FDT_NAND_MAX_TCR_TAR_TRR] =CONFIG_NAND_MAX_TCR_TAR_TRR;
+	config->timing[FDT_NAND_TWHR] = CONFIG_NAND_TWHR;
+	config->timing[FDT_NAND_MAX_TCS_TCH_TALS_TALH] =
 			CONFIG_NAND_MAX_TCS_TCH_TALS_TALH;
-	config->timing[TIMING_TWH] = CONFIG_NAND_TWH;
-	config->timing[TIMING_TWP] = CONFIG_NAND_TWP;
-	config->timing[TIMING_TRH] = CONFIG_NAND_TRH;
-	config->timing[TIMING_TADL] = CONFIG_NAND_TADL;
+	config->timing[FDT_NAND_TWH] = CONFIG_NAND_TWH;
+	config->timing[FDT_NAND_TWP] = CONFIG_NAND_TWP;
+	config->timing[FDT_NAND_TRH] = CONFIG_NAND_TRH;
+	config->timing[FDT_NAND_TADL] = CONFIG_NAND_TADL;
 
-	info->config.wp_gpio = CONFIG_NAND_WP_GPIO;
-
-	eccoob.eccbytes = config->rs_data_ecc_bytes + config->tag_ecc_bytes;
+	gpio = CONFIG_NAND_WP_GPIO;
+#endif
+	eccoob.eccbytes = config->data_ecc_bytes + config->tag_ecc_bytes;
 	eccoob.oobavail = config->tag_bytes;
 	eccoob.oobfree[0].offset = config->skipped_spare_bytes +
-				config->rs_data_ecc_bytes;
+				config->data_ecc_bytes;
 	eccoob.oobfree[0].length = config->tag_bytes;
 
 	nand->ecc.mode = NAND_ECC_HW;
@@ -993,7 +985,11 @@ int board_nand_init(struct nand_chip *nand)
 
 	/* Pinmux ATC_SEL uses NAND */
 	pinmux_set_func(PINGRP_ATC, PMUX_FUNC_NAND);
-	gpio_direction_output(info->config.wp_gpio, 1);
+#ifdef CONFIG_OF_CONTROL
+	fdt_setup_gpio(&config->wp_gpio);
+#else
+	gpio_direction_output(gpio, 1);
+#endif
 
 	return 0;
 }

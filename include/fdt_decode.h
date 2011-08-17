@@ -28,7 +28,10 @@
  * changes to support FDT are minimized.
  */
 
+#ifdef CONFIG_SYS_NS16550
 #include <ns16550.h>
+#endif
+
 #include <asm/arch/clock.h>
 
 /* A typedef for a physical address. We should move it to a generic place */
@@ -81,12 +84,14 @@ struct fdt_uart {
 	enum fdt_compat_id compat; /* our selected driver */
 };
 
+#ifdef CONFIG_SYS_NS16550
 /* Information about the spi/uart switch */
 struct fdt_spi_uart {
 	int gpio;			/* GPIO to control switch */
 	NS16550_t regs;			/* Address of UART affected */
 	u32 port;			/* Port number of UART affected */
 };
+#endif
 
 enum {
 	FDT_GPIO_NONE = 255,	/* an invalid GPIO used to end our list */
@@ -339,6 +344,7 @@ int fdt_decode_next_compatible(const void *blob, int node,
 int fdt_decode_next_alias(const void *blob, const char *name,
 		enum fdt_compat_id id, int *upto);
 
+#ifdef CONFIG_SYS_NS16550
 /**
  * Returns information from the FDT about the SPI / UART switch on tegra
  * platforms.
@@ -348,6 +354,7 @@ int fdt_decode_next_alias(const void *blob, const char *name,
  * @returns 0 on success, -ve on error, in which case config is unchanged
  */
 int fdt_decode_get_spi_switch(const void *blob, struct fdt_spi_uart *config);
+#endif
 
 /**
  * Decode a single GPIOs from an FDT.

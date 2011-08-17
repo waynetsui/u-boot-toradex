@@ -327,6 +327,7 @@ int fdt_decode_next_alias(const void *blob, const char *name,
 	return err ? -FDT_ERR_MISSING : node;
 }
 
+#ifdef CONFIG_SYS_NS16550
 int fdt_decode_get_spi_switch(const void *blob, struct fdt_spi_uart *config)
 {
 	int node, uart_node;
@@ -350,6 +351,7 @@ int fdt_decode_get_spi_switch(const void *blob, struct fdt_spi_uart *config)
 		config->gpio = fdt32_to_cpu(gpio[1]);
 	return 0;
 }
+#endif
 
 int fdt_decode_memory(const void *blob, struct fdt_memory *config)
 {

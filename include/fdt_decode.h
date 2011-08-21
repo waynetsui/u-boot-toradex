@@ -39,10 +39,12 @@
 typedef u64 addr_t;
 #define ADDR_T_NONE (-1ULL)
 #define addr_to_cpu(reg) be64_to_cpu(reg)
+#define size_to_cpu(reg) be64_to_cpu(reg)
 #else
 typedef u32 addr_t;
 #define ADDR_T_NONE (-1U)
 #define addr_to_cpu(reg) be32_to_cpu(reg)
+#define size_to_cpu(reg) be32_to_cpu(reg)
 #endif
 
 /* Information obtained about memory from the FDT */

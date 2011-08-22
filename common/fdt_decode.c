@@ -372,24 +372,24 @@ int fdt_decode_memory(const void *blob, struct fdt_memory *config)
 	return 0;
 }
 
-int fdt_decode_gpios(const void *blob, int node, const char *property,
+int fdt_decode_gpios(const void *blob, int node, const char *prop_name,
 		struct fdt_gpio_state *gpio, int max_count)
 {
 	const u32 *cell;
 	int len, i;
 
-	debug("decode_gpios: %s\n", property);
+	debug("decode_gpios: %s\n", prop_name);
 	assert(max_count > 0);
-	cell = fdt_getprop(blob, node, property, &len);
+	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (!cell) {
-		debug("FDT: decode_gpios: property '%s' missing\n", property);
+		debug("FDT: decode_gpios: property '%s' missing\n", prop_name);
 		return -FDT_ERR_MISSING;
 	}
 
 	len /= sizeof(u32) * 3;		/* 3 cells per GPIO record */
 	if (len > max_count) {
 		printf("FDT: fdt_decode_gpios: too many GPIOs / cells for "
-			"property '%s'\n", property);
+			"property '%s'\n", prop_name);
 		return -FDT_ERR_BADLAYOUT;
 	}
 	for (i = 0; i < len; i++, cell += 3) {
@@ -406,22 +406,22 @@ int fdt_decode_gpios(const void *blob, int node, const char *property,
  *
  * @param blob		FDT blob to use
  * @param node		Node to look at
- * @param property	Node property name
+ * @param prop_name	Node property name
  * @param gpio		Array of gpio elements to fill from FDT
  * @param max_count	Maximum number of elements allowed, including the
  *			terminator
  * @return 0 if ok, -FDT_ERR_BADLAYOUT if max_count would be exceeded, or
  *		-FDT_ERR_MISSING if the property is missing.
  */
-static int decode_gpio_list(const void *blob, int node, const char *property,
+static int decode_gpio_list(const void *blob, int node, const char *prop_name,
 		 struct fdt_gpio_state *gpio, int max_count)
 {
-	int err = fdt_decode_gpios(blob, node, property, gpio, max_count - 1);
+	int err = fdt_decode_gpios(blob, node, prop_name, gpio, max_count - 1);
 
 	/* terminate the list */
 	if (err < 0) {
 		debug("FDT: decode_gpio_list: could not decode GPIO "
-			"property '%s'\n", property);
+			"property '%s'\n", prop_name);
 		return err;
 	}
 	gpio[err].gpio = FDT_GPIO_NONE;
@@ -429,14 +429,14 @@ static int decode_gpio_list(const void *blob, int node, const char *property,
 }
 #endif
 
-int fdt_decode_gpio(const void *blob, int node, const char *property,
+int fdt_decode_gpio(const void *blob, int node, const char *prop_name,
 		struct fdt_gpio_state *gpio)
 {
 	int err;
 
 	debug("decode_gpio: %s\n", prop_name);
 	gpio->gpio = FDT_GPIO_NONE;
-	err = fdt_decode_gpios(blob, node, property, gpio, 1);
+	err = fdt_decode_gpios(blob, node, prop_name, gpio, 1);
 	return err == 1 ? 0 : err;
 }
 

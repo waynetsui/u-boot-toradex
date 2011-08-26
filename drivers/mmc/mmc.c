@@ -55,7 +55,7 @@ int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd, struct mmc_data *data)
 #ifdef CONFIG_MMC_TRACE
 	int ret;
 	int i;
-	u8 *ptr;
+	uint *ptr;
 
 	printf("CMD_SEND:%d\n", cmd->cmdidx);
 	printf("\t\tARG\t\t\t 0x%08X\n", cmd->cmdarg);
@@ -425,8 +425,15 @@ sd_send_op_cond(struct mmc *mmc)
 
 int mmc_send_op_cond(struct mmc *mmc)
 {
-	int timeout = 10000;
+#define EMMC_FIX
+
+#ifdef EMMC_FIX
+	int timeout = 100;
+#else
+	int timeout = 10;
+#endif
 	struct mmc_cmd cmd;
+	uint start;
 	int err;
 
 	/* Some cards seem to need this */
@@ -444,26 +451,28 @@ int mmc_send_op_cond(struct mmc *mmc)
  		return err;
 
  	udelay(1000);
-
+	start = get_timer(0);
 	do {
 		cmd.cmdidx = MMC_CMD_SEND_OP_COND;
 		cmd.resp_type = MMC_RSP_R3;
+#ifdef EMMC_FIX
+		cmd.cmdarg = OCR_HCS | mmc->voltages;
+#else
 		cmd.cmdarg = (mmc_host_is_spi(mmc) ? 0 :
 				(mmc->voltages &
 				(cmd.response[0] & OCR_VOLTAGE_MASK)) |
 				(cmd.response[0] & OCR_ACCESS_MODE));
+#endif
 		cmd.flags = 0;
 
 		err = mmc_send_cmd(mmc, &cmd, NULL);
 
 		if (err)
 			return err;
+		if (get_timer(start) > timeout)
+			return UNUSABLE_ERR;
 
-		udelay(1000);
-	} while (!(cmd.response[0] & OCR_BUSY) && timeout--);
-
-	if (timeout <= 0)
-		return UNUSABLE_ERR;
+	} while (!(cmd.response[0] & OCR_BUSY));
 
 	if (mmc_host_is_spi(mmc)) { /* read OCR for spi */
 		cmd.cmdidx = MMC_CMD_SPI_READ_OCR;

@@ -23,7 +23,7 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include "ap20.h"
+#include <asm/arch-tegra/ap20.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch/pmc.h>

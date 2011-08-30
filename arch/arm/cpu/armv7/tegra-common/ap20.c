@@ -21,7 +21,6 @@
 * MA 02111-1307 USA
 */
 
-#include "ap20.h"
 #include <asm/io.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch/bitfield.h>
@@ -32,6 +31,7 @@
 #include <asm/arch/scu.h>
 #include <common.h>
 #include <asm/arch/warmboot.h>
+#include <asm/arch-tegra/ap20.h>
 #include "../../../../../board/nvidia/common/board.h"
 
 struct clk_pll_table {

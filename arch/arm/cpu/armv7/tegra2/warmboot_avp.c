@@ -30,7 +30,7 @@
 #include <asm/arch/tegra.h>
 #include <asm/arch/flow.h>
 #include <asm/arch/warmboot.h>
-#include "ap20.h"
+#include <asm/arch-tegra/ap20.h>
 #include "warmboot_avp.h"
 
 #define DEBUG_RESET_CORESIGHT

@@ -35,7 +35,7 @@
 #include <asm/arch/gp_padctrl.h>
 #include <asm/arch/warmboot.h>
 #include <asm/arch/sdram_param.h>
-#include "ap20.h"
+#include <asm/arch-tegra/ap20.h>
 
 #define BCT_OFFSET		0x100		/* BCT starts at 0x100 */
 #define BCT_SDRAM_PARAMS_OFFSET	(BCT_OFFSET + 0x88)

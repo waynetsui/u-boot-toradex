@@ -1,6 +1,4 @@
 #
-# (C) Copyright 2010,2011 Nvidia Corporation.
-#
 # (C) Copyright 2000-2003
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
@@ -23,20 +21,15 @@
 # MA 02111-1307 USA
 #
 
-# The AVP is ARMv4T architecture so we must use special compiler
-# flags for any files it might use.
-
-CFLAGS_arch/arm/cpu/armv7/tegra2/warmboot_avp.o += -march=armv4t
+CFLAGS_arch/arm/cpu/armv7/tegra-common/ap20.o += -march=armv4t
+CFLAGS_arch/arm/cpu/armv7/tegra-common/clock.o += -march=armv4t
 
 include $(TOPDIR)/config.mk
 
-LIB	=  $(obj)lib$(SOC).o
+LIB	= $(obj)libtegra-common.o
 
-SOBJS-y	:=
-COBJS-y	:= board.o display.o pinmux.o power.o pwfm.o sys_info.o
-
-COBJS-$(CONFIG_TEGRA2_LP0) += warmboot.o
-COBJS-$(CONFIG_TEGRA2_LP0) += warmboot_avp.o
+SOBJS-y	:= lowlevel_init.o
+COBJS-y	:= ap20.o clock.o timer.o
 
 SOBJS	:= $(SOBJS-y)
 COBJS	:= $(COBJS-y)
@@ -44,7 +37,7 @@ COBJS	:= $(COBJS-y)
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
 
-all:	 $(obj).depend $(LIB)
+all:	$(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
 	$(call cmd_link_o_target, $(OBJS))

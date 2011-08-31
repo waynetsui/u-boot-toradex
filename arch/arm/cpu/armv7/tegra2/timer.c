@@ -37,7 +37,7 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/timer.h>
 
 DECLARE_GLOBAL_DATA_PTR;

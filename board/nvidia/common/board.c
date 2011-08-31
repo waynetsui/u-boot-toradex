@@ -26,7 +26,7 @@
 #include <asm/clocks.h>
 #include <asm/io.h>
 #include <asm/arch/bitfield.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/gpio.h>
 

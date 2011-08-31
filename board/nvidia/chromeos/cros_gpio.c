@@ -13,7 +13,7 @@
 #include <common.h>
 #include <fdt_decode.h>
 #include <asm/arch/gpio.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/global_data.h>
 #include <chromeos/common.h>
 #include <chromeos/cros_gpio.h>

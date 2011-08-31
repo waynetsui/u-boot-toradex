@@ -23,7 +23,7 @@
 
 #include <asm/io.h>
 #include <asm/arch/bitfield.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/pinmux.h>
 #include <common.h>
 

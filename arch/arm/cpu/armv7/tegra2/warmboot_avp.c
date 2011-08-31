@@ -27,7 +27,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch/pmc.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/flow.h>
 #include <asm/arch/warmboot.h>
 #include "ap20.h"

@@ -26,6 +26,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/pmc.h>
 #include <asm/arch/power.h>
+#include <asm/arch/tegra.h>
 #include <common.h>
 
 void power_enable_partition(enum power_partition_id id)

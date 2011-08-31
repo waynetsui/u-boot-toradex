@@ -29,7 +29,7 @@
 #include <asm/arch/bitfield.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/tegra2_spi.h>
 #include "uart-spi-fix.h"
 

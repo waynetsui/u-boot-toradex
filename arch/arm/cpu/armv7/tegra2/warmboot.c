@@ -29,7 +29,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/pmc.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/tegra2.h>
+#include <asm/arch/tegra.h>
 #include <asm/arch/fuse.h>
 #include <asm/arch/emc.h>
 #include <asm/arch/gp_padctrl.h>

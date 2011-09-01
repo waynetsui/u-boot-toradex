@@ -26,35 +26,11 @@
 #include <asm/arch-tegra/ap20.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/tegra.h>
+#include <asm/arch-tegra/board.h>
 #include <asm/arch/pmc.h>
 #include <fdt_decode.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-/*
- * Boot ROM initializes the odmdata in APBDEV_PMC_SCRATCH20_0,
- * so we are using this value to identify memory size.
- */
-
-unsigned int query_sdram_size(void)
-{
-	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
-	u32 reg;
-
-	reg = readl(&pmc->pmc_scratch20);
-	debug("pmc->pmc_scratch20 (ODMData) = 0x%08X\n", reg);
-
-	/* bits 31:28 in OdmData are used for RAM size  */
-	switch ((reg) >> 28) {
-	case 1:
-		return 0x10000000;	/* 256 MB */
-	case 2:
-		return 0x20000000;	/* 512 MB */
-	case 3:
-	default:
-		return 0x40000000;	/* 1GB */
-	}
-}
 
 int dram_init(void)
 {
@@ -62,7 +38,7 @@ int dram_init(void)
 
 	/* We do not initialise DRAM here. We just query the size */
 	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = gd->ram_size = query_sdram_size();
+	gd->bd->bi_dram[0].size = gd->ram_size = board_query_sdram_size();
 
 	/* Now check it dynamically */
 	rs = get_ram_size(CONFIG_SYS_SDRAM_BASE, gd->ram_size);

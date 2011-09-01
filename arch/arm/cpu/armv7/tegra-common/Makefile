@@ -29,7 +29,7 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)libtegra-common.o
 
 SOBJS-y	:= lowlevel_init.o
-COBJS-y	:= ap20.o clock.o timer.o
+COBJS-y	:= ap20.o board.o clock.o timer.o
 
 SOBJS	:= $(SOBJS-y)
 COBJS	:= $(COBJS-y)

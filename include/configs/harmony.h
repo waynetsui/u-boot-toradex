@@ -124,7 +124,7 @@
 #define CONFIG_NAND_WP_GPIO	GPIO_PC7
 
 /* physical address to access nand at CS0 */
-#define CONFIG_SYS_NAND_BASE	TEGRA2_NAND_BASE
+#define CONFIG_SYS_NAND_BASE	TEGRA_NAND_BASE
 
 /* Max number of NAND devices */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1

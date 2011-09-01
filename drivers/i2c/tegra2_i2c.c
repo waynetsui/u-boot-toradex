@@ -393,10 +393,10 @@ static const enum periph_id i2c_periph_ids[CONFIG_SYS_MAX_I2C_BUS] = {
 };
 
 static const u32 *i2c_bus_base[CONFIG_SYS_MAX_I2C_BUS] = {
-	(u32 *)TEGRA2_DVC_BASE,
-	(u32 *)TEGRA2_I2C1_BASE,
-	(u32 *)TEGRA2_I2C2_BASE,
-	(u32 *)TEGRA2_I2C3_BASE
+	(u32 *)TEGRA_DVC_BASE,
+	(u32 *)TEGRA_I2C1_BASE,
+	(u32 *)TEGRA_I2C2_BASE,
+	(u32 *)TEGRA_I2C3_BASE
 };
 
 /* pinmux_configs based on the pinmux configuration */

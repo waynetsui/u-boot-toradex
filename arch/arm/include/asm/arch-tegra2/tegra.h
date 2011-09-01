@@ -25,6 +25,7 @@
 #define _TEGRA2_H_
 
 #define NV_PA_SDRAM_BASE	0x00000000
+#define TEGRA_SPI_BASE		0x7000C380
 
 #include <asm/arch-tegra/tegra.h>
 

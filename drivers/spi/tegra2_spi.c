@@ -76,7 +76,7 @@ void spi_free_slave(struct spi_slave *slave)
 
 void spi_init(void)
 {
-	struct spi_tegra *spi = (struct spi_tegra *)TEGRA2_SPI_BASE;
+	struct spi_tegra *spi = (struct spi_tegra *)TEGRA_SPI_BASE;
 	u32 reg;
 
 	/* Change SPI clock to 48MHz, PLLP_OUT0 source */
@@ -131,7 +131,7 @@ void spi_release_bus(struct spi_slave *slave)
 
 void spi_cs_activate(struct spi_slave *slave)
 {
-	struct spi_tegra *spi = (struct spi_tegra *)TEGRA2_SPI_BASE;
+	struct spi_tegra *spi = (struct spi_tegra *)TEGRA_SPI_BASE;
 	u32 val;
 
 	spi_enable();
@@ -143,7 +143,7 @@ void spi_cs_activate(struct spi_slave *slave)
 
 void spi_cs_deactivate(struct spi_slave *slave)
 {
-	struct spi_tegra *spi = (struct spi_tegra *)TEGRA2_SPI_BASE;
+	struct spi_tegra *spi = (struct spi_tegra *)TEGRA_SPI_BASE;
 	u32 val;
 
 	/* CS is negated on Tegra, so drive a 0 to get a 1 */
@@ -154,7 +154,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 		void *din, unsigned long flags)
 {
-	struct spi_tegra *spi = (struct spi_tegra *)TEGRA2_SPI_BASE;
+	struct spi_tegra *spi = (struct spi_tegra *)TEGRA_SPI_BASE;
 	unsigned int status;
 	int num_bytes = (bitlen + 7) / 8;
 	int i, ret, tm, bytes, bits, isRead = 0;

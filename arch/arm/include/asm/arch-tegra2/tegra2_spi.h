@@ -27,8 +27,6 @@
 
 #include <asm/types.h>
 
-#define TEGRA2_SPI_BASE			0x7000C380
-
 struct spi_tegra {
 	u32 command;	/* SPI_COMMAND_0 register  */
 	u32 status;	/* SPI_STATUS_0 register */

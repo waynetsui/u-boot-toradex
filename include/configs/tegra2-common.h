@@ -47,6 +47,7 @@
  */
 #define CONFIG_ARMCORTEXA9		/* This is an ARM V7 CPU core */
 #define CONFIG_TEGRA2			/* in a NVidia Tegra2 core */
+#define CONFIG_TEGRA			/* in the NVidia Tegra family */
 #define CONFIG_MACH_TEGRA_GENERIC	/* which is a Tegra generic machine */
 #define CONFIG_SYS_NO_L2CACHE		/* No L2 cache */
 #define CONFIG_BOOTSTAGE		/* Record boot time */
@@ -436,7 +437,7 @@
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		(CONFIG_SYS_CBSIZE)
 
-#define CONFIG_SYS_MEMTEST_START	(TEGRA2_SDRC_CS0 + 0x600000)
+#define CONFIG_SYS_MEMTEST_START	(TEGRA_SDRC_CS0 + 0x600000)
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + 0x100000)
 
 #define CONFIG_SYS_LOAD_ADDR		(0xA00800)	/* default */
@@ -454,7 +455,7 @@
  * Physical Memory Map
  */
 #define CONFIG_NR_DRAM_BANKS	1
-#define PHYS_SDRAM_1		TEGRA2_SDRC_CS0
+#define PHYS_SDRAM_1		TEGRA_SDRC_CS0
 #define PHYS_SDRAM_1_SIZE	0x20000000	/* 512M */
 
 #define CONFIG_SYS_TEXT_BASE	0x00E08000

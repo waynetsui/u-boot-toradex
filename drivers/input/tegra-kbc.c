@@ -41,8 +41,6 @@ enum {
 
 #define KBC_MAX_KEY	(KBC_MAX_ROW * KBC_MAX_COL)
 
-#define TEGRA2_KBC_BASE	0x7000E200
-
 /* KBC row scan time and delay for beginning the row scan. */
 #define KBC_ROW_SCAN_TIME	16
 #define KBC_ROW_SCAN_DLY	5
@@ -139,7 +137,7 @@ static int is_ghost_key_config(int *rows_val, int *cols_val, int valid)
 /* reads the keyboard fifo for current keypresses. */
 static int tegra_kbc_find_keys(int *fifo)
 {
-	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA2_KBC_BASE;
+	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA_KBC_BASE;
 	int rows_val[KBC_MAX_KPENT], cols_val[KBC_MAX_KPENT];
 	u32 kp_ent_val[(KBC_MAX_KPENT + 3) / 4];
 	u32 *kp_ents = kp_ent_val;
@@ -246,7 +244,7 @@ static int tegra_kbc_get_single_char(u32 fifo_cnt)
 /* manages keyboard hardware registers on keypresses and returns a key.*/
 static unsigned char tegra_kbc_get_char(void)
 {
-	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA2_KBC_BASE;
+	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA_KBC_BASE;
 	u32 val, ctl;
 	char key = 0;
 
@@ -447,7 +445,7 @@ static int kbd_getc(void)
 /* configures keyboard GPIO registers to use the rows and columns */
 static void config_kbc(void)
 {
-	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA2_KBC_BASE;
+	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA_KBC_BASE;
 	int i;
 
 	for (i = 0; i < KBC_MAX_GPIO; i++) {
@@ -477,7 +475,7 @@ static void config_kbc(void)
 
 static int tegra_kbc_open(void)
 {
-	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA2_KBC_BASE;
+	struct kbc_tegra *kbc = (struct kbc_tegra *)TEGRA_KBC_BASE;
 	unsigned int scan_time_rows, debounce_cnt, rpt_cnt;
 	u32 val = 0;
 

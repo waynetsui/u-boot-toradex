@@ -26,15 +26,15 @@
 #define TPS6586X_SUPPLYEND	0x13
 #define TPS6586X_SUPPLYENE	0x14
 
-extern uint32_t is_tegra2_processor_reset;
+extern uint32_t is_tegra_processor_reset;
 
 int is_processor_reset(void)
 {
-	if (is_tegra2_processor_reset == ~0U) {
-		VBDEBUG(PREFIX "error: is_tegra2_processor_reset "
+	if (is_tegra_processor_reset == ~0U) {
+		VBDEBUG(PREFIX "error: is_tegra_processor_reset "
 				"uninitialized\n");
 	}
-	return is_tegra2_processor_reset ? 1 : 0;
+	return is_tegra_processor_reset ? 1 : 0;
 }
 
 static int pmic_set_bit(int reg, int bit, int value)

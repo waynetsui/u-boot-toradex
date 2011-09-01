@@ -900,7 +900,7 @@ int clock_verify(void)
 	return 0;
 }
 
-uint32_t check_is_tegra2_processor_reset(void)
+uint32_t check_is_tegra_processor_reset(void)
 {
 	u32 base_reg;
 	struct clk_pll *pll;

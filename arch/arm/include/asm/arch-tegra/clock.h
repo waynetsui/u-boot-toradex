@@ -349,7 +349,7 @@ unsigned clock_adjust_periph_pll_div(enum periph_id periph_id,
 unsigned clock_get_rate(enum clock_id clkid);
 
 /* Return 1=processor reset; 0=not */
-uint32_t check_is_tegra2_processor_reset(void);
+uint32_t check_is_tegra_processor_reset(void);
 
 /*
  * Checks that clocks are valid and prints a warning if not

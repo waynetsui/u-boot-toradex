@@ -28,35 +28,45 @@
 
 #include <asm/arch-tegra/fuse.h>
 
+/* TBD: bring these over when Tegra3 is ready, then remove these #ifdefs */
+#ifdef CONFIG_TEGRA2
 #include <asm/arch/bitfield.h>
 #include <asm/arch/clk_rst.h>
+#endif
 #include <asm/arch/clock.h>
+#ifdef CONFIG_TEGRA2
 #include <asm/arch/emc.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch/pmc.h>
+#endif
 #include <asm/arch/sys_proto.h>
+#ifdef CONFIG_TEGRA2
 #include <asm/arch/uart.h>
 #include <asm/arch/usb.h>
+#include <asm/arch/warmboot.h>
+#endif
 #include <asm/arch/tegra.h>
 
+#ifdef CONFIG_TEGRA2_SPI
 #include <spi.h>
-#include <fdt_decode.h>
+#endif
+#ifdef CONFIG_TEGRA2_I2C
 #include <i2c.h>
+#endif
 #include "board.h"
 
 #ifdef CONFIG_TEGRA2_MMC
 #include <mmc.h>
 #endif
 #ifdef CONFIG_OF_CONTROL
+#include <fdt_decode.h>
 #include <libfdt.h>
 #endif
 
 #ifdef CONFIG_CHROMEOS
 #include <chromeos/common.h>
 #endif
-
-#include <asm/arch/warmboot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -70,7 +80,7 @@ enum {
 
 #ifndef CONFIG_OF_CONTROL
 const struct tegra_sysinfo sysinfo = {
-	CONFIG_TEGRA2_BOARD_STRING
+	CONFIG_TEGRA_BOARD_STRING
 };
 #endif
 
@@ -86,6 +96,7 @@ int timer_init(void)
 
 static void enable_uart(enum periph_id pid)
 {
+#if defined(CONFIG_TEGRA2)
 	/* Assert UART reset and enable clock */
 	reset_set_enable(pid, 1);
 	clock_enable(pid);
@@ -96,6 +107,7 @@ static void enable_uart(enum periph_id pid)
 
 	/* De-assert reset to UART */
 	reset_set_enable(pid, 0);
+#endif
 }
 
 /*
@@ -118,6 +130,7 @@ static void clock_init_uart(int uart_ids)
  */
 static void pin_mux_uart(int uart_ids)
 {
+#if defined(CONFIG_TEGRA2)
 	if (uart_ids & UARTA) {
 		pinmux_set_func(PINGRP_IRRX, PMUX_FUNC_UARTA);
 		pinmux_set_func(PINGRP_IRTX, PMUX_FUNC_UARTA);
@@ -132,6 +145,7 @@ static void pin_mux_uart(int uart_ids)
 		pinmux_set_func(PINGRP_GMC, PMUX_FUNC_UARTD);
 		pinmux_tristate_disable(PINGRP_GMC);
 	}
+#endif	/* CONFIG_TEGRA2 */
 }
 
 /*
@@ -142,12 +156,14 @@ static void pin_mux_uart(int uart_ids)
  */
 static void pin_mux_switches(void)
 {
+#if defined(CONFIG_TEGRA2)
 	/*
 	 * TODO(robotboy): Move this to the FDT once there is pin mux support
 	 * there.  Currently all Tegra based boards use the same GPIOs for
 	 * these switches.
 	 */
 	pinmux_set_pullupdown(PINGRP_ATD, PMUX_PULL_NORMAL);
+#endif	/* CONFIG_TEGRA2 */
 }
 
 #ifdef CONFIG_TEGRA2_MMC
@@ -205,11 +221,13 @@ static void gpio_init(const void *blob)
  */
 static void power_det_init(void)
 {
+#if defined(CONFIG_TEGRA2)
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 
 	/* turn off power detects */
 	writel(0, &pmc->pmc_pwr_det_latch);
 	writel(0, &pmc->pmc_pwr_det);
+#endif
 }
 
 /*

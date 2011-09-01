@@ -21,17 +21,15 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_H_
-#define _TEGRA2_H_
+#include <common.h>
 
-#define NV_PA_SDRAM_BASE	0x00000000
-#define TEGRA_SPI_BASE		0x7000C380
+#ifdef CONFIG_DISPLAY_CPUINFO
+/* Print CPU information */
+int print_cpuinfo(void)
+{
+	puts("TEGRA3\n");
 
-#define NV_PA_SDMMC1_BASE	0xC8000000
-#define NV_PA_SDMMC2_BASE	0xC8000200
-#define NV_PA_SDMMC3_BASE	0xC8000400
-#define NV_PA_SDMMC4_BASE	0xC8000600
-
-#include <asm/arch-tegra/tegra.h>
-
-#endif
+	/* TBD: Add printf of major/minor rev info, stepping, etc. */
+	return 0;
+}
+#endif	/* CONFIG_DISPLAY_CPUINFO */

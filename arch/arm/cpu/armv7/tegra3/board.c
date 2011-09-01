@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2010,2011
- * NVIDIA Corporation <www.nvidia.com>
+ *  (C) Copyright 2010,2011
+ *  NVIDIA Corporation <www.nvidia.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -21,17 +21,16 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_H_
-#define _TEGRA2_H_
+#include <common.h>
+#include <asm/io.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/tegra.h>
+#include <asm/arch-tegra/board.h>
 
-#define NV_PA_SDRAM_BASE	0x00000000
-#define TEGRA_SPI_BASE		0x7000C380
+DECLARE_GLOBAL_DATA_PTR;
 
-#define NV_PA_SDMMC1_BASE	0xC8000000
-#define NV_PA_SDMMC2_BASE	0xC8000200
-#define NV_PA_SDMMC3_BASE	0xC8000400
-#define NV_PA_SDMMC4_BASE	0xC8000600
-
-#include <asm/arch-tegra/tegra.h>
-
-#endif
+unsigned int board_query_sdram_size(void)
+{
+	/* TBD - check odmdata in PMC scratch reg */
+	return 0x40000000;	/* Cardhu = 1GB */
+}

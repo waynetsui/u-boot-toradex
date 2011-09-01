@@ -21,17 +21,4 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_H_
-#define _TEGRA2_H_
-
-#define NV_PA_SDRAM_BASE	0x00000000
-#define TEGRA_SPI_BASE		0x7000C380
-
-#define NV_PA_SDMMC1_BASE	0xC8000000
-#define NV_PA_SDMMC2_BASE	0xC8000200
-#define NV_PA_SDMMC3_BASE	0xC8000400
-#define NV_PA_SDMMC4_BASE	0xC8000600
-
-#include <asm/arch-tegra/tegra.h>
-
-#endif
+#include <asm/arch-tegra/sys_proto.h>

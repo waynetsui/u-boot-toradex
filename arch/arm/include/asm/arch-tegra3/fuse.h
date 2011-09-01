@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2010,2011
- * NVIDIA Corporation <www.nvidia.com>
+ *  (C) Copyright 2010,2011
+ *  NVIDIA Corporation <www.nvidia.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -21,17 +21,19 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_H_
-#define _TEGRA2_H_
+#ifndef _FUSE_H_
+#define _FUSE_H_
 
-#define NV_PA_SDRAM_BASE	0x00000000
-#define TEGRA_SPI_BASE		0x7000C380
+/* FUSE registers */
+struct fuse_regs {
+	u32 reserved0[64];		/* 0x00 - 0xFC: */
+	u32 production_mode;		/* 0x100: FUSE_PRODUCTION_MODE */
+	u32 reserved1[3];		/* 0x104 - 0x10c: */
+	u32 sku_info;			/* 0x110 */
+	u32 reserved2[13];		/* 0x114 - 0x144: */
+	u32 fa;				/* 0x148: FUSE_FA */
+	u32 reserved3[21];		/* 0x14C - 0x19C: */
+	u32 security_mode;		/* 0x1A0: FUSE_SECURITY_MODE */
+};
 
-#define NV_PA_SDMMC1_BASE	0xC8000000
-#define NV_PA_SDMMC2_BASE	0xC8000200
-#define NV_PA_SDMMC3_BASE	0xC8000400
-#define NV_PA_SDMMC4_BASE	0xC8000600
-
-#include <asm/arch-tegra/tegra.h>
-
-#endif
+#endif	/* ifndef _FUSE_H_ */

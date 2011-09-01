@@ -21,13 +21,4 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _SYS_PROTO_H_
-#define _SYS_PROTO_H_
-
-struct tegra2_sysinfo {
-	char *board_string;
-};
-
-extern const struct tegra2_sysinfo sysinfo;
-
-#endif
+#include <asm/arch-tegra/sys_proto.h>

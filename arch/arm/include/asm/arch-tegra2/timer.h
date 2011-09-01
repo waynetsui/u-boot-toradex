@@ -21,14 +21,4 @@
 
 /* Tegra2 timer functions */
 
-#ifndef _TEGRA2_TIMER_H
-#define _TEGRA2_TIMER_H
-
-/* returns the current monotonic timer value in microseconds */
-unsigned long timer_get_us(void);
-
-/* returns what the time will likely be some microseconds into the future */
-unsigned long timer_get_future_us(u32 delay);
-
-#endif
-
+#include <asm/arch-tegra/timer.h>

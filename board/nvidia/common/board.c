@@ -25,19 +25,21 @@
 #include <ns16550.h>
 #include <asm/clocks.h>
 #include <asm/io.h>
-#include <asm/arch/bitfield.h>
-#include <asm/arch/tegra.h>
-#include <asm/arch/sys_proto.h>
-#include <asm/arch/gpio.h>
 
+#include <asm/arch-tegra/fuse.h>
+
+#include <asm/arch/bitfield.h>
 #include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/emc.h>
+#include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
+#include <asm/arch/pmc.h>
+#include <asm/arch/sys_proto.h>
 #include <asm/arch/uart.h>
 #include <asm/arch/usb.h>
-#include <asm/arch/pmc.h>
-#include <asm/arch/fuse.h>
-#include <asm/arch/emc.h>
+#include <asm/arch/tegra.h>
+
 #include <spi.h>
 #include <fdt_decode.h>
 #include <i2c.h>
@@ -67,7 +69,7 @@ enum {
 };
 
 #ifndef CONFIG_OF_CONTROL
-const struct tegra2_sysinfo sysinfo = {
+const struct tegra_sysinfo sysinfo = {
 	CONFIG_TEGRA2_BOARD_STRING
 };
 #endif

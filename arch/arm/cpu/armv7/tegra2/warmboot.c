@@ -24,18 +24,20 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/errno.h>
+
+#include <asm/arch-tegra/ap20.h>
+#include <asm/arch-tegra/fuse.h>
+
 #include <asm/arch/bitfield.h>
 #include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/pmc.h>
-#include <asm/arch/pinmux.h>
-#include <asm/arch/tegra.h>
-#include <asm/arch/fuse.h>
 #include <asm/arch/emc.h>
 #include <asm/arch/gp_padctrl.h>
-#include <asm/arch/warmboot.h>
+#include <asm/arch/pinmux.h>
+#include <asm/arch/pmc.h>
 #include <asm/arch/sdram_param.h>
-#include <asm/arch-tegra/ap20.h>
+#include <asm/arch/tegra.h>
+#include <asm/arch/warmboot.h>
 
 #define BCT_OFFSET		0x100		/* BCT starts at 0x100 */
 #define BCT_SDRAM_PARAMS_OFFSET	(BCT_OFFSET + 0x88)

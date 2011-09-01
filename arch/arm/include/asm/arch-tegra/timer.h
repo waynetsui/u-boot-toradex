@@ -1,7 +1,5 @@
 /*
- * (C) Copyright 2010,2011
- * NVIDIA Corporation <www.nvidia.com>
- *
+ * Copyright (c) 2011 The Chromium OS Authors.
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -12,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -21,11 +19,15 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_H_
-#define _TEGRA2_H_
+/* Tegra2 timer functions */
 
-#define NV_PA_SDRAM_BASE	0x00000000
+#ifndef _TEGRA_TIMER_H
+#define _TEGRA_TIMER_H
 
-#include <asm/arch-tegra/tegra.h>
+/* returns the current monotonic timer value in microseconds */
+unsigned long timer_get_us(void);
+
+/* returns what the time will likely be some microseconds into the future */
+unsigned long timer_get_future_us(u32 delay);
 
 #endif

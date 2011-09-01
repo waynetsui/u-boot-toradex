@@ -21,11 +21,13 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_H_
-#define _TEGRA2_H_
+#ifndef _SYS_PROTO_H_
+#define _SYS_PROTO_H_
 
-#define NV_PA_SDRAM_BASE	0x00000000
+struct tegra_sysinfo {
+	char *board_string;
+};
 
-#include <asm/arch-tegra/tegra.h>
+extern const struct tegra_sysinfo sysinfo;
 
 #endif

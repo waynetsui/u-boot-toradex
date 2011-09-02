@@ -212,7 +212,7 @@ struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
 
 	mcx->flash.write = macronix_write;
 	mcx->flash.erase = macronix_erase;
-#ifdef CONFIG_SPI_FLASH_MACRONIX_NO_FAST_READ
+#ifdef CONFIG_SPI_FLASH_NO_FAST_READ
 	mcx->flash.read = spi_flash_cmd_read_slow;
 #else
 	mcx->flash.read = spi_flash_cmd_read_fast;

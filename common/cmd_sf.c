@@ -160,8 +160,8 @@ static int spi_flash_update(struct spi_flash *flash, u32 offset,
 	const char *err_oper = NULL;
 	char *cmp_buf;
 	const char *end = buf + len;
-	size_t todo;		/* number of bytes to do in this pass */
-	size_t skipped;		/* statistics */
+	size_t todo = 0;	/* number of bytes to do in this pass */
+	size_t skipped = 0;	/* statistics */
 
 	cmp_buf = malloc(flash->sector_size);
 	if (cmp_buf) {

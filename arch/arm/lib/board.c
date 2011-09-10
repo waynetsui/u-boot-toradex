@@ -421,7 +421,7 @@ void board_init_f (ulong bootflag)
 	debug ("Reserving %zu Bytes for Global Data at: %08lx\n",
 			sizeof (gd_t), addr_sp);
 
-#ifdef CONFIG_OF_SEPARATE
+#if defined(CONFIG_OF_SEPARATE) && defined(CONFIG_OF_CONTROL)
 	/*
 	 * If the device tree is sitting immediate above our image then we
 	 * must relocate it. If it is embedded in the data section, then it

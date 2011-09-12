@@ -118,7 +118,6 @@ static int macronix_write(struct spi_flash *flash,
 			  u32 offset, size_t len, const void *buf)
 {
 	struct macronix_spi_flash *mcx = to_macronix_spi_flash(flash);
-	unsigned long page_addr;
 	unsigned long byte_addr;
 	unsigned long page_size;
 	size_t chunk_len;
@@ -126,8 +125,7 @@ static int macronix_write(struct spi_flash *flash,
 	int ret;
 	u8 cmd[4];
 
-	page_size = mcx->params->page_size;
-	page_addr = offset / page_size;
+	page_size = min(mcx->params->page_size, CONTROLLER_PAGE_LIMIT);
 	byte_addr = offset % page_size;
 
 	ret = spi_claim_bus(flash->spi);
@@ -141,9 +139,9 @@ static int macronix_write(struct spi_flash *flash,
 		chunk_len = min(len - actual, page_size - byte_addr);
 
 		cmd[0] = CMD_MX25XX_PP;
-		cmd[1] = page_addr >> 8;
-		cmd[2] = page_addr;
-		cmd[3] = byte_addr;
+		cmd[1] = (offset >> 16) & 0xff;
+		cmd[2] = (offset >> 8) & 0xff;
+		cmd[3] = offset & 0xff;
 
 		debug
 		    ("PP: 0x%p => cmd = { 0x%02x 0x%02x%02x%02x } chunk_len = %d\n",
@@ -166,12 +164,12 @@ static int macronix_write(struct spi_flash *flash,
 		if (ret)
 			break;
 
-		page_addr++;
+		offset += chunk_len;
 		byte_addr = 0;
 	}
 
 	debug("SF: Macronix: Successfully programmed %u bytes @ 0x%x\n",
-	      len, offset);
+	      len, offset - len);
 
 	spi_release_bus(flash->spi);
 	return ret;

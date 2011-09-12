@@ -291,13 +291,11 @@ void board_init_f(ulong boot_flags)
 void board_init_r(gd_t *id, ulong dest_addr)
 {
 	char *s;
-	ulong size;
 	static bd_t bd_data;
 	static gd_t gd_data;
 	init_fnc_t **init_fnc_ptr;
 
 	show_boot_progress(0x21);
-
 	/* Global data pointer is now writable */
 	gd = &gd_data;
 	memcpy(gd, id, sizeof(gd_t));
@@ -318,52 +316,43 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		if ((*init_fnc_ptr)() != 0)
 			hang ();
 	}
+
+#if defined(CONFIG_PCI)
+	/*
+	 * Do pci configuration
+	 */
 	show_boot_progress(0x23);
+	pci_init();
+#endif
 
-#ifdef CONFIG_SERIAL_MULTI
-	serial_initialize();
-#endif
-	/* configure available FLASH banks */
-#ifdef CONFIG_SYS_NO_FLASH
-	size = 0;
-#else
-	size = flash_init();
-	display_flash_config(size);
-#endif
+#ifdef CONFIG_CMD_SPI
 	show_boot_progress(0x24);
-
-	show_boot_progress(0x25);
-
+	spi_init();
+#endif
 	/* initialize environment */
 	env_relocate ();
-	show_boot_progress(0x26);
-
 
 #ifdef CONFIG_CMD_NET
 	/* IP Address */
 	bd_data.bi_ip_addr = getenv_IPaddr ("ipaddr");
 #endif
 
-#if defined(CONFIG_PCI)
-	/*
-	 * Do pci configuration
-	 */
-	pci_init();
+#ifdef CONFIG_SERIAL_MULTI
+	show_boot_progress(0x25);
+	serial_initialize();
+#endif
+	/* configure available FLASH banks */
+#ifndef CONFIG_SYS_NO_FLASH
+	display_flash_config(flash_init());
 #endif
 
-	show_boot_progress(0x27);
-
-
+	show_boot_progress(0x26);
 	stdio_init ();
 
 	jumptable_init ();
 
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r();
-
-#ifdef CONFIG_CMD_SPI
-	spi_init();
-#endif
 
 #ifdef CONFIG_MISC_INIT_R
 	/* miscellaneous platform dependent initialisations */

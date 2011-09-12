@@ -179,7 +179,7 @@ static int macronix_write(struct spi_flash *flash,
 
 static int macronix_erase(struct spi_flash *flash, u32 offset, size_t len)
 {
-	return spi_flash_cmd_erase(flash, CMD_MX25XX_BE, offset, len);
+	return spi_flash_cmd_erase(flash, CMD_MX25XX_SE, offset, len);
 }
 
 struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
@@ -217,9 +217,9 @@ struct spi_flash *spi_flash_probe_macronix(struct spi_slave *spi, u8 *idcode)
 #else
 	mcx->flash.read = spi_flash_cmd_read_fast;
 #endif
-	mcx->flash.sector_size = params->page_size * params->pages_per_sector
-		* params->sectors_per_block;
-	mcx->flash.size = mcx->flash.sector_size * params->nr_blocks;
+	mcx->flash.sector_size = params->page_size * params->pages_per_sector;
+	mcx->flash.size = mcx->flash.sector_size * params->sectors_per_block *
+		params->nr_blocks;
 
 	return &mcx->flash;
 }

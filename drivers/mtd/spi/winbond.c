@@ -109,18 +109,14 @@ static int winbond_write(struct spi_flash *flash,
 		u32 offset, size_t len, const void *buf)
 {
 	struct winbond_spi_flash *stm = to_winbond_spi_flash(flash);
-	unsigned long page_addr;
 	unsigned long byte_addr;
 	unsigned long page_size;
-	unsigned int page_shift;
 	size_t chunk_len;
 	size_t actual;
 	int ret;
 	u8 cmd[4];
 
-	page_shift = stm->params->l2_page_size;
-	page_size = (1 << page_shift);
-	page_addr = offset / page_size;
+	page_size = min(1 << stm->params->l2_page_size, CONTROLLER_PAGE_LIMIT);
 	byte_addr = offset % page_size;
 
 	ret = spi_claim_bus(flash->spi);
@@ -133,9 +129,9 @@ static int winbond_write(struct spi_flash *flash,
 		chunk_len = min(len - actual, page_size - byte_addr);
 
 		cmd[0] = CMD_W25_PP;
-		cmd[1] = page_addr >> (16 - page_shift);
-		cmd[2] = page_addr << (page_shift - 8) | (byte_addr >> 8);
-		cmd[3] = byte_addr;
+		cmd[1] = (offset >> 16) & 0xff;
+		cmd[2] = (offset >> 8) & 0xff;
+		cmd[3] = offset & 0xff;
 		debug("PP: 0x%p => cmd = { 0x%02x 0x%02x%02x%02x } chunk_len = %d\n",
 			buf + actual,
 			cmd[0], cmd[1], cmd[2], cmd[3], chunk_len);
@@ -157,12 +153,12 @@ static int winbond_write(struct spi_flash *flash,
 		if (ret)
 			goto out;
 
-		page_addr++;
+		offset += chunk_len;
 		byte_addr = 0;
 	}
 
 	debug("SF: Winbond: Successfully programmed %u bytes @ 0x%x\n",
-			len, offset);
+			len, offset - len);
 	ret = 0;
 
 out:

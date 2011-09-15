@@ -33,7 +33,7 @@
 #include <asm/ic/coreboot/sysinfo.h>
 #include <chromeos/power_management.h>
 #include <chromeos/common.h>
-
+#include <asm/io.h>
 #ifdef CONFIG_HW_WATCHDOG
 #include <watchdog.h>
 #endif
@@ -69,6 +69,7 @@ int board_early_init_r(void)
 
 void show_boot_progress(int val)
 {
+	outb(val, 0x80);
 }
 
 

@@ -425,13 +425,7 @@ sd_send_op_cond(struct mmc *mmc)
 
 int mmc_send_op_cond(struct mmc *mmc)
 {
-#define EMMC_FIX
-
-#ifdef EMMC_FIX
-	int timeout = 100;
-#else
-	int timeout = 10;
-#endif
+	int timeout = 1000;
 	struct mmc_cmd cmd;
 	uint start;
 	int err;
@@ -450,19 +444,14 @@ int mmc_send_op_cond(struct mmc *mmc)
  	if (err)
  		return err;
 
- 	udelay(1000);
 	start = get_timer(0);
 	do {
 		cmd.cmdidx = MMC_CMD_SEND_OP_COND;
 		cmd.resp_type = MMC_RSP_R3;
-#ifdef EMMC_FIX
-		cmd.cmdarg = OCR_HCS | mmc->voltages;
-#else
 		cmd.cmdarg = (mmc_host_is_spi(mmc) ? 0 :
 				(mmc->voltages &
 				(cmd.response[0] & OCR_VOLTAGE_MASK)) |
 				(cmd.response[0] & OCR_ACCESS_MODE));
-#endif
 
 		if (mmc->host_caps & MMC_MODE_HC)
 			cmd.cmdarg |= OCR_HCS;

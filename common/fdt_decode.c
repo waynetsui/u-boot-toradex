@@ -518,8 +518,7 @@ int fdt_decode_lcd(const void *blob, struct fdt_lcd *config)
 			   &config->backlight_en);
 	err |= fdt_decode_gpio(blob, node, "lvds-shutdown",
 			   &config->lvds_shutdown);
-	err |= fdt_decode_gpio(blob, node, "backlight-vdd",
-			   &config->backlight_vdd);
+	fdt_decode_gpio(blob, node, "backlight-vdd", &config->backlight_vdd);
 	err |= fdt_decode_gpio(blob, node, "panel-vdd", &config->panel_vdd);
 	if (err)
 		return -FDT_ERR_MISSING;

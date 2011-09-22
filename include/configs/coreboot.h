@@ -22,20 +22,21 @@
  * MA 02111-1307 USA
  */
 
-#include <asm/ibmpc.h>
-/*
- * board/config.h - configuration options, board specific
- */
+#ifndef __CONFIG_COREBOOT_H
+#define __CONFIG_COREBOOT_H
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#include <asm/ibmpc.h>
 
 /*
  * High Level Configuration Options
  * (easy to change)
  */
 #define CONFIG_SYS_COREBOOT
-#undef CONFIG_SHOW_BOOT_PROGRESS
+#define CONFIG_SHOW_BOOT_PROGRESS
+
+/* FDT support */
+#define CONFIG_OF_LIBFDT	/* Device tree support */
+#define CONFIG_OF_CONTROL	/* Use the device tree to set up U-Boot */
 
 /*-----------------------------------------------------------------------
  * Memory layout
@@ -43,6 +44,8 @@
 /* TODO(sjg): Move these two to the fdt */
 #define CONFIG_VBGLOBAL_BASE		0x00FB0000
 #define CONFIG_SYS_TEXT_BASE		0x00FC0000
+
+/* SATA AHCI storage */
 
 #define CONFIG_SCSI_AHCI
 
@@ -82,10 +85,15 @@
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 
 #define CONFIG_CONSOLE_MUX
+
+/* turn on command-line edit/hist/auto */
 #define CONFIG_CMDLINE_EDITING	1
+#define CONFIG_COMMAND_HISTORY
+#define CONFIG_AUTOCOMPLETE
+
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
 #define CONFIG_STD_DEVICES_SETTINGS     "stdin=vga,serial\0" \
-                                        "stdout=vga,serial\0" \
+                                        "stdout=serial\0" \
                                         "stderr=vga,serial\0"
 
 /* max. 1 IDE bus	*/
@@ -126,7 +134,7 @@
  * VBoot Configuration.
  */
 #define CONFIG_CHROMEOS
-#define CHROMEOS_BOOTARGS ""
+
 /* This value is just to get the chromeos library to compile. */
 #define CHROMEOS_VBNVCONTEXT_LBA	0
 
@@ -141,20 +149,31 @@
 /*
  * Miscellaneous configurable options
  */
+#define V_PROMPT			"boot > "
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT			"boot > "
-#define CONFIG_SYS_CBSIZE			256
-#define CONFIG_SYS_PBSIZE			(CONFIG_SYS_CBSIZE + \
-						 sizeof(CONFIG_SYS_PROMPT) + \
-						 16)
-#define CONFIG_SYS_MAXARGS			16
-#define CONFIG_SYS_BARGSIZE			CONFIG_SYS_CBSIZE
+#define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#define CONFIG_SYS_PROMPT		V_PROMPT
+#define CONFIG_SILENT_CONSOLE
+/*
+ * Increasing the size of the IO buffer as default nfsargs size is more
+ *  than 256 and so it is not possible to edit it
+ */
+#define CONFIG_SYS_CBSIZE		( 256 * 2 ) /* Console I/O Buffer Size */
+/* Print Buffer Size */
+#define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
+					 sizeof(CONFIG_SYS_PROMPT) + 16)
+#define CONFIG_SYS_MAXARGS		32	/* max number of command args */
+/* Boot Argument Buffer Size */
+#define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
-#define CONFIG_SYS_MEMTEST_START		0x00100000
-#define CONFIG_SYS_MEMTEST_END			0x01000000
-#define CONFIG_SYS_LOAD_ADDR			0x100000
-#define CONFIG_SYS_HZ				1000
+#define CONFIG_SYS_MEMTEST_START	0x00100000
+#define CONFIG_SYS_MEMTEST_END		0x01000000
 
+#define CONFIG_SYS_LOAD_ADDR		0x100000
+#define CONFIG_SYS_HZ			1000
+
+/* coreboot tweaking */
 #define CONFIG_NO_RESET_CODE
 #define CONFIG_NO_REALMODE_CODE
 #define CONFIG_ZBOOT_32
@@ -162,7 +181,7 @@
 /*-----------------------------------------------------------------------
  * SDRAM Configuration
  */
-#define CONFIG_NR_DRAM_BANKS			4
+#define CONFIG_NR_DRAM_BANKS		4
 
 /*-----------------------------------------------------------------------
  * CPU Features
@@ -170,7 +189,7 @@
 
 #define CONFIG_SYS_GENERIC_TIMER
 #define CONFIG_SYS_PCAT_INTERRUPTS
-#define CONFIG_SYS_NUM_IRQS			16
+#define CONFIG_SYS_NUM_IRQS		16
 
 /*-----------------------------------------------------------------------
  * Memory organization:
@@ -179,11 +198,11 @@
  * 256kB Monitor
  * (4MB + Environment Sector Size) malloc pool
  */
-#define CONFIG_SYS_STACK_SIZE			(32 * 1024)
+#define CONFIG_SYS_STACK_SIZE		(32 * 1024)
 #define CONFIG_SYS_INIT_SP_ADDR		(256 * 1024 + 16 * 1024)
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
-#define CONFIG_SYS_MONITOR_LEN			(256 * 1024)
-#define CONFIG_SYS_MALLOC_LEN			(0x20000 + 4 * 1024 * 1024)
+#define CONFIG_SYS_MONITOR_LEN		(256 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(0x20000 + 4 * 1024 * 1024)
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -191,16 +210,15 @@
 /*-----------------------------------------------------------------------
  * FLASH configuration
  */
-#define CONFIG_SPI_FLASH
-#define CONFIG_NEW_SPI_XFER
 #define CONFIG_ICH_SPI
+#define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_MACRONIX
 #define CONFIG_SPI_FLASH_WINBOND
+#define CONFIG_NEW_SPI_XFER
 #define CONFIG_SPI_FLASH_NO_FAST_READ
-#define CONFIG_SYS_MAX_FLASH_SECT		1
-#define CONFIG_SYS_MAX_FLASH_BANKS		1
-
-#define CONFIG_SYS_NO_FLASH	/* means no NOR flash */
+#define CONFIG_SYS_MAX_FLASH_SECT	1
+#define CONFIG_SYS_MAX_FLASH_BANKS	1
+#define CONFIG_SYS_NO_FLASH
 
 /*-----------------------------------------------------------------------
  * Environment configuration
@@ -236,13 +254,6 @@
  */
 #define CONFIG_NET_MULTI
 
-#define CONFIG_LZMA		1
-#define CONFIG_SPLASH_SCREEN	1
-
-	/* FDT stuff */
-#define CONFIG_OF_LIBFDT
-#define CONFIG_OF_CONTROL
-
 /*-----------------------------------------------------------------------
  * Command line configuration.
  */
@@ -252,10 +263,11 @@
 #define CONFIG_CMD_BOOTD
 #define CONFIG_CMD_CONSOLE
 #define CONFIG_CMD_DATE
+#define CONFIG_CMD_DHCP
 #define CONFIG_CMD_ECHO
 #define CONFIG_CMD_EDITENV
 #undef CONFIG_CMD_FPGA
-#define CONFIG_CMD_IMI
+#undef CONFIG_CMD_IMI
 #undef CONFIG_CMD_FLASH
 #undef CONFIG_CMD_IMLS
 #define CONFIG_CMD_IRQ
@@ -272,16 +284,21 @@
 #define CONFIG_CMD_SAVEENV
 #undef CONFIG_CMD_SETGETDCR
 #define CONFIG_CMD_SOURCE
-#define CONFIG_CMD_SPI
-#undef CONFIG_CMD_XIMG
 #define CONFIG_CMD_SCSI
+#define CONFIG_CMD_SF
+#define CONFIG_CMD_SPI
+#define CONFIG_CMD_TIME
 #define CONFIG_CMD_CBFS
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_USB
+#undef CONFIG_CMD_XIMG
 
-#define CONFIG_BOOTDELAY			-1
-#undef  CONFIG_BOOTARGS
+/* Boot options */
+
+#define CONFIG_BOOTDELAY	0	/* -1 to disable auto boot */
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+#define CONFIG_BOOTARGS		""
 
 #define CONFIG_BOOTCOMMAND			"run set_bootargs; "\
 						"fatload ${devtype} ${devnum}:c 3000000 syslinux/vmlinuz.a; "\

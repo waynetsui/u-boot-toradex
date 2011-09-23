@@ -34,6 +34,7 @@
 #include <chromeos/power_management.h>
 #include <chromeos/common.h>
 #include <asm/io.h>
+#include <coreboot/timestamp.h>
 #ifdef CONFIG_HW_WATCHDOG
 #include <watchdog.h>
 #endif
@@ -53,7 +54,7 @@ int cpu_init_f(void)
 		printf("Failed to parse coreboot tables.\n");
 	}
 	gd->blob = lib_sysinfo.sys_fdt;
-
+	timestamp_init();
 	return ret;
 }
 

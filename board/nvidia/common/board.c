@@ -201,6 +201,10 @@ static void pin_mux_mmc(void)
 }
 #endif
 
+#ifdef CONFIG_TEGRA3
+#include "../cardhu/pinmux-config-common.h"
+#endif
+
 /*
  * Routine: pinmux_init
  * Description: Do individual peripheral pinmux configs
@@ -211,6 +215,14 @@ static void pinmux_init(int uart_ids)
 	pin_mux_uart(uart_ids);
 #endif
 	pin_mux_switches();
+
+#if defined(CONFIG_TEGRA3)
+	pinmux_config_table(tegra3_pinmux_common,
+				ARRAY_SIZE(tegra3_pinmux_common));
+
+	pinmux_config_table(unused_pins_lowpower,
+				ARRAY_SIZE(unused_pins_lowpower));
+#endif
 }
 
 /**

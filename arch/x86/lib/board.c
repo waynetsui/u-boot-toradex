@@ -271,6 +271,7 @@ void board_init_f(ulong boot_flags)
 	gd_t gd_data_f;
 	gd = &gd_data_f;
 	memset(gd, 0, sizeof(*gd));
+	gd->flags = boot_flags;
 
 	for (init_fnc_ptr = init_sequence_f; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0)

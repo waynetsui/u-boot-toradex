@@ -76,9 +76,11 @@ extern gd_t *gd;
 #define GD_START_ADDR_SP	11
 #define GD_RAM_SIZE	12
 #define GD_RESET_STATUS	13
-#define GD_JT		14
+#define GD_BLOB		14
+#define GD_JT		15
+#define GD_ENV_BUF	16
 
-#define GD_SIZE		15
+#define GD_SIZE		24
 
 /*
  * Global Data Flags

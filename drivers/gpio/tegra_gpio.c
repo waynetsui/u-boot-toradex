@@ -158,7 +158,7 @@ void gpio_set_value(int gp, int value)
 	__set_level(gp, value);
 }
 
-#ifdef CONFIG_CMD_TEGRA2_GPIO_INFO
+#ifdef CONFIG_CMD_TEGRA_GPIO_INFO
 /*
  * Display Tegra GPIO information
  */
@@ -175,7 +175,7 @@ static int gpio_info(int gp)
 	printf("gpio bits: 76543210\n");
 	printf("-------------------\n");
 
-	if (port < 0 || port > 27)
+	if (port < 0 || port > CONFIG_TEGRA_MAX_GPIO_PORT)
 		return -1;
 
 	printf("GPIO_CNF:  ");
@@ -204,13 +204,13 @@ static int gpio_info(int gp)
 
 	return 0;
 }
-#endif /* CONFIG_CMD_TEGRA2_GPIO_INFO */
+#endif /* CONFIG_CMD_TEGRA_GPIO_INFO */
 
 cmd_tbl_t cmd_gpio[] = {
 	U_BOOT_CMD_MKENT(offset2port, 3, 0, (void *)TEGRA2_CMD_PORT, "", ""),
 	U_BOOT_CMD_MKENT(output, 4, 0, (void *)TEGRA2_CMD_OUTPUT, "", ""),
 	U_BOOT_CMD_MKENT(input, 3, 0, (void *)TEGRA2_CMD_INPUT, "", ""),
-#ifdef CONFIG_CMD_TEGRA2_GPIO_INFO
+#ifdef CONFIG_CMD_TEGRA_GPIO_INFO
 	U_BOOT_CMD_MKENT(info, 3, 0, (void *)TEGRA2_CMD_INFO, "", ""),
 #endif
 };
@@ -243,7 +243,7 @@ int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		ul_arg3 = simple_strtoul(argv[3], NULL, 10) & 0x1;
 
 	switch ((int)c->cmd) {
-#ifdef CONFIG_CMD_TEGRA2_GPIO_INFO
+#ifdef CONFIG_CMD_TEGRA_GPIO_INFO
 	case TEGRA2_CMD_INFO:
 		if (argc == 3)
 			offset = (uint8_t)ul_arg2;
@@ -290,7 +290,7 @@ U_BOOT_CMD(
 	"GPIO access",
 	"offset2port offset\n"
 	"	- show GPIO port:bit based on 'offset'\n"
-#ifdef CONFIG_CMD_TEGRA2_GPIO_INFO
+#ifdef CONFIG_CMD_TEGRA_GPIO_INFO
 	"     info offset\n"
 	"	- display info for all bits in port based on 'offset'\n"
 #endif

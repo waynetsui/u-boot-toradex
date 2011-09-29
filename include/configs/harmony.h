@@ -63,8 +63,8 @@
 /* Environment not stored */
 #define CONFIG_ENV_IS_NOWHERE
 
-#define CONFIG_TEGRA2_GPIO
-#define CONFIG_CMD_TEGRA2_GPIO_INFO
+#define CONFIG_TEGRA_GPIO
+#define CONFIG_CMD_TEGRA_GPIO_INFO
 
 #define CONFIG_DEFAULT_DEVICE_TREE "tegra2-harmony"
 

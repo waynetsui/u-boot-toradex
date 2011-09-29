@@ -30,6 +30,32 @@
 #define GPIO_PORT8(x)	((x) >> 3)
 #define GPIO_BIT(x)	((x) & 0x7)
 
+/* GPIO Controller registers for a single bank */
+struct gpio_ctlr_bank {
+	uint gpio_config[TEGRA_GPIO_PORTS];
+	uint gpio_dir_out[TEGRA_GPIO_PORTS];
+	uint gpio_out[TEGRA_GPIO_PORTS];
+	uint gpio_in[TEGRA_GPIO_PORTS];
+	uint gpio_int_status[TEGRA_GPIO_PORTS];
+	uint gpio_int_enable[TEGRA_GPIO_PORTS];
+	uint gpio_int_level[TEGRA_GPIO_PORTS];
+	uint gpio_int_clear[TEGRA_GPIO_PORTS];
+
+	/* Tegra3 fields */
+	uint gpio_masked_config[TEGRA_GPIO_PORTS];
+	uint gpio_masked_dir_out[TEGRA_GPIO_PORTS];
+	uint gpio_masked_out[TEGRA_GPIO_PORTS];
+	uint gpio_masked_in[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_status[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_enable[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_level[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_clear[TEGRA_GPIO_PORTS];
+};
+
+struct gpio_ctlr {
+	struct gpio_ctlr_bank gpio_bank[TEGRA_GPIO_BANKS];
+};
+
 #define GPIO_PA0    0		/* port A (0), pin 0 */
 #define GPIO_PA1    1
 #define GPIO_PA2    2

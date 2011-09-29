@@ -1,0 +1,38 @@
+/dts-v1/;
+
+/memreserve/ 0x1c000000 0x04000000;
+/include/ "tegra30.dtsi"
+
+/ {
+	model = "Google Waluigi";
+	compatible = "google,waluigi", "nvidia,tegra30";
+
+	config {
+		silent_console = <0>;
+		odmdata = <0x300d8011>;
+		hwid = "ARM WALUIGI TEST 6231";
+		machine-arch-id = <3591>;
+	};
+
+	aliases {
+		console = "/serial@70006300";
+	};
+
+	chosen {
+		bootargs = "";
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x80000000 0xc0000000>;
+	};
+
+	serial@70006300 {
+		status = "ok";
+		/*
+		 * TBD - use CONFIG_SYS_PLLP_BASE_IS_408MHZ somehow here.
+		 * Currently I put this back to 216MHz in fdt_decode.c
+		 */
+		clock-frequency = <408000000>;
+	};
+};

@@ -215,6 +215,9 @@
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_CMD_I2C
 
+/* PMU and EMC support, requires i2c */
+#define CONFIG_TEGRA_CLOCK_SCALING
+
 /* TPM */
 #define CONFIG_INFINEON_TPM_I2C
 #define CONFIG_INFINEON_TPM_I2C_BUS	2

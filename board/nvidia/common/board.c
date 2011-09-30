@@ -254,7 +254,9 @@ int board_init(void)
 #ifdef CONFIG_TEGRA_I2C
 	/* Ramp up the core voltage, then change to full CPU speed */
 	i2c_init_board();
+#endif
 
+#ifdef CONFIG_TEGRA_CLOCK_SCALING
 	pmu_set_nominal();
 	arch_full_speed();
 #endif
@@ -268,7 +270,7 @@ int board_init(void)
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 #endif
 
-#ifdef CONFIG_TEGRA_I2C
+#ifdef CONFIG_TEGRA_CLOCK_SCALING
 	board_emc_init();
 #endif
 

@@ -27,7 +27,7 @@ include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
 
-COBJS-y	:= board.o sys_info.o
+COBJS-y	:= board.o pinmux.o sys_info.o
 
 COBJS	:= $(COBJS-y)
 

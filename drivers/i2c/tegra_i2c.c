@@ -26,10 +26,10 @@
 #include <asm/io.h>
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch-tegra/clk_rst.h>
+#include <asm/arch-tegra/i2c.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/tegra2_i2c.h>
 #include <fdt_decode.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -348,7 +348,7 @@ exit:
 	return error;
 }
 
-static int tegra2_i2c_write_data(u32 addr, u8 *data, u32 len)
+static int tegra_i2c_write_data(u32 addr, u8 *data, u32 len)
 {
 	int error;
 	struct i2c_trans_info trans_info;
@@ -361,12 +361,12 @@ static int tegra2_i2c_write_data(u32 addr, u8 *data, u32 len)
 
 	error = send_recv_packets(&i2c_controllers[i2c_bus_num], &trans_info);
 	if (error)
-		debug("tegra2_i2c_write_data: Error (%d) !!!\n", error);
+		debug("tegra_i2c_write_data: Error (%d) !!!\n", error);
 
 	return error;
 }
 
-static int tegra2_i2c_read_data(u32 addr, u8 *data, u32 len)
+static int tegra_i2c_read_data(u32 addr, u8 *data, u32 len)
 {
 	int error;
 	struct i2c_trans_info trans_info;
@@ -379,7 +379,7 @@ static int tegra2_i2c_read_data(u32 addr, u8 *data, u32 len)
 
 	error = send_recv_packets(&i2c_controllers[i2c_bus_num], &trans_info);
 	if (error)
-		debug("tegra2_i2c_read_data: Error (%d) !!!\n", error);
+		debug("tegra_i2c_read_data: Error (%d) !!!\n", error);
 
 	return error;
 }
@@ -489,7 +489,7 @@ int i2c_write_data(uchar chip, uchar *buffer, int len)
 		debug(" 0x%02x", buffer[rc]);
 	debug("\n");
 
-	rc = tegra2_i2c_write_data(I2C_ADDR_ON_BUS(chip), buffer, len);
+	rc = tegra_i2c_write_data(I2C_ADDR_ON_BUS(chip), buffer, len);
 	if (rc)
 		debug("i2c_write_data(): rc=%d\n", rc);
 
@@ -502,7 +502,7 @@ int i2c_read_data(uchar chip, uchar *buffer, int len)
 	int rc;
 
 	debug("inside i2c_read_data():\n");
-	rc = tegra2_i2c_read_data(I2C_ADDR_ON_BUS(chip), buffer, len);
+	rc = tegra_i2c_read_data(I2C_ADDR_ON_BUS(chip), buffer, len);
 	if (rc) {
 		debug("i2c_read_data(): rc=%d\n", rc);
 		return rc;

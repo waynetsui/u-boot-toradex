@@ -81,8 +81,8 @@ enum {
 #define TPM_TRANSPORT_CTRL_E_BIT  (1u << 5)
 #define TPM_TRANSPORT_CTRL_D_BIT  (1u << 2)
 
-/* FIXME: (should modify drivers/i2c/tegra2_i2c.c)
- *    following two functions only exist in i2c_tegra2.c driver
+/* FIXME: (should modify drivers/i2c/tegra_i2c.c)
+ *    following two functions only exist in tegra_i2c.c driver
  *    the impl should be what defined in u-boot header file
  *    int i2c_read(chip, addr_ignore, 0, *buffer, length);
  */

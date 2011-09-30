@@ -49,7 +49,7 @@
 #ifdef CONFIG_TEGRA2_SPI
 #include <spi.h>
 #endif
-#ifdef CONFIG_TEGRA2_I2C
+#ifdef CONFIG_TEGRA_I2C
 #include <i2c.h>
 #endif
 #include "board.h"
@@ -251,7 +251,7 @@ int board_init(void)
 #endif
 	power_det_init();
 
-#ifdef CONFIG_TEGRA2_I2C
+#ifdef CONFIG_TEGRA_I2C
 	/* Ramp up the core voltage, then change to full CPU speed */
 	i2c_init_board();
 
@@ -268,7 +268,7 @@ int board_init(void)
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE;
 #endif
 
-#ifdef CONFIG_TEGRA2_I2C
+#ifdef CONFIG_TEGRA_I2C
 	board_emc_init();
 #endif
 

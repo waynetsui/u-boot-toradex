@@ -22,8 +22,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_I2C_H_
-#define _TEGRA2_I2C_H_
+#ifndef _TEGRA_I2C_H_
+#define _TEGRA_I2C_H_
 
 #include <asm/types.h>
 

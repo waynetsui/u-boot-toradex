@@ -307,6 +307,9 @@ endif
 ifeq ($(SOC),tegra2)
 LIBS += $(CPUDIR)/tegra-common/libtegra-common.o
 endif
+ifeq ($(SOC),tegra3)
+LIBS += $(CPUDIR)/tegra-common/libtegra-common.o
+endif
 
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))

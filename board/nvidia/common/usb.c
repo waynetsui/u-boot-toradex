@@ -30,7 +30,7 @@
 #include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/uart.h>
+#include <asm/arch-tegra/uart.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/usb.h>
 #include <fdt_decode.h>

@@ -34,7 +34,7 @@
 #include <asm/arch/emc.h>
 #include <asm/arch/gp_padctrl.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/pmc.h>
+#include <asm/arch-tegra/pmc.h>
 #include <asm/arch/sdram_param.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch/warmboot.h>

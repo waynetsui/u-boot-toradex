@@ -31,12 +31,12 @@
 /* TBD: bring these over when Tegra3 is ready, then remove these #ifdefs */
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch-tegra/clk_rst.h>
+#include <asm/arch-tegra/pmc.h>
 #include <asm/arch/clock.h>
 #ifdef CONFIG_TEGRA2
 #include <asm/arch/emc.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/pmc.h>
 #endif
 #include <asm/arch/sys_proto.h>
 #ifdef CONFIG_TEGRA2

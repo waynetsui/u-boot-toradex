@@ -27,7 +27,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch-tegra/board.h>
-#include <asm/arch/pmc.h>
+#include <asm/arch-tegra/pmc.h>
 #include <fdt_decode.h>
 
 DECLARE_GLOBAL_DATA_PTR;

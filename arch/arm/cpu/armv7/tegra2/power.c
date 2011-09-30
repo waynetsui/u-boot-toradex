@@ -22,7 +22,7 @@
 /* Tegra2 power control functions */
 
 #include <asm/io.h>
-#include <asm/arch/bitfield.h>
+#include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/pmc.h>
 #include <asm/arch/power.h>

@@ -28,7 +28,7 @@
 #include <asm/arch-tegra/ap20.h>
 #include <asm/arch-tegra/fuse.h>
 
-#include <asm/arch/bitfield.h>
+#include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/emc.h>

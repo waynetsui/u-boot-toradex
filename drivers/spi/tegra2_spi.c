@@ -28,7 +28,7 @@
 #include <spi.h>
 #include <asm/clocks.h>
 #include <asm/io.h>
-#include <asm/arch/bitfield.h>
+#include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>

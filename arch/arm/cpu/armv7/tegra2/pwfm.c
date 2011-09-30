@@ -22,7 +22,7 @@
 /* Tegra2 pulse width frequency modulator definitions */
 
 #include <asm/io.h>
-#include <asm/arch/bitfield.h>
+#include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/pwfm.h>
 
 void pwfm_setup(struct pwfm_ctlr *pwfm, int enable, int pulse_width,

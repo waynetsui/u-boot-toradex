@@ -22,7 +22,7 @@
 /* Tegra2 pin multiplexing functions */
 
 #include <asm/io.h>
-#include <asm/arch/bitfield.h>
+#include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch/pinmux.h>
 #include <common.h>

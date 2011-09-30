@@ -65,7 +65,7 @@
  *	writel(RegVal, UsbBase+USB_SUSP_CTRL);
  *	if(UsbBase == NV_ADDRESS_MAP_USB3_BASE)
  *	{
- *      	RegVal = readl(UsbBase+USB_SUSP_CTRL);
+ *		RegVal = readl(UsbBase+USB_SUSP_CTRL);
  *		RegVal |= Bit12;
  *		writel(RegVal, UsbBase+USB_SUSP_CTRL);
  *	}
@@ -125,13 +125,13 @@
  */
 #define bf_writel(field, value, reg) ({		\
 	u32 *__reg = (u32 *)(reg);			\
-	u32 __oldval = readl(__reg); 			\
+	u32 __oldval = readl(__reg);			\
 	bf_update(field, __oldval, value);		\
 	writel(__oldval, __reg);				\
 	})
 
 /* Unpacks a field from a register using readl */
-#define bf_readl(field, reg) 			\
+#define bf_readl(field, reg)			\
 	bf_unpack(field, readl(reg))
 
 /*

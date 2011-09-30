@@ -29,8 +29,8 @@
 #include <asm/arch-tegra/fuse.h>
 
 /* TBD: bring these over when Tegra3 is ready, then remove these #ifdefs */
+#include <asm/arch-tegra/bitfield.h>
 #ifdef CONFIG_TEGRA2
-#include <asm/arch/bitfield.h>
 #include <asm/arch/clk_rst.h>
 #endif
 #include <asm/arch/clock.h>

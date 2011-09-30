@@ -26,7 +26,7 @@
 #include <libfdt.h>
 #include <fdt_decode.h>
 #include <fdt_support.h>
-#include <asm/arch/bitfield.h>
+#include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch/tegra.h>

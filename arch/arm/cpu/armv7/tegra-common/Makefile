@@ -21,6 +21,8 @@
 # MA 02111-1307 USA
 #
 
+# The AVP is ARMv4T architecture so we must use special compiler
+# flags for any files it might use.
 CFLAGS_arch/arm/cpu/armv7/tegra-common/ap20.o += -march=armv4t
 CFLAGS_arch/arm/cpu/armv7/tegra-common/clock.o += -march=armv4t
 

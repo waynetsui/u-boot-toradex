@@ -23,6 +23,12 @@
 
 include $(TOPDIR)/config.mk
 
+# Tegra has an ARMv4T CPU which runs board_init_f(), so we must build this
+# file with compatible flags
+ifdef CONFIG_TEGRA
+CFLAGS_arch/arm/lib/board.o += -march=armv4t
+endif
+
 LIB	= $(obj)lib$(ARCH).o
 LIBGCC	= $(obj)libgcc.o
 

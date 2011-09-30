@@ -33,6 +33,7 @@
 #include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch-tegra/pmc.h>
 #include <asm/arch-tegra/uart.h>
+#include <asm/arch-tegra/warmboot.h>
 #include <asm/arch/clock.h>
 #ifdef CONFIG_TEGRA2
 #include <asm/arch/emc.h>
@@ -42,7 +43,6 @@
 #include <asm/arch/sys_proto.h>
 #ifdef CONFIG_TEGRA2
 #include <asm/arch/usb.h>
-#include <asm/arch/warmboot.h>
 #endif
 #include <asm/arch/tegra.h>
 

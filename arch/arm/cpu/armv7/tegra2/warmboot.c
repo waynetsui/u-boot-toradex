@@ -37,7 +37,7 @@
 #include <asm/arch-tegra/pmc.h>
 #include <asm/arch/sdram_param.h>
 #include <asm/arch/tegra.h>
-#include <asm/arch/warmboot.h>
+#include <asm/arch-tegra/warmboot.h>
 
 #define BCT_OFFSET		0x100		/* BCT starts at 0x100 */
 #define BCT_SDRAM_PARAMS_OFFSET	(BCT_OFFSET + 0x88)

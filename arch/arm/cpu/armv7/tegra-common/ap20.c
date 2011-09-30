@@ -30,7 +30,7 @@
 #include <asm/arch/pinmux.h>
 #include <asm/arch-tegra/scu.h>
 #include <common.h>
-#include <asm/arch/warmboot.h>
+#include <asm/arch-tegra/warmboot.h>
 #include <asm/arch-tegra/ap20.h>
 #include "../../../../../board/nvidia/common/board.h"
 

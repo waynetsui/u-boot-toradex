@@ -28,7 +28,7 @@
 #include <asm/arch/pinmux.h>
 #include <asm/arch-tegra/pmc.h>
 #include <asm/arch/tegra.h>
-#include <asm/arch/flow.h>
+#include <asm/arch-tegra/flow.h>
 #include <asm/arch-tegra/warmboot.h>
 #include <asm/arch-tegra/ap20.h>
 #include "warmboot_avp.h"

@@ -9,7 +9,7 @@
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/arch/clk_rst.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/pmu.h>
 #include <asm/arch/emc.h>

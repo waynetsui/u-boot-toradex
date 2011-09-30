@@ -53,7 +53,7 @@ enum {
 
 /* Clock/Reset Controller (CLK_RST_CONTROLLER_) regs */
 struct clk_rst_ctlr {
- 	uint crc_rst_src;			/* _RST_SOURCE_0,0x00 */
+	uint crc_rst_src;			/* _RST_SOURCE_0,0x00 */
 	uint crc_rst_dev[TEGRA_CLK_REGS];	/* _RST_DEVICES_L/H/U_0 */
 	uint crc_clk_out_enb[TEGRA_CLK_REGS];	/* _CLK_OUT_ENB_L/H/U_0 */
 	uint crc_reserved0;		/* reserved_0,		0x1C */

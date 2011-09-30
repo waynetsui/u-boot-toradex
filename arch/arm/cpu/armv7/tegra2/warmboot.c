@@ -29,7 +29,7 @@
 #include <asm/arch-tegra/fuse.h>
 
 #include <asm/arch-tegra/bitfield.h>
-#include <asm/arch/clk_rst.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/emc.h>
 #include <asm/arch/gp_padctrl.h>

@@ -25,7 +25,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <nand.h>
-#include <asm/arch/clk_rst.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/clocks.h>
 #include <asm/arch/pinmux.h>

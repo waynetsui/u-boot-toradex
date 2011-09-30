@@ -24,7 +24,7 @@
 #include <linux/ctype.h>
 #include <mmc.h>
 #include <asm/io.h>
-#include <asm/arch/clk_rst.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
 #include <malloc.h>

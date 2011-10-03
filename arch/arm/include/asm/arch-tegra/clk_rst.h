@@ -48,7 +48,7 @@ enum {
 	TEGRA_CLK_PLLS		= 6,	/* Number of normal PLLs */
 	TEGRA_CLK_SIMPLE_PLLS	= 3,	/* Number of simple PLLs */
 	TEGRA_CLK_REGS		= 3,	/* Number of clock enable registers */
-	TEGRA_CLK_SOURCES	= 64,	/* Number of peripheral clock sources */
+	TEGRA_CLK_SOURCES	= 64,	/* Number of periph clock sources */
 };
 
 /* Clock/Reset Controller (CLK_RST_CONTROLLER_) regs */
@@ -87,6 +87,27 @@ struct clk_rst_ctlr {
 	uint crc_reserved20[80];	/*			0x200-33C */
 	uint crc_cpu_cmplx_set;		/* _CPU_CMPLX_SET_0,	0x340	  */
 	uint crc_cpu_cmplx_clr;		/* _CPU_CMPLX_CLR_0,	0x344     */
+
+	/* T30 things */
+	uint crc_clk_cpu_cmplx_set;	/* _CLK_CPU_CMPLX_SET_0, 0x348	  */
+	uint crc_clk_cpu_cmplx_clr;	/* _CLK_CPU_CMPLX_CLR_0, 0x34c    */
+	uint crc_reserved12[2];		/* reserved_12		0x350-354 */
+	uint crc_rst_devices_v;		/* _RST_DEVICES_V	0x358	  */
+	uint crc_rst_devices_w;		/* _RST_DEVICES_W	0x35c	  */
+	uint crc_clk_out_enb_v;		/* _CLK_OUT_ENB_V	0x360	  */
+	uint crc_clk_out_enb_w;		/* _CLK_OUT_ENB_W	0x364	  */
+	uint crc_cclkg_burst_policy;	/* _CCLKG_BURST_POLICY	0x368	  */
+	uint crc_super_cclkg_divider;	/* _SUPER_CCLKG_DIVIDER	0x36c	  */
+	uint crc_cclklp_burst_policy;	/* _CCLKLP_BURST_POLICY	0x370	  */
+	uint crc_super_cclklp_divider;	/* _SUPER_CCLKLP_DIVIDER 0x374	  */
+	uint crc_clk_cpug_cmplx;	/* _CLK_CPUG_CMPLX	0x378	  */
+	uint crc_clk_cpulp_cmplx;	/* _CLK_CPULP_CMPLX	0x37c	  */
+	uint crc_cpu_softrst_ctrl;	/* _CPU_SOFTRST_CTRL	0x380	  */
+	uint crc_reserved13[11];	/* reserved_13		0x384-3ac */
+	uint crc_clk_source_g3d2;	/* _CLK_SOURCE_G3D2	0x3b0	  */
+	uint crc_clk_source_mselect;	/* _CLK_SOURCE_MSELECT	0x3b4	  */
+
+	/* the road goes ever on and on... */
 };
 
 /* CLK_RST_CONTROLLER_CLK_CPU_CMPLX_0 */
@@ -114,5 +135,69 @@ struct clk_rst_ctlr {
 #define OUT_CLK_DIVISOR_RANGE	7:0
 #define OUT_CLK_SOURCE_RANGE	31:30
 #define OUT_CLK_SOURCE4_RANGE	31:28
+
+/* CLK_RST_CONTROLLER_CLK_SOURCE_MSELECT */
+#define MSELECT_CLK_M_SHIFT	30
+#define MSELECT_CLK_M_MASK	(3U << MSELECT_CLK_M_SHIFT)
+
+/* CLK_RST_CONTROLLER_SCLK_BURST_POLICY */
+#define SCLK_SYS_STATE_SHIFT	28U
+#define SCLK_SYS_STATE_MASK	(15U << SCLK_SYS_STATE_SHIFT)
+enum {
+	SCLK_SYS_STATE_STDBY,
+	SCLK_SYS_STATE_IDLE,
+	SCLK_SYS_STATE_RUN,
+	SCLK_SYS_STATE_IRQ = 4U,
+	SCLK_SYS_STATE_FIQ = 8U,
+};
+#define SCLK_COP_FIQ_MASK	(1 << 27)
+#define SCLK_CPU_FIQ_MASK	(1 << 26)
+#define SCLK_COP_IRQ_MASK	(1 << 25)
+#define SCLK_CPU_IRQ_MASK	(1 << 24)
+#define SCLK_SWAKEUP_FIQ_SOURCE_SHIFT		12
+#define SCLK_SWAKEUP_FIQ_SOURCE_MASK		\
+		(7 << SCLK_SWAKEUP_FIQ_SOURCE_SHIFT)
+#define SCLK_SWAKEUP_IRQ_SOURCE_SHIFT		8
+#define SCLK_SWAKEUP_IRQ_SOURCE_MASK		\
+		(7 << SCLK_SWAKEUP_FIQ_SOURCE_SHIFT)
+#define SCLK_SWAKEUP_RUN_SOURCE_SHIFT		4
+#define SCLK_SWAKEUP_RUN_SOURCE_MASK		\
+		(7 << SCLK_SWAKEUP_FIQ_SOURCE_SHIFT)
+#define SCLK_SWAKEUP_IDLE_SOURCE_SHIFT		0
+#define SCLK_SWAKEUP_IDLE_SOURCE_MASK		\
+		(7 << SCLK_SWAKEUP_FIQ_SOURCE_SHIFT)
+enum {
+	SCLK_SOURCE_CLKM,
+	SCLK_SOURCE_PLLC_OUT1,
+	SCLK_SOURCE_PLLP_OUT4,
+	SCLK_SOURCE_PLLP_OUT3,
+	SCLK_SOURCE_PLLP_OUT2,
+	SCLK_SOURCE_CLKD,
+	SCLK_SOURCE_CLKS,
+	SCLK_SOURCE_PLLM_OUT1,
+};
+#define SCLK_SWAKE_FIQ_SRC_PLLM_OUT1	(7 << 12)
+#define SCLK_SWAKE_IRQ_SRC_PLLM_OUT1	(7 << 8)
+#define SCLK_SWAKE_RUN_SRC_PLLM_OUT1	(7 << 4)
+#define SCLK_SWAKE_IDLE_SRC_PLLM_OUT1	(7 << 0)
+
+/* CLK_RST_CONTROLLER_SUPER_SCLK_DIVIDER */
+#define SUPER_SCLK_ENB_SHIFT		31U
+#define SUPER_SCLK_ENB_MASK		(1U << 31)
+#define SUPER_SCLK_DIVIDEND_SHIFT	8
+#define SUPER_SCLK_DIVIDEND_MASK	(0xff << SUPER_SCLK_DIVIDEND_SHIFT)
+#define SUPER_SCLK_DIVISOR_SHIFT	0
+#define SUPER_SCLK_DIVISOR_MASK		(0xff << SUPER_SCLK_DIVISOR_SHIFT)
+
+
+/* CLK_RST_CONTROLLER_CLK_SYSTEM_RATE */
+#define CLK_SYS_RATE_HCLK_DISABLE_SHIFT	7
+#define CLK_SYS_RATE_HCLK_DISABLE_MASK	(1 << CLK_SYS_RATE_HCLK_DISABLE_SHIFT)
+#define CLK_SYS_RATE_AHB_RATE_SHIFT	4
+#define CLK_SYS_RATE_AHB_RATE_MASK	(3 << CLK_SYS_RATE_AHB_RATE_SHIFT)
+#define CLK_SYS_RATE_PCLK_DISABLE_SHIFT	3
+#define CLK_SYS_RATE_PCLK_DISABLE_MASK	(1 << CLK_SYS_RATE_PCLK_DISABLE_SHIFT)
+#define CLK_SYS_RATE_APB_RATE_SHIFT	0
+#define CLK_SYS_RATE_APB_RATE_MASK	(3 << CLK_SYS_RATE_AHB_RATE_SHIFT)
 
 #endif	/* CLK_RST_H */

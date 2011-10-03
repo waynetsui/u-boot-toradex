@@ -31,6 +31,8 @@ struct flow_ctlr {
 	u32	cop_csr;
 	u32	halt_cpu1_events;
 	u32	cpu1_csr;
+	u32	spare[5];
+	u32	control;
 };
 
 #endif

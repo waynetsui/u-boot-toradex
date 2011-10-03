@@ -23,9 +23,12 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/arch/tegra.h>
+#include <asm/arch-tegra/ap20.h>
 #include <asm/arch-tegra/pmc.h>
+#include <asm/arch/tegra.h>
 #include <fdt_decode.h>
+
+DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * Boot ROM initializes the odmdata in APBDEV_PMC_SCRATCH20_0,
@@ -50,4 +53,46 @@ unsigned int board_query_sdram_size(void)
 	default:
 		return 0x40000000;	/* 1GB */
 	}
+}
+
+#if defined(CONFIG_DISPLAY_BOARDINFO) || defined(CONFIG_DISPLAY_BOARDINFO_LATE)
+int checkboard(void)
+{
+	const char *board_name;
+#ifdef CONFIG_OF_CONTROL
+	board_name = fdt_decode_get_model(gd->blob);
+#else
+	board_name = sysinfo.board_string;
+#endif
+	printf("Board: %s\n", board_name);
+	return 0;
+}
+#endif	/* CONFIG_DISPLAY_BOARDINFO */
+
+#ifdef CONFIG_ARCH_CPU_INIT
+/*
+ * Note this function is executed by the ARM7TDMI AVP. It does not return
+ * in this case. It is also called once the A9 starts up, but does nothing in
+ * that case.
+ */
+int arch_cpu_init(void)
+{
+	/* Fire up the Cortex A9 */
+	if (ap20_cpu_is_cortexa9())
+		bootstage_mark(BOOTSTAGE_MAIN_CPU_AWAKE, "arch_cpu_init A9");
+	else
+		bootstage_mark(BOOTSTAGE_CPU_AWAKE, "arch_cpu_init AVP");
+	tegra_start();
+	/* If tegra_start() returns, we are running on the A9 */
+
+	/* We didn't do this init in start.S, so do it now */
+	cpu_init_crit();
+	bootstage_mark(BOOTSTAGE_MAIN_CPU_READY, "arch_cpu_init done");
+	return 0;
+}
+#endif
+
+void arch_full_speed(void)
+{
+	ap20_init_pllx(0);
 }

@@ -64,6 +64,32 @@ static struct clk_pll_table tegra_pll_x_table[TEGRA_SOC_COUNT]
 	},
 };
 
+enum tegra_family_t {
+	TEGRA_FAMILY_T2x,
+	TEGRA_FAMILY_T3x,
+};
+
+#define GP_HIDREV	0x804
+
+static enum tegra_family_t ap20_get_family(void)
+{
+	u32 reg, chip_id;
+
+	reg = readl(NV_PA_APB_MISC_BASE + GP_HIDREV);
+
+	chip_id = reg >> 8;
+	chip_id &= 0xff;
+	if (chip_id == 0x30)
+		return TEGRA_FAMILY_T3x;
+	else
+		return TEGRA_FAMILY_T2x;
+}
+
+int ap20_get_num_cpus(void)
+{
+	return ap20_get_family() == TEGRA_FAMILY_T3x ? 4 : 2;
+}
+
 int ap20_cpu_is_cortexa9(void)
 {
 	u32 id = readb(NV_PA_PG_UP_BASE + PG_UP_TAG_0);
@@ -239,11 +265,14 @@ static void reset_A9_cpu(int reset)
 	*        AVP only talks to the master. The AVP does not know that there
 	*        are multiple processors in the CPU complex.
 	*/
+	int mask = crc_rst_cpu | crc_rst_de | crc_rst_debug;
+	int num_cpus = ap20_get_num_cpus();
+	int cpu;
 
-	/* Hold CPU 1 in reset, and CPU 0 if asked */
-	reset_cmplx_set_enable(1, crc_rst_cpu | crc_rst_de | crc_rst_debug, 1);
-	reset_cmplx_set_enable(0, crc_rst_cpu | crc_rst_de | crc_rst_debug,
-			       reset);
+	/* Hold CPUs 1 onwards in reset, and CPU 0 if asked */
+	for (cpu = 1; cpu < num_cpus; cpu++)
+		reset_cmplx_set_enable(cpu, mask, 1);
+	reset_cmplx_set_enable(0, mask, reset);
 
 	/* Enable/Disable master CPU reset */
 	reset_set_enable(PERIPH_ID_CPU, reset);

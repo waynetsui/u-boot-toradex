@@ -22,6 +22,7 @@
 /* Tegra2 Clock control functions */
 
 #include <asm/io.h>
+#include <asm/arch-tegra/ap20.h>
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
@@ -788,8 +789,11 @@ void reset_cmplx_set_enable(int cpu, int which, int reset)
 			(struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
 	u32 mask;
 
-	/* Form the mask, which depends on the cpu chosen. Tegra2 has 2 */
-	assert(cpu >= 0 && cpu < 2);
+	/*
+	 * Form the mask, which depends on the cpu chosen. Tegra2 has 2,
+	 * Tegra3 has 4.
+	 */
+	assert(cpu >= 0 && cpu < ap20_get_num_cpus());
 	mask = which << cpu;
 
 	/* either enable or disable those reset for that CPU */

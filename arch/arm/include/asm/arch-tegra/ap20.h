@@ -110,3 +110,10 @@ int ap20_cpu_is_cortexa9(void);
  * @param slow	1 to run in safe/slow mode, 0 to run at full speed
  */
 void ap20_init_pllx(int slow);
+
+/**
+ * Returns the number of CPUs supported by the SOC
+ *
+ * @return number of CPUs (1-4)
+ */
+int ap20_get_num_cpus(void);

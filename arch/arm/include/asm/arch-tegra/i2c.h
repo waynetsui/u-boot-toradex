@@ -168,4 +168,28 @@ struct i2c_ctlr {
 #define I2C_INT_NO_ACK_RANGE			3 : 3
 #define I2C_INT_ARBITRATION_LOST_RANGE		2 : 2
 
+/**
+ * Low level, hopefully temporary, functions to write values to the
+ * Tegra DVC I2C controller. These are used by T30 init, when running
+ * on the AVP CPU, before the Cortex-A9s are up. It is not easy to
+ * have the i2c infrastructure up that early, but we still want to put
+ * this code in the driver
+ */
+
+/**
+ * Write an address (with config) to the DVC I2C
+ *
+ * @param addr		Address to write
+ * @param config	Config to write
+ */
+void tegra_i2c_ll_write_addr(uint addr, uint config);
+
+/**
+ * Write a data word (with config) to the DVC I2C
+ *
+ * @param data		Data to write
+ * @param config	Config to write
+ */
+void tegra_i2c_ll_write_data(uint data, uint config);
+
 #endif

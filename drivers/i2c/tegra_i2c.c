@@ -32,6 +32,9 @@
 #include <asm/arch/pinmux.h>
 #include <fdt_decode.h>
 
+/* TODO(sjg): This driver has not been tested with Tegra3 yet */
+#ifdef CONFIG_TEGRA2
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static unsigned int i2c_bus_num;
@@ -623,3 +626,30 @@ int i2c_set_bus_num(unsigned int bus)
 	return 0;
 }
 #endif
+
+#else /* not CONFIG_TEGRA2 */
+
+/* Not implemented for now */
+int i2c_init_board(void)
+{
+	printf("i2c support is not available on T30\n");
+	return -1;
+}
+
+#endif /* CONFIG_TEGRA2 */
+
+void tegra_i2c_ll_write_addr(uint addr, uint config)
+{
+	struct i2c_ctlr *reg = (struct i2c_ctlr *)TEGRA_DVC_BASE;
+
+	writel(addr, &reg->cmd_addr0);
+	writel(config, &reg->cnfg);
+}
+
+void tegra_i2c_ll_write_data(uint data, uint config)
+{
+	struct i2c_ctlr *reg = (struct i2c_ctlr *)TEGRA_DVC_BASE;
+
+	writel(data, &reg->cmd_data1);
+	writel(config, &reg->cnfg);
+}

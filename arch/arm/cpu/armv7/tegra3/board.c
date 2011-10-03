@@ -29,8 +29,9 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-unsigned int board_query_sdram_size(void)
+int dram_init(void)
 {
-	/* TBD - check odmdata in PMC scratch reg */
-	return 0x40000000;	/* Cardhu = 1GB */
+	/* We do not initialise DRAM here. We just query the size */
+	gd->ram_size = board_query_sdram_size();
+	return 0;
 }

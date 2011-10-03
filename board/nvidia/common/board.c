@@ -365,6 +365,13 @@ int tegra_get_chip_type(void)
 	case SKU_ID_AP25E:
 	case SKU_ID_T25E:
 		return TEGRA_SOC_T25;
+	case SKU_ID_T30:
+#ifdef CONFIG_SYS_PLLP_BASE_IS_408MHZ
+		return TEGRA_SOC_T30_408MHZ;
+#else
+		return TEGRA_SOC_T30;
+#endif
+
 	default:
 		/* unknown sku id */
 		return TEGRA_SOC_UNKNOWN;

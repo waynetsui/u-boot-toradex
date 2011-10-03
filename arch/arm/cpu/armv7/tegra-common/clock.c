@@ -925,7 +925,11 @@ void clock_early_init(void)
 	 */
 	switch (clock_get_osc_freq()) {
 	case CLOCK_OSC_FREQ_12_0: /* OSC is 12Mhz */
+#ifdef CONFIG_SYS_PLLP_BASE_IS_408MHZ
+		clock_set_rate(CLOCK_ID_PERIPH, 408, 12, 0, 8);
+#else
 		clock_set_rate(CLOCK_ID_PERIPH, 432, 12, 1, 8);
+#endif
 		clock_set_rate(CLOCK_ID_CGENERAL, 600, 12, 0, 8);
 		break;
 

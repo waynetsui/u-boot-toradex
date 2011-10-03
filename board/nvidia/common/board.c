@@ -38,8 +38,8 @@
 #ifdef CONFIG_TEGRA2
 #include <asm/arch/emc.h>
 #include <asm/arch/gpio.h>
-#include <asm/arch/pinmux.h>
 #endif
+#include <asm/arch/pinmux.h>
 #include <asm/arch/sys_proto.h>
 #ifdef CONFIG_TEGRA2
 #include <asm/arch/usb.h>
@@ -94,7 +94,6 @@ int timer_init(void)
 
 static void enable_uart(enum periph_id pid)
 {
-#if defined(CONFIG_TEGRA2)
 	/* Assert UART reset and enable clock */
 	reset_set_enable(pid, 1);
 	clock_enable(pid);
@@ -105,7 +104,6 @@ static void enable_uart(enum periph_id pid)
 
 	/* De-assert reset to UART */
 	reset_set_enable(pid, 0);
-#endif
 }
 
 /*
@@ -197,7 +195,9 @@ static void pin_mux_mmc(void)
  */
 static void pinmux_init(int uart_ids)
 {
+#if defined(CONFIG_TEGRA2)
 	pin_mux_uart(uart_ids);
+#endif
 	pin_mux_switches();
 }
 

@@ -23,9 +23,6 @@
 # MA 02111-1307 USA
 #
 
-# The AVP is ARMv4T architecture so we must use special compiler
-# flags for any files it might use.
-
 include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o

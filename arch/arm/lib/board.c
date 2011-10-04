@@ -605,7 +605,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 	/* IP Address */
-	gd->bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
+	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
 
 	stdio_init ();	/* get the devices list going. */
 
@@ -667,7 +667,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #if defined(CONFIG_NET_MULTI)
 	puts ("Net:   ");
 #endif
-	eth_initialize(gd->bd);
+	eth_initialize(bd);
 #if defined(CONFIG_RESET_PHY_R)
 	debug ("Reset Ethernet PHY\n");
 	reset_phy();

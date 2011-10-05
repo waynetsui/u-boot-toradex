@@ -286,6 +286,8 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 
 void boot_zimage(void *setup_base, void *load_address)
 {
+	printf("\nStarting kernel ...\n\n");
+
 #if defined CONFIG_NO_REALMODE_CODE || defined CONFIG_ZBOOT_32
 	/*
 	 * Set %ebx, %ebp, and %edi to 0, %esi to point to the boot_params
@@ -361,8 +363,6 @@ int do_zboot (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		(u32)base_ptr);
 
 	/* we assume that the kernel is in place */
-	printf("\nStarting kernel ...\n\n");
-
 	boot_zimage(base_ptr, load_address);
 	/* does not return */
 

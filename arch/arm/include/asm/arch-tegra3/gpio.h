@@ -24,11 +24,37 @@
 
 #define CONFIG_TEGRA_MAX_GPIO_PORT	30	/* GPIO_PEEx */
 
+#include <asm/arch-tegra/gpio.h>
+
 /*
  * The Tegra 3x GPIO controller has 246 GPIOs arranged in 8 banks of 4 ports,
  * each with 8 GPIOs.
  */
-#include <asm/arch-tegra/gpio.h>
+
+/* GPIO Controller registers for a single bank */
+struct gpio_ctlr_bank {
+	uint gpio_config[TEGRA_GPIO_PORTS];
+	uint gpio_dir_out[TEGRA_GPIO_PORTS];
+	uint gpio_out[TEGRA_GPIO_PORTS];
+	uint gpio_in[TEGRA_GPIO_PORTS];
+	uint gpio_int_status[TEGRA_GPIO_PORTS];
+	uint gpio_int_enable[TEGRA_GPIO_PORTS];
+	uint gpio_int_level[TEGRA_GPIO_PORTS];
+	uint gpio_int_clear[TEGRA_GPIO_PORTS];
+
+	uint gpio_masked_config[TEGRA_GPIO_PORTS];
+	uint gpio_masked_dir_out[TEGRA_GPIO_PORTS];
+	uint gpio_masked_out[TEGRA_GPIO_PORTS];
+	uint gpio_masked_in[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_status[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_enable[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_level[TEGRA_GPIO_PORTS];
+	uint gpio_masked_int_clear[TEGRA_GPIO_PORTS];
+};
+
+struct gpio_ctlr {
+	struct gpio_ctlr_bank gpio_bank[TEGRA_GPIO_BANKS];
+};
 
 #define GPIO_PCC0   224
 #define GPIO_PCC1   225

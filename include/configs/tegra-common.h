@@ -176,7 +176,7 @@
  *   extra_bootargs: Filled in by update_firmware_vars.py script in some cases.
  */
 #define CONFIG_REGEN_ALL_SETTINGS \
-	"common_bootargs=cros_legacy " CONFIG_BOOTARGS "\0" \
+	"common_bootargs=cros_legacy " CONFIG_DIRECT_BOOTARGS "\0" \
 	\
 	"dev_extras=\0" \
 	"extra_bootargs=\0" \

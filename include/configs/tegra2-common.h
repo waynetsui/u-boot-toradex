@@ -131,6 +131,14 @@
 	TEGRA_LP0_VEC " " \
 	TEGRA2_SYSMEM
 
+/*
+ * Extra bootargs used for direct booting, but not for vboot.
+ * - vmalloc >= carveout size + framebuffer size - 32MB
+ */
+#define CONFIG_DIRECT_BOOTARGS \
+	CONFIG_BOOTARGS " " \
+	"vmalloc=234MB"
+
 #define CONFIG_SYS_LOAD_ADDR		(0xA00800)	/* default */
 
 /*-----------------------------------------------------------------------

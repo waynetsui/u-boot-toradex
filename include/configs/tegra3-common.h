@@ -59,6 +59,12 @@
 #define CONFIG_BOOTARGS \
 	CONFIG_LINUXCONSOLE
 
+/*
+ * Extra bootargs used for direct booting, but not for vboot.
+ * Not needed for T30.
+ */
+#define CONFIG_DIRECT_BOOTARGS		CONFIG_BOOTARGS
+
 #define CONFIG_SYS_LOAD_ADDR		(0x80A00800)	/* default */
 
 /*-----------------------------------------------------------------------

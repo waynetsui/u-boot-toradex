@@ -24,7 +24,7 @@
 		write-protect-switch	= <&gpio 59 0>;
 		recovery-switch		= <&gpio 56 4>;
 		developer-switch	= <&gpio 168 0>;
-		lid-switch		= <&gpio 23 4>;
+		/* Seaboard's lid-switch is ignored */
 		power-switch		= <&gpio 170 4>;
 	};
 

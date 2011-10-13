@@ -24,6 +24,7 @@
 		write-protect-switch	= <&gpio 59 0>;
 		recovery-switch		= <&gpio 56 4>;
 		developer-switch	= <&gpio 168 0>;
+		/* Asymptote does not have a lid-switch or power-switch */
 	};
 
 	aliases {

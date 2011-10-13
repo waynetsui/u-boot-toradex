@@ -22,12 +22,24 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static char *gpio_name[CROS_GPIO_MAX_GPIO] = {
-	"write-protect-switch",
-	"recovery-switch",
-	"developer-switch",
-	"lid-switch",
-	"power-switch",
+struct cros_gpio {
+	char *name;
+	int default_value;
+};
+
+/*
+ * This list provides names matching the dts files and the default value that
+ * the gpio should take. If the gpio is strictly required, use
+ * FDT_GPIO_NONE to fail out on the gpio functions. To use a default value
+ * for a gpio (in the case where it's not specified in the dts file), fill in
+ * a 1 or 0 in the default value field.
+ */
+static struct cros_gpio gpios[CROS_GPIO_MAX_GPIO] = {
+	{ "write-protect-switch", FDT_GPIO_NONE },
+	{ "recovery-switch", FDT_GPIO_NONE },
+	{ "developer-switch", FDT_GPIO_NONE },
+	{ "lid-switch", 1 },
+	{ "power-switch", 0 },
 };
 
 static int g_config_node = -1;
@@ -43,8 +55,17 @@ int misc_init_r(void)
 		return -1;
 
 	for (i = 0; i < CROS_GPIO_MAX_GPIO; i++) {
-		if (fdt_decode_gpio(gd->blob, config_node, gpio_name[i], &gs))
-			return -1;
+		if (fdt_decode_gpio(gd->blob, config_node, gpios[i].name,
+			&gs)) {
+			/*
+			 * If the gpio has a default value (ie. not required,
+			 * just ignore it)
+			 */
+			if (gpios[i].default_value == FDT_GPIO_NONE)
+				return -1;
+			else
+				continue;
+		}
 		fdt_setup_gpio(&gs);
 	}
 
@@ -75,9 +96,17 @@ int cros_gpio_fetch(enum cros_gpio_index index, cros_gpio_t *gpio)
 	assert(g_config_node >= 0);
 	assert(index >= 0 && index < CROS_GPIO_MAX_GPIO);
 
-	if (fdt_decode_gpio(gd->blob, g_config_node, gpio_name[index], &gs)) {
-		VBDEBUG(PREFIX "fail to decode gpio: %d\n", index);
-		return -1;
+	if (fdt_decode_gpio(gd->blob, g_config_node, gpios[index].name, &gs)) {
+		if (gpios[index].default_value == FDT_GPIO_NONE) {
+			VBDEBUG(PREFIX "fail to decode gpio: %d\n", index);
+			return -1;
+		} else {
+			gpio->index = -1;
+			gpio->port = -1;
+			gpio->polarity = CROS_GPIO_ACTIVE_HIGH;
+			gpio->value = gpios[index].default_value;
+			return 0;
+		}
 	}
 
 	gpio->index = index;

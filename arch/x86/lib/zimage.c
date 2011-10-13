@@ -37,6 +37,7 @@
 #include <asm/byteorder.h>
 #include <asm/bootparam.h>
 #include <asm/ic/sc520.h>
+#include <coreboot/timestamp.h>
 
 /*
  * Memory lay-out:
@@ -287,6 +288,7 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 void boot_zimage(void *setup_base, void *load_address)
 {
 	printf("\nStarting kernel ...\n\n");
+	timestamp_add_now(TS_U_BOOT_START_KERNEL);
 
 #if defined CONFIG_NO_REALMODE_CODE || defined CONFIG_ZBOOT_32
 	/*

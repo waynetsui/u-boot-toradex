@@ -32,9 +32,6 @@
 #include <asm/arch/pinmux.h>
 #include <fdt_decode.h>
 
-/* TODO(sjg): This driver has not been tested with Tegra3 yet */
-#ifdef CONFIG_TEGRA2
-
 DECLARE_GLOBAL_DATA_PTR;
 
 static unsigned int i2c_bus_num;
@@ -61,6 +58,7 @@ struct i2c_bus i2c_controllers[CONFIG_SYS_MAX_I2C_BUS];
 
 static void i2c_pin_mux_select(struct i2c_bus *i2c_bus, int pinmux_config)
 {
+#ifdef CONFIG_TEGRA2
 	switch (i2c_bus->periph_id) {
 	case PERIPH_ID_DVC_I2C:	/* DVC I2C (I2CP) */
 		/* there is only one selection, pinmux_config is ignored */
@@ -95,7 +93,9 @@ static void i2c_pin_mux_select(struct i2c_bus *i2c_bus, int pinmux_config)
 	default:
 		break;
 	}
+#endif
 }
+
 
 /**
  * tristate : 0 - NORMAL
@@ -104,6 +104,7 @@ static void i2c_pin_mux_select(struct i2c_bus *i2c_bus, int pinmux_config)
 static void i2c_pin_mux_tristate(struct i2c_bus *i2c_bus, int pinmux_config,
 				 int tristate)
 {
+#ifdef CONFIG_TEGRA2
 	enum pmux_pingrp pin;
 
 	switch (i2c_bus->periph_id) {
@@ -140,6 +141,7 @@ static void i2c_pin_mux_tristate(struct i2c_bus *i2c_bus, int pinmux_config,
 	}
 
 	pinmux_set_tristate(pin, tristate);
+#endif
 }
 
 static void set_packet_mode(struct i2c_bus *i2c_bus)
@@ -642,17 +644,6 @@ int i2c_set_bus_num(unsigned int bus)
 	return 0;
 }
 #endif
-
-#else /* not CONFIG_TEGRA2 */
-
-/* Not implemented for now */
-int i2c_init_board(void)
-{
-	printf("i2c support is not available on T30\n");
-	return -1;
-}
-
-#endif /* CONFIG_TEGRA2 */
 
 void tegra_i2c_ll_write_addr(uint addr, uint config)
 {

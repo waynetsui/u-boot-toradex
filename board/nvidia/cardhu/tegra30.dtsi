@@ -73,6 +73,38 @@
 		status = "disabled";
 	};
 
+	sdhci@78000000 {
+		compatible = "nvidia,tegra250-sdhci";
+		reg = <0x78000000 0x200>;
+		interrupts = <46>;
+                periph-id = <14>;	// PERIPH_ID_SDMMC1
+		status = "disabled";
+	};
+
+	sdhci@78000200 {
+		compatible = "nvidia,tegra250-sdhci";
+		reg = <0x78000200 0x200>;
+		interrupts = <47>;
+                periph-id = <9>;	// PERIPH_ID_SDMMC2
+		status = "disabled";
+	};
+
+	sdhci@78000400 {
+		compatible = "nvidia,tegra250-sdhci";
+		reg = <0x78000400 0x200>;
+		interrupts = <51>;
+                periph-id = <69>;	// PERIPH_ID_SDMMC3
+		status = "disabled";
+	};
+
+	sdhci@78000600 {
+		compatible = "nvidia,tegra250-sdhci";
+		reg = <0x78000600 0x200>;
+		interrupts = <63>;
+                periph-id = <15>;	// PERIPH_ID_SDMMC4
+		status = "disabled";
+	};
+
 	i2c@0x7000c000 {
 		compatible = "nvidia,tegra250-i2c";
 		reg = <0x7000c000 0x006c>;

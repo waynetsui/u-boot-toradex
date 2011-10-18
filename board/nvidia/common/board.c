@@ -56,6 +56,7 @@
 #include "pmu.h"
 
 #ifdef CONFIG_TEGRA_MMC
+#include <asm/arch/pmu.h>
 #include <mmc.h>
 #endif
 #ifdef CONFIG_OF_CONTROL
@@ -178,6 +179,7 @@ static void pin_mux_switches(void)
  */
 static void pin_mux_mmc(void)
 {
+#ifdef CONFIG_TEGRA2
 	/* SDMMC4: config 3, x8 on 2nd set of pins */
 	pinmux_set_func(PINGRP_ATB, PMUX_FUNC_SDIO4);
 	pinmux_set_func(PINGRP_GMA, PMUX_FUNC_SDIO4);
@@ -195,6 +197,7 @@ static void pin_mux_mmc(void)
 	pinmux_tristate_disable(PINGRP_SDC);
 	pinmux_tristate_disable(PINGRP_SDD);
 	pinmux_tristate_disable(PINGRP_SDB);
+#endif
 }
 #endif
 
@@ -219,6 +222,25 @@ static void gpio_init(const void *blob)
 {
 #ifdef CONFIG_SPI_UART_SWITCH
 	gpio_early_init_uart(blob);
+#endif
+}
+
+/*
+ * Do I2C/PMU writes to bring up SD card bus power
+ *
+ */
+static void board_sdmmc_voltage_init(void)
+{
+#if defined(CONFIG_TEGRA3) && defined(CONFIG_TEGRA_MMC)
+	/*
+	 * Voltage for SDMMC on Tegra30 Cardhu variants is on
+	 * LDO5 and should be at 3.3.
+	 *
+	 * TODO(dianders): Should be in device tree.
+	 */
+	uchar ldo5_to_3_3v = PMU_LDO5_SEL(33) | PMU_LDO5_ON;
+
+	pmu_write(PMU_LDO5_REG, &ldo5_to_3_3v, 1);
 #endif
 }
 
@@ -287,6 +309,8 @@ int board_init(void)
 	/* prepare the WB code to LP0 location */
 	warmboot_prepare_code(TEGRA_LP0_ADDR, TEGRA_LP0_SIZE);
 #endif
+
+	board_sdmmc_voltage_init();
 
 	/* boot param addr */
 	gd->bd->bi_boot_params = (NV_PA_SDRAM_BASE + 0x100);

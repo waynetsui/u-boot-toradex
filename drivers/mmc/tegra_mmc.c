@@ -560,6 +560,14 @@ static void mmc_reset(struct mmc_host *host)
 		timeout--;
 		udelay(1000);
 	}
+
+#if defined(CONFIG_TEGRA3)
+	/* TCW Set SD_BUS_VOLTAGE and SD_BUS_POWER here for T30! */
+	/* TCW Find a way to do it based on fuses, device caps, etc. */
+	writeb(0x0F, &host->reg->pwrcon);
+	printf("mmc_reset: power control = %02X, host control = %02X\n",
+		readb(&host->reg->pwrcon), readb(&host->reg->hostctl));
+#endif
 }
 
 static int mmc_core_init(struct mmc *mmc)

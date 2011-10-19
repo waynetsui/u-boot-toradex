@@ -224,6 +224,7 @@ struct fdt_i2c {
 	int pinmux;
 	u32 speed;
 	enum periph_id periph_id;
+	int use_dvc_ctlr;		/* 1 if we need to use the DVC */
 };
 
 enum {

@@ -249,6 +249,7 @@
 		reg = <0x7000d000 0x007c>;
 		pinmux = <1>;
 		speed = <100000>;
+		use-dvc-ctlr;
 		periph-id = <47>;	// PERIPH_ID_DVC_I2C
 	};
 
@@ -258,4 +259,3 @@
 		status = "disabled";
 	};
 };
-

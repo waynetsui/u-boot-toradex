@@ -44,6 +44,15 @@ struct i2c_bus {
 	enum periph_id		periph_id;
 	int			speed;
 	int			pinmux_config;
+
+	/*
+	 * If non-zero, this I2C part has registers as described in
+	 * 'struct dvc_ctlr' instead of 'struct i2c_ctlr'.  On Tegra2, the
+	 * "DVC" i2c controller has this.  On Tegra3, none of the i2c
+	 * controllers do.
+	 */
+	int			use_dvc_ctlr;
+
 	struct i2c_control	*control;
 	struct i2c_ctlr		*regs;
 };
@@ -140,7 +149,7 @@ static void set_packet_mode(struct i2c_bus *i2c_bus)
 	config = bf_pack(I2C_CNFG_NEW_MASTER_FSM, 1) |
 		 bf_pack(I2C_CNFG_PACKET_MODE, 1);
 
-	if (i2c_bus->periph_id == PERIPH_ID_DVC_I2C) {
+	if (i2c_bus->use_dvc_ctlr) {
 		struct dvc_ctlr *dvc = (struct dvc_ctlr *)i2c_bus->regs;
 
 		writel(config, &dvc->cnfg);
@@ -173,7 +182,7 @@ static void i2c_init_controller(struct i2c_bus *i2c_bus)
 	i2c_reset_controller(i2c_bus);
 
 	/* Configure I2C controller. */
-	if (i2c_bus->periph_id == PERIPH_ID_DVC_I2C) {	/* only for DVC I2C */
+	if (i2c_bus->use_dvc_ctlr) {	/* only for DVC I2C */
 		struct dvc_ctlr *dvc = (struct dvc_ctlr *)i2c_bus->regs;
 
 		bf_writel(DVC_CTRL_REG3_I2C_HW_SW_PROG, 1, &dvc->ctrl3);
@@ -422,6 +431,12 @@ static int i2c_get_config(int *index, struct i2c_bus *i2c_bus)
 	i2c_bus->regs = (struct i2c_ctlr *)i2c_bus_base[i];
 	i2c_bus->speed = I2CSPEED_KHZ * 1000;
 
+#ifdef CONFIG_TEGRA2
+	i2c_bus->use_dvc_ctlr = (periph_id == PERIPH_ID_DVC_I2C);
+#else
+	i2c_bus->use_dvc_ctlr = 0;
+#endif
+
 	*index = i + 1;
 
 	return 0;
@@ -445,6 +460,7 @@ static int i2c_get_config(int *index, struct i2c_bus *i2c_bus)
 	i2c_bus->pinmux_config = config.pinmux;
 	i2c_bus->regs = config.reg;
 	i2c_bus->speed = config.speed;
+	i2c_bus->use_dvc_ctlr = config.use_dvc_ctlr;
 
 	return 0;
 }
@@ -463,7 +479,7 @@ int i2c_init_board(void)
 
 		i2c_get_config(&index, i2c_bus);
 
-		if (i2c_bus->periph_id == PERIPH_ID_DVC_I2C)
+		if (i2c_bus->use_dvc_ctlr)
 			i2c_bus->control =
 				&((struct dvc_ctlr *)i2c_bus->regs)->control;
 		else

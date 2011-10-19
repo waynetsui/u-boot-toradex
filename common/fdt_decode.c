@@ -114,6 +114,27 @@ static s32 get_int(const void *blob, int node, const char *prop_name,
 }
 
 /**
+ * Look up a boolean property in a node and return it.
+ *
+ * A boolean properly is true if present in the device tree and false if not
+ * present.
+ *
+ * @param blob	FDT blob
+ * @param node	node to examine
+ * @param prop_name	name of property to find
+ * @return 1 if the properly is present; 0 if it isn't present
+ */
+static int get_bool(const void *blob, int node, const char *prop_name)
+{
+	const s32 *cell;
+	int len;
+
+	debug("%s: %s\n", __func__, prop_name);
+	cell = fdt_getprop(blob, node, prop_name, &len);
+	return (cell) ? 1 : 0;
+}
+
+/**
  * Look up a property in a node and check that it has a minimum length.
  *
  * @param blob		FDT blob
@@ -641,6 +662,7 @@ int fdt_decode_i2c(const void *blob, int node, struct fdt_i2c *config)
 	config->pinmux = get_int(blob, node, "pinmux", 0);
 	config->speed = get_int(blob, node, "speed", 0);
 	config->periph_id = get_int(blob, node, "periph-id", -1);
+	config->use_dvc_ctlr = get_bool(blob, node, "use-dvc-ctlr");
 
 	if (config->periph_id == -1)
 		return -FDT_ERR_MISSING;

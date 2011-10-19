@@ -57,7 +57,7 @@ static int find_alias_node(const void *blob, const char *name)
 	const char *path;
 	int alias_node;
 
-	debug("find_alias_node: %s\n", name);
+	debug("%s: %s\n", __func__, name);
 	alias_node = fdt_path_offset(blob, "/aliases");
 	if (alias_node < 0)
 		return alias_node;
@@ -82,7 +82,7 @@ static addr_t get_addr(const void *blob, int node, const char *prop_name)
 	const addr_t *cell;
 	int len;
 
-	debug("get_addr: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (cell && (len == sizeof(addr_t) || len == sizeof(addr_t) * 2))
 		return addr_to_cpu(*cell);
@@ -106,7 +106,7 @@ static s32 get_int(const void *blob, int node, const char *prop_name,
 	const s32 *cell;
 	int len;
 
-	debug("get_size: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (cell && len >= sizeof(s32))
 		return fdt32_to_cpu(cell[0]);
@@ -130,7 +130,7 @@ static const void *get_prop_len(const void *blob, int node,
 	const void *cell;
 	int len;
 
-	debug("get_prop_len: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (!cell)
 		*err = -FDT_ERR_MISSING;
@@ -160,7 +160,7 @@ static int get_int_array(const void *blob, int node, const char *prop_name,
 	const s32 *cell;
 	int i, err;
 
-	debug("get_int_array: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	cell = get_prop_len(blob, node, prop_name, sizeof(s32) * count, &err);
 	if (!err)
 		for (i = 0; i < count; i++)
@@ -187,7 +187,7 @@ static int get_byte_array(const void *blob, int node, const char *prop_name,
 	const u8 *cell;
 	int err;
 
-	debug("get_byte_array: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	cell = get_prop_len(blob, node, prop_name, count, &err);
 	if (!err)
 		memcpy(array, cell, count);
@@ -381,18 +381,18 @@ int fdt_decode_gpios(const void *blob, int node, const char *prop_name,
 	const u32 *cell;
 	int len, i;
 
-	debug("decode_gpios: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	assert(max_count > 0);
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (!cell) {
-		debug("FDT: decode_gpios: property '%s' missing\n", prop_name);
+		debug("FDT: %s: property '%s' missing\n", __func__, prop_name);
 		return -FDT_ERR_MISSING;
 	}
 
 	len /= sizeof(u32) * 3;		/* 3 cells per GPIO record */
 	if (len > max_count) {
-		printf("FDT: fdt_decode_gpios: too many GPIOs / cells for "
-			"property '%s'\n", prop_name);
+		printf("FDT: %s: too many GPIOs / cells for "
+			"property '%s'\n", __func__, prop_name);
 		return -FDT_ERR_BADLAYOUT;
 	}
 	for (i = 0; i < len; i++, cell += 3) {
@@ -423,8 +423,8 @@ static int decode_gpio_list(const void *blob, int node, const char *prop_name,
 
 	/* terminate the list */
 	if (err < 0) {
-		debug("FDT: decode_gpio_list: could not decode GPIO "
-			"property '%s'\n", prop_name);
+		debug("FDT: %s: could not decode GPIO "
+			"property '%s'\n", __func__, prop_name);
 		return err;
 	}
 	gpio[err].gpio = FDT_GPIO_NONE;
@@ -437,7 +437,7 @@ int fdt_decode_gpio(const void *blob, int node, const char *prop_name,
 {
 	int err;
 
-	debug("decode_gpio: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	gpio->gpio = FDT_GPIO_NONE;
 	err = fdt_decode_gpios(blob, node, prop_name, gpio, 1);
 	return err == 1 ? 0 : err;
@@ -462,7 +462,7 @@ void fdt_setup_gpios(struct fdt_gpio_state *gpio_list)
 	for (i = 0, gpio = gpio_list; fdt_gpio_isvalid(gpio); i++, gpio++) {
 		if (i > FDT_GPIO_MAX) {
 			/* Something may have gone horribly wrong */
-			printf("FDT: fdt_setup_gpios: too many GPIOs\n");
+			printf("FDT: %s: too many GPIOs\n", __func__);
 			return;
 		}
 		fdt_setup_gpio(gpio);
@@ -590,7 +590,7 @@ char *fdt_decode_get_config_string(const void *blob, const char *prop_name)
 	int nodeoffset;
 	int len;
 
-	debug("get_config_string: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	nodeoffset = fdt_path_offset(blob, "/config");
 	if (nodeoffset < 0)
 		return NULL;
@@ -607,7 +607,7 @@ int fdt_decode_get_config_int(const void *blob, const char *prop_name,
 {
 	int config_node;
 
-	debug("get_config_int: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	config_node = fdt_path_offset(blob, "/config");
 	if (config_node < 0)
 		return default_val;
@@ -686,14 +686,14 @@ void *fdt_decode_alloc_region(const void *blob, int node,
 	void *ptr;
 	int len;
 
-	debug("fdt_decode_alloc: %s\n", prop_name);
+	debug("%s: %s\n", __func__, prop_name);
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (!cell || (len != sizeof(addr_t) * 2))
 		return NULL;
 
 	ptr = (void *)addr_to_cpu(*cell);
 	*size = size_to_cpu(cell[1]);
-	debug("fdt_decode_alloc: size=%zx\n", *size);
+	debug("%s: size=%zx\n", __func__, *size);
 	if (!ptr)
 		ptr = malloc(*size);
 	return ptr;

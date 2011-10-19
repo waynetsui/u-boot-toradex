@@ -39,6 +39,7 @@ COBJS-$(CONFIG_SYS_GENERIC_TIMER) += pcat_timer.o
 COBJS-$(CONFIG_PCI) += pci.o
 COBJS-$(CONFIG_PCI) += pci_type1.o
 COBJS-y	+= realmode.o
+COBJS-y	+= string.o
 COBJS-y	+= timer.o
 COBJS-$(CONFIG_VGA_CONSOLE)	+= video_bios.o
 COBJS-$(CONFIG_VGA_CONSOLE)	+= video.o

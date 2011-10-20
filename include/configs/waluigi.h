@@ -66,6 +66,9 @@
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_CMD_I2C
 
+/* PMU */
+#define CONFIG_TEGRA_PMU
+
 #define CONFIG_ENV_IS_NOWHERE
 
 #endif /* __CONFIG_H */

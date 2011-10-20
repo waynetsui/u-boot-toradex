@@ -24,20 +24,6 @@
 #ifndef _PMU_H_
 #define _PMU_H_
 
-/*
- * abs() handles unsigned ints, shorts and chars and returns a signed long.
- */
-#define abs(x) ({						\
-		long ret;					\
-		{						\
-			typeof((x)) __x = (x);			\
-			ret = (__x < 0) ? -__x : __x;		\
-		}						\
-		ret;						\
-	})
-
-#define stp(x, y) ((x < y) ? VDD_TRANSITION_STEP : -VDD_TRANSITION_STEP)
-
 #define DVC_I2C_BUS_NUMBER	0
 #define PMU_I2C_ADDRESS		0x34
 

@@ -32,6 +32,20 @@
 #include <i2c.h>
 #include "board.h"
 
+/*
+ * abs() handles unsigned ints, shorts and chars and returns a signed long.
+ */
+#define abs(x) ({						\
+		long ret;					\
+		{						\
+			typeof((x)) __x = (x);			\
+			ret = (__x < 0) ? -__x : __x;		\
+		}						\
+		ret;						\
+	})
+
+#define stp(x, y) ((x < y) ? VDD_TRANSITION_STEP : -VDD_TRANSITION_STEP)
+
 struct vdd_settings {
 	int	data;
 	int	nominal;

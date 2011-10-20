@@ -73,6 +73,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #error "tegra: We need CONFIG_TEGRA_I2C to support CONFIG_TEGRA_CLOCK_SCALING"
 #endif
 
+#if defined(CONFIG_TEGRA_CLOCK_SCALING) && !defined(CONFIG_TEGRA_PMU)
+#error "tegra: We need CONFIG_TEGRA_PMU to support CONFIG_TEGRA_CLOCK_SCALING"
+#endif
+
 enum {
 	/* UARTs which we can enable */
 	UARTA	= 1 << 0,

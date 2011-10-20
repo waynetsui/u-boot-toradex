@@ -216,6 +216,7 @@
 #define CONFIG_CMD_I2C
 
 /* PMU and EMC support, requires i2c */
+#define CONFIG_TEGRA_PMU
 #define CONFIG_TEGRA_CLOCK_SCALING
 
 /* TPM */

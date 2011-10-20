@@ -58,8 +58,13 @@
 #define CONFIG_TEGRA_GPIO
 #define CONFIG_CMD_TEGRA_GPIO_INFO
 
-/* I2C - this does not implement the full interface yet */
+/* I2C */
 #define CONFIG_TEGRA_I2C
+#define CONFIG_SYS_I2C_INIT_BOARD
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_MAX_I2C_BUS		4	/* TODO: 5 in T30 */
+#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_CMD_I2C
 
 #define CONFIG_ENV_IS_NOWHERE
 

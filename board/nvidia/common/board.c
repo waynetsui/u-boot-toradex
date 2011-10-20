@@ -53,6 +53,7 @@
 #include <i2c.h>
 #endif
 #include "board.h"
+#include "pmu.h"
 
 #ifdef CONFIG_TEGRA2_MMC
 #include <mmc.h>

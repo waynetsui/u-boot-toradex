@@ -31,6 +31,7 @@
 #include <asm/arch-tegra/pmc.h>
 #include <i2c.h>
 #include "board.h"
+#include "pmu.h"
 
 /*
  * abs() handles unsigned ints, shorts and chars and returns a signed long.
@@ -176,7 +177,7 @@ static int tegra2_set_voltage(int reg, int data, int control)
 	return -1;
 }
 
-int tegra2_pmu_is_voltage_nominal(void)
+int pmu_is_voltage_nominal(void)
 {
 	if ((vdd_current[core].data == vdd_current[core].nominal) &&
 	    (vdd_current[cpu].data == vdd_current[cpu].nominal))
@@ -184,7 +185,7 @@ int tegra2_pmu_is_voltage_nominal(void)
 	return 0;
 }
 
-void calculate_next_voltage(int *data, int nominal, int step)
+static void calculate_next_voltage(int *data, int nominal, int step)
 {
 	if (abs(nominal - *data) > VDD_TRANSITION_STEP)
 		*data += step;
@@ -327,7 +328,7 @@ int pmu_set_nominal(void)
 		return -1;
 
 	/* if current voltage is already set to nominal, skip */
-	if (tegra2_pmu_is_voltage_nominal())
+	if (pmu_is_voltage_nominal())
 		return 0;
 
 	/* adjust vdd_core and/or vdd_cpu */

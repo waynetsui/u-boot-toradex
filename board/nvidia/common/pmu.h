@@ -1,7 +1,5 @@
 /*
- *  (C) Copyright 2010,2011
- *  NVIDIA Corporation <www.nvidia.com>
- *
+ * Copyright (c) 2011 The Chromium OS Authors.
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -12,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -21,15 +19,10 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _BOARD_H_
-#define _BOARD_H_
+#ifndef _PMU_H_
+#define _PMU_H_
 
-void gpio_config_uart(const void *blob);
-void gpio_early_init_uart(const void *blob);
-void gpio_config_mmc(void);
-int tegra2_mmc_init(const void *blob);
-void lcd_early_init(const void *blob);
-int lcd_pinmux_early_init(const void *blob);
-int tegra_get_chip_type(void);
+int pmu_set_nominal(void);
+int pmu_is_voltage_nominal(void);
 
-#endif	/* BOARD_H */
+#endif	/* PMU_H */

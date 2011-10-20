@@ -11,9 +11,9 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/pmu.h>
 #include <asm/arch/emc.h>
 #include "board.h"
+#include "pmu.h"
 
 static const struct tegra_emc_table *tegra_emc_table;
 static int tegra_emc_table_size;
@@ -1029,7 +1029,7 @@ int board_emc_init(void)
 	DECLARE_GLOBAL_DATA_PTR;
 
 	/* if voltage has not been set properly, return */
-	if (!tegra2_pmu_is_voltage_nominal())
+	if (!pmu_is_voltage_nominal())
 		return -1;
 
 	for (i = 0; i < ARRAY_SIZE(board_table); i++) {

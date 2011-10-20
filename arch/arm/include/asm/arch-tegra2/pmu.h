@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _PMU_H_
-#define _PMU_H_
+#ifndef _ARCH_PMU_H_
+#define _ARCH_PMU_H_
 
 #define DVC_I2C_BUS_NUMBER	0
 #define PMU_I2C_ADDRESS		0x34
@@ -54,6 +54,4 @@
 #define SM1_PWM_BIT		1
 #define SM2_PWM_BIT		2
 
-int tegra2_pmu_is_voltage_nominal(void);
-
-#endif	/* PMU_H */
+#endif	/* _ARCH_PMU_H_ */

@@ -22,7 +22,12 @@
 #ifndef _PMU_H_
 #define _PMU_H_
 
+int pmu_read(int reg);
+int pmu_write(int reg, uchar *data, uint len);
+
+#ifdef CONFIG_TEGRA_CLOCK_SCALING
 int pmu_set_nominal(void);
 int pmu_is_voltage_nominal(void);
+#endif /* CONFIG_TEGRA_CLOCK_SCALING */
 
 #endif	/* PMU_H */

@@ -47,6 +47,39 @@
 
 #define stp(x, y) ((x < y) ? VDD_TRANSITION_STEP : -VDD_TRANSITION_STEP)
 
+#define MAX_I2C_RETRY	3
+int pmu_read(int reg)
+{
+	int	i;
+	uchar	data;
+
+	for (i = 0; i < MAX_I2C_RETRY; ++i) {
+		if (!i2c_read(PMU_I2C_ADDRESS, reg, 1, &data, 1))
+			return (int)data;
+
+		/* i2c access failed, retry */
+		udelay(100);
+	}
+
+	return -1;
+}
+
+int pmu_write(int reg, uchar *data, uint len)
+{
+	int i;
+
+	for (i = 0; i < MAX_I2C_RETRY; ++i) {
+		if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data, len))
+			return 0;
+
+		/* i2c access failed, retry */
+		udelay(100);
+	}
+
+	return -1;
+}
+
+#ifdef CONFIG_TEGRA_CLOCK_SCALING
 struct vdd_settings {
 	int	data;
 	int	nominal;
@@ -86,38 +119,6 @@ static int vdd_init_nominal_table(void)
 		return -1;
 	}
 	return 0;
-}
-
-#define MAX_I2C_RETRY	3
-static int pmu_read(int reg)
-{
-	int	i;
-	uchar	data;
-
-	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (!i2c_read(PMU_I2C_ADDRESS, reg, 1, &data, 1))
-			return (int)data;
-
-		/* i2c access failed, retry */
-		udelay(100);
-	}
-
-	return -1;
-}
-
-static int pmu_write(int reg, uchar *data, uint len)
-{
-	int i;
-
-	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data, len))
-			return 0;
-
-		/* i2c access failed, retry */
-		udelay(100);
-	}
-
-	return -1;
 }
 
 /* get current vdd_core and vdd_cpu */
@@ -334,3 +335,4 @@ int pmu_set_nominal(void)
 	/* adjust vdd_core and/or vdd_cpu */
 	return pmu_adjust_voltage();
 }
+#endif /* CONFIG_TEGRA_CLOCK_SCALING */

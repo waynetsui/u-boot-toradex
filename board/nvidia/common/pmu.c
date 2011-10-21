@@ -52,31 +52,49 @@ int pmu_read(int reg)
 {
 	int	i;
 	uchar	data;
+	int	retval = -1;
+	int	old_bus_num;
+
+	old_bus_num = i2c_get_bus_num();
+	i2c_set_bus_num(DVC_I2C_BUS_NUMBER);
 
 	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (!i2c_read(PMU_I2C_ADDRESS, reg, 1, &data, 1))
-			return (int)data;
+		if (!i2c_read(PMU_I2C_ADDRESS, reg, 1, &data, 1)) {
+			retval = (int)data;
+			goto exit;
+		}
 
 		/* i2c access failed, retry */
 		udelay(100);
 	}
 
-	return -1;
+exit:
+	i2c_set_bus_num(old_bus_num);
+	return retval;
 }
 
 int pmu_write(int reg, uchar *data, uint len)
 {
-	int i;
+	int	i;
+	int	retval = -1;
+	int	old_bus_num;
+
+	old_bus_num = i2c_get_bus_num();
+	i2c_set_bus_num(DVC_I2C_BUS_NUMBER);
 
 	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data, len))
-			return 0;
+		if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data, len)) {
+			retval = 0;
+			goto exit;
+		}
 
 		/* i2c access failed, retry */
 		udelay(100);
 	}
 
-	return -1;
+exit:
+	i2c_set_bus_num(old_bus_num);
+	return retval;
 }
 
 #ifdef CONFIG_TEGRA_CLOCK_SCALING
@@ -316,9 +334,6 @@ int pmu_set_nominal(void)
 	/* fill in nominal values based on chip type */
 	if (vdd_init_nominal_table())
 		return -1;
-
-	/* select current i2c bus to DVC */
-	i2c_set_bus_num(DVC_I2C_BUS_NUMBER);
 
 	/* Set SM1 in PWM-only mode */
 	if (pmu_set_pwm_mode(SM1_PWM_BIT))

@@ -7,6 +7,8 @@
 /* vsprintf.c -- Lars Wirzenius & Linus Torvalds. */
 /*
  * Wirzenius wrote this portably, Torvalds fucked it up :-)
+ *
+ * from hush: simple_itoa() was lifted from boa-0.93.15
  */
 
 #include <stdarg.h>
@@ -749,4 +751,18 @@ void panic(const char *fmt, ...)
 	udelay (100000);	/* allow messages to go out */
 	do_reset (NULL, 0, 0, NULL);
 #endif
+}
+
+char *simple_itoa(ulong i)
+{
+	/* 21 digits plus null terminator, good for 64-bit or smaller ints */
+	static char local[22];
+	char *p = &local[21];
+
+	*p-- = '\0';
+	do {
+		*p-- = '0' + i % 10;
+		i /= 10;
+	} while (i > 0);
+	return p + 1;
 }

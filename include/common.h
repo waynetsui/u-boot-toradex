@@ -307,6 +307,8 @@ int	setenv	     (char *, char *);
 
 /* Set environment to the default value */
 void env_set_default(void);
+int setenv_ulong(const char *varname, ulong value);
+int setenv_addr(const char *varname, const void *addr);
 #endif /* CONFIG_PPC */
 #ifdef CONFIG_ARM
 # include <asm/mach-types.h>

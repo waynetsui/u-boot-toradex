@@ -385,7 +385,7 @@ extern int		NetRestartWrap;		/* Tried all network devices	*/
 
 enum proto_t {
 	BOOTP, RARP, ARP, TFTPGET, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP,
-	TFTPSRV
+	TFTPSRV, TFTPPUT
 };
 
 /* from net/net.c */

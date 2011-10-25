@@ -49,6 +49,10 @@
 
 #define CONFIG_SYS_NO_FLASH
 
+#define CONFIG_LOADADDR		0x80408000	/* def. location for kernel */
+#define CONFIG_BOOTDELAY	3		/* -1 to disable auto boot */
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+
 /* Passed on the kernel command line to specify the console. */
 #define CONFIG_LINUXCONSOLE "console=ttyS0,115200n8"
 
@@ -57,7 +61,12 @@
  * doesn't run regen_all) as well as used as part of regen_all.
  */
 #define CONFIG_BOOTARGS \
-	CONFIG_LINUXCONSOLE
+		CONFIG_LINUXCONSOLE " " \
+		"usbcore.old_scheme_first=1 " \
+		"core_edp_mv=1300 " \
+		TEGRA3_SYSMEM " " \
+		CONFIG_EXTRA_BOOTARGS
+
 
 /*
  * Extra bootargs used for direct booting, but not for vboot.

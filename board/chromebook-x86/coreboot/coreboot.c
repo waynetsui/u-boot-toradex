@@ -27,6 +27,7 @@
 #include <asm/u-boot-x86.h>
 #include <cbfs.h>
 #include <flash.h>
+#include <fdt_decode.h>
 #include <malloc.h>
 #include <netdev.h>
 #include <asm/ic/coreboot/tables.h>
@@ -34,6 +35,7 @@
 #include <chromeos/power_management.h>
 #include <chromeos/fdt_decode.h>
 #include <chromeos/firmware_storage.h>
+#include <chromeos/cros_gpio.h>
 #include <chromeos/common.h>
 #include <asm/io.h>
 #include <coreboot/timestamp.h>
@@ -176,6 +178,16 @@ int misc_init_r(void)
 {
 	handle_mrc_cache();
 	return 0;
+}
+
+int board_i8042_skip(void)
+{
+	cros_gpio_t devsw;
+
+	cros_gpio_fetch(CROS_GPIO_DEVSW, &devsw);
+	if (devsw.value)
+		return 0;
+	return fdt_decode_get_config_int(gd->blob, "skip-i8042", 0);
 }
 
 #ifdef CONFIG_HW_WATCHDOG

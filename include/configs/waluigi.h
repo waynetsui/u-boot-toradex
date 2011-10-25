@@ -69,6 +69,17 @@
 /* PMU */
 #define CONFIG_TEGRA_PMU
 
+/* SD/MMC */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_TEGRA_MMC
+#define CONFIG_CMD_MMC
+
+#define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
+
 #define CONFIG_ENV_IS_NOWHERE
 
 #endif /* __CONFIG_H */

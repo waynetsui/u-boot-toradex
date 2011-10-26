@@ -35,6 +35,7 @@
 #define CONFIG_SHOW_BOOT_PROGRESS
 #define BUILD_CMD_LINE_STUFF 0
 #define BUILD_IDE_STUFF 0
+#define BUILD_NETWORK_STUFF 0
 
 /* FDT support */
 #define CONFIG_OF_LIBFDT	/* Device tree support */
@@ -255,14 +256,19 @@
 #define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS     12
 #define CONFIG_USB_MAX_CONTROLLER_COUNT        2
 #define CONFIG_USB_STORAGE
+
+#if BUILD_NETWORK_STUFF
 #define CONFIG_USB_HOST_ETHER
 #define CONFIG_USB_ETHER_ASIX
 #define CONFIG_USB_ETHER_SMSC95XX
+#endif
 
 /*-----------------------------------------------------------------------
  * Network device support
  */
+#if BUILD_NETWORK_STUFF
 #define CONFIG_NET_MULTI
+#endif
 
 /*-----------------------------------------------------------------------
  * Command line configuration.
@@ -307,7 +313,12 @@
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_USB
 #define CONFIG_CMD_SCSI
+
+#if BUILD_NETWORK_STUFF
 #define CONFIG_CMD_NET
+#else
+#undef CONFIG_CMD_NET
+#endif
 
 /* Board specific late time init */
 #define CONFIG_MISC_INIT_R

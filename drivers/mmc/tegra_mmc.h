@@ -20,11 +20,11 @@
  *
  */
 
-#ifndef __TEGRA2_MMC_H_
-#define __TEGRA2_MMC_H_
+#ifndef __TEGRA_MMC_H_
+#define __TEGRA_MMC_H_
 
 #ifndef __ASSEMBLY__
-struct tegra2_mmc {
+struct tegra_mmc {
 	unsigned int	sysad;		/* _SYSTEM_ADDRESS_0 */
 	unsigned short	blksize;	/* _BLOCK_SIZE_BLOCK_COUNT_0 15:00 */
 	unsigned short	blkcnt;		/* _BLOCK_SIZE_BLOCK_COUNT_0 31:16 */
@@ -65,7 +65,7 @@ struct tegra2_mmc {
 	unsigned char	res6[0x100];	/* RESERVED, offset 100h-1FFh */
 };
 
-int tegra2_mmc_init(const void *blob);
+int tegra_mmc_init(const void *blob);
 
 #endif	/* __ASSEMBLY__ */
-#endif	/* __TEGRA2_MMC_H_ */
+#endif	/* __TEGRA_MMC_H_ */

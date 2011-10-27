@@ -29,7 +29,7 @@
 #include <asm/arch/gpio.h>
 #include <malloc.h>
 #include <asm/clocks.h>
-#include "tegra2_mmc.h"
+#include "tegra_mmc.h"
 #include "fdt_decode.h"
 
 enum {
@@ -38,7 +38,7 @@ enum {
 
 
 struct mmc_host {
-	struct tegra2_mmc *reg;
+	struct tegra_mmc *reg;
 	unsigned int version;	/* SDHCI spec. version */
 	unsigned int clock;	/* Current clock (MHz) */
 	enum periph_id mmc_id;	/* Peripheral ID of the SDMMC we are using */
@@ -604,13 +604,13 @@ static int mmc_core_init(struct mmc *mmc)
 }
 
 static int init_port(unsigned dev_index, enum periph_id mmc_id,
-		struct tegra2_mmc *reg, int bus_width, int removable,
+		struct tegra_mmc *reg, int bus_width, int removable,
 		int cd_gpio, int wp_gpio)
 {
 	struct mmc_host *host;
 	struct mmc *mmc;
 
-	debug(" tegra2_mmc_init: index %d, bus width %d, removable %d\n",
+	debug(" tegra_mmc_init: index %d, bus width %d, removable %d\n",
 		dev_index, bus_width, removable);
 	if (dev_index >= MAX_HOSTS)
 		return -1;
@@ -674,7 +674,7 @@ int board_mmc_getcd(u8 *cd, struct mmc *mmc)
 	return 0;
 }
 
-int tegra2_mmc_init(const void *blob)
+int tegra_mmc_init(const void *blob)
 {
 #ifdef CONFIG_OF_CONTROL
 	struct fdt_sdmmc config;
@@ -707,7 +707,7 @@ int tegra2_mmc_init(const void *blob)
 
 	/* init dev 0, eMMC chip, with 4-bit bus, non-removable */
 	if (init_port(0, PERIPH_ID_SDMMC4,
-			(struct tegra2_mmc *)NV_PA_SDMMC4_BASE, 4, 0, -1, -1))
+			(struct tegra_mmc *)NV_PA_SDMMC4_BASE, 4, 0, -1, -1))
 		return -1;
 
 	/*
@@ -720,7 +720,7 @@ int tegra2_mmc_init(const void *blob)
 	gpio_direction_input(GPIO_PI5);
 
 	if (init_port(1, PERIPH_ID_SDMMC3,
-			(struct tegra2_mmc *)NV_PA_SDMMC3_BASE, 4, 1, GPIO_PI5,
+			(struct tegra_mmc *)NV_PA_SDMMC3_BASE, 4, 1, GPIO_PI5,
 			GPIO_PH1))
 		return -1;
 #endif

@@ -196,7 +196,7 @@ struct fdt_usb {
 
 /* Information about an SDMMC port */
 struct fdt_sdmmc {
-	struct tegra2_mmc *reg;	/* address of registers in physical memory */
+	struct tegra_mmc *reg;	/* address of registers in physical memory */
 	int width;		/* port width in bits (normally 4) */
 	int removable;		/* 1 for removable device, 0 for fixed */
 	int enabled;		/* 1 to enable, 0 to disable */

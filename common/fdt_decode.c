@@ -577,7 +577,7 @@ int fdt_decode_usb(const void *blob, int node, unsigned osc_frequency_mhz,
 
 int fdt_decode_sdmmc(const void *blob, int node, struct fdt_sdmmc *config)
 {
-	config->reg = (struct tegra2_mmc *)get_addr(blob, node, "reg");
+	config->reg = (struct tegra_mmc *)get_addr(blob, node, "reg");
 	config->enabled = get_is_enabled(blob, node, 1);
 	config->periph_id = get_int(blob, node, "periph-id", -1);
 	config->width = get_int(blob, node, "width", -1);

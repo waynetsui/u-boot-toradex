@@ -55,7 +55,7 @@
 #include "board.h"
 #include "pmu.h"
 
-#ifdef CONFIG_TEGRA2_MMC
+#ifdef CONFIG_TEGRA_MMC
 #include <mmc.h>
 #endif
 #ifdef CONFIG_OF_CONTROL
@@ -171,7 +171,7 @@ static void pin_mux_switches(void)
 #endif	/* CONFIG_TEGRA2 */
 }
 
-#ifdef CONFIG_TEGRA2_MMC
+#ifdef CONFIG_TEGRA_MMC
 /*
  * Routine: pin_mux_mmc
  * Description: setup the pin muxes/tristate values for the SDMMC(s)
@@ -342,7 +342,7 @@ int board_early_init_f(void)
 }
 #endif	/* EARLY_INIT */
 
-#ifdef CONFIG_TEGRA2_MMC
+#ifdef CONFIG_TEGRA_MMC
 /* this is a weak define that we are overriding */
 int board_mmc_init(bd_t *bd)
 {
@@ -351,7 +351,7 @@ int board_mmc_init(bd_t *bd)
 	/* Enable muxes, etc. for SDMMC controllers */
 	pin_mux_mmc();
 
-	tegra2_mmc_init(gd->blob);
+	tegra_mmc_init(gd->blob);
 
 	return 0;
 }

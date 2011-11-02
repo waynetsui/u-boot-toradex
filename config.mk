@@ -95,8 +95,22 @@ HOSTCFLAGS	+= -pedantic
 # Option checker (courtesy linux kernel) to ensure
 # only supported compiler options are used
 #
+ifeq ($(CACHE_CC_OPTIONS),y)
+sinclude $(OBJTREE)/include/cc-options.mk
+
+cc-option-cached = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
+		> /dev/null 2>&1; then \
+		echo 'CC_OPTIONS += $(strip $1)' \
+			>> $(OBJTREE)/include/cc-options.mk; \
+		echo "$(1)"; else echo "$(2)"; fi ;)
+
+cc-option = $(if $(filter $1,$(CC_OPTIONS)),\
+		$(filter $1,$(CC_OPTIONS)),\
+		$(call cc-option-cached,$1,$2))
+else
 cc-option = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
 		> /dev/null 2>&1; then echo "$(1)"; else echo "$(2)"; fi ;)
+endif
 
 #
 # Include the make variables (CC, etc...)

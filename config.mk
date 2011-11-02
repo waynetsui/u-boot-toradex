@@ -206,7 +206,8 @@ else
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
 endif
 
-CFLAGS += $(call cc-option,-fno-stack-protector)
+CFLAGS_SSP := $(call cc-option,-fno-stack-protector)
+CFLAGS += $(CFLAGS_SSP)
 
 # $(CPPFLAGS) sets -g, which causes gcc to pass a suitable -g<format>
 # option to the assembler.

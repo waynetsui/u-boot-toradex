@@ -285,8 +285,23 @@ int setup_zimage(struct boot_params *setup_base, char *cmd_line, int auto_boot,
 	return 0;
 }
 
+/*
+ * Implement a weak default function for boards that optionally
+ * need to clean up the system before jumping to the kernel.
+ */
+int __board_final_cleanup(void)
+{
+	/* As default, don't skip */
+	return 0;
+}
+int board_final_cleanup(void)
+	__attribute__((weak, alias("__board_final_cleanup")));
+
+
 void boot_zimage(void *setup_base, void *load_address)
 {
+	board_final_cleanup();
+
 	printf("\nStarting kernel ...\n\n");
 	timestamp_add_now(TS_U_BOOT_START_KERNEL);
 

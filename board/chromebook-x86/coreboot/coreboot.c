@@ -38,6 +38,8 @@
 #include <chromeos/cros_gpio.h>
 #include <chromeos/common.h>
 #include <asm/io.h>
+#include <asm/msr.h>
+#include <asm/cache.h>
 #include <coreboot/timestamp.h>
 #ifdef CONFIG_HW_WATCHDOG
 #include <watchdog.h>
@@ -188,6 +190,22 @@ int board_i8042_skip(void)
 	if (devsw.value)
 		return 0;
 	return fdt_decode_get_config_int(gd->blob, "skip-i8042", 0);
+}
+
+#define MTRRphysBase_MSR(reg) (0x200 + 2 * (reg))
+#define MTRRphysMask_MSR(reg) (0x200 + 2 * (reg) + 1)
+
+int board_final_cleanup(void)
+{
+	/* Un-cache the ROM so the kernel has one
+	 * more MTRR available.
+	 */
+	disable_cache();
+	wrmsr(MTRRphysBase_MSR(7), 0);
+	wrmsr(MTRRphysMask_MSR(7), 0);
+	enable_cache();
+
+	return 0;
 }
 
 #ifdef CONFIG_HW_WATCHDOG

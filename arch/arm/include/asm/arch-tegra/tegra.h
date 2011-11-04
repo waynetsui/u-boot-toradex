@@ -83,7 +83,8 @@ enum {
 	TEGRA_SOC_T20,
 	TEGRA_SOC_T25,
 	TEGRA_SOC_T30,
-	TEGRA_SOC_T30_408MHZ,		/* A T30 with faster PLLP */
+	TEGRA_SOC_T30_408MHZ,	/* A T30 with faster PLLP */
+	TEGRA_SOC2_SLOW,	/* T2x needs to run at slow clock initially */
 
 	TEGRA_SOC_COUNT,
 	TEGRA_SOC_UNKNOWN	= -1,

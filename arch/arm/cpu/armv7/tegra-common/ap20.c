@@ -78,6 +78,13 @@ static struct clk_pll_table tegra_pll_x_table[TEGRA_SOC_COUNT]
 	 { 0x198, 12, 0, 8},
 	 { 0x198, 26, 0, 8},
 	},
+
+	/* TEGRA_SOC2_SLOW: 312 MHz */
+	{{ 312, 13, 0, 12},	/* OSC 13M */
+	 { 260, 16, 0, 8},	/* OSC 19.2M */
+	 { 312, 12, 0, 12},	/* OSC 12M */
+	 { 312, 26, 0, 12},	/* OSC 26M */
+	},
 };
 
 enum tegra_family_t {
@@ -147,8 +154,13 @@ void ap20_init_pllx(int slow)
 
 	/* get chip type. If unknown, assign to T20 */
 	chip_type = tegra_get_chip_type();
-	if (slow || chip_type == TEGRA_SOC_UNKNOWN)
+	if (chip_type == TEGRA_SOC_UNKNOWN)
 		chip_type = TEGRA_SOC_T20;
+
+	/* slow mode only works on T2x now */
+	if (slow && ((chip_type == TEGRA_SOC_T20) ||
+		     (chip_type == TEGRA_SOC_T25)))
+		chip_type = TEGRA_SOC2_SLOW;
 
 	/* get osc freq */
 	osc = clock_get_osc_freq();

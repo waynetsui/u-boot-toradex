@@ -57,4 +57,13 @@
 	CONFIG_EXTRA_ENV_SETTINGS_COMMON \
 	"board=cardhu\0" \
 
+/* SPI */
+#define CONFIG_TEGRA_SPI
+#define CONFIG_USE_SLINK	/* Cardhu SPI chip is on SBC4 */
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_WINBOND
+#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
+#define CONFIG_CMD_SPI
+#define CONFIG_CMD_SF
+
 #endif /* __CONFIG_H */

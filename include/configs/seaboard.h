@@ -200,6 +200,7 @@
 
 /* SPI */
 #define CONFIG_TEGRA_SPI
+#define CONFIG_USE_SFLASH		/* T20 boards use SFLASH */
 #define CONFIG_SPI_FLASH
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_NEW_SPI_XFER

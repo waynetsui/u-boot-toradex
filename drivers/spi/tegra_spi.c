@@ -24,21 +24,22 @@
 #include <common.h>
 
 #include <malloc.h>
-#include <ns16550.h> /* for NS16550_drain and NS16550_clear */
 #include <spi.h>
 #include <asm/clocks.h>
 #include <asm/io.h>
-#include <asm/arch-tegra/bitfield.h>
-#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch-tegra/spi.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
+
+#ifdef CONFIG_USE_SFLASH
+#include <ns16550.h>		/* for NS16550_drain and NS16550_clear */
+#include <asm/arch/gpio.h>
 #include "uart-spi-fix.h"
+#endif
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	/* Tegra2 SPI-Flash - only 1 device ('bus/cs') */
+	/* Tegra SPI - only 1 device ('bus/cs') */
 	if (bus > 0 && cs != 0)
 		return 0;
 	else
@@ -62,7 +63,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	slave->cs = cs;
 
 	/*
-	 * Currently, Tegra2 SFLASH uses mode 0 & a 24MHz clock.
+	 * Currently, Tegra SPI uses mode 0 & a 48MHz clock.
 	 * Use 'mode' and 'maz_hz' to change that here, if needed.
 	 */
 
@@ -78,15 +79,28 @@ void spi_init(void)
 {
 	struct spi_tegra *spi = (struct spi_tegra *)TEGRA_SPI_BASE;
 	u32 reg;
+	enum periph_id id;
 
+#ifdef CONFIG_USE_SLINK
+	id = PERIPH_ID_SBC4;
+#else
+	id = PERIPH_ID_SPI1;
+#endif
 	/* Change SPI clock to 48MHz, PLLP_OUT0 source */
-	clock_start_periph_pll(PERIPH_ID_SPI1, CLOCK_ID_PERIPH, CLK_48M);
+	clock_start_periph_pll(id, CLOCK_ID_PERIPH, CLK_48M);
 
 	/* Clear stale status here */
 	reg = SPI_STAT_RDY | SPI_STAT_RXF_FLUSH | SPI_STAT_TXF_FLUSH | \
 		SPI_STAT_RXF_UNR | SPI_STAT_TXF_OVF;
 	writel(reg, &spi->status);
 	debug("spi_init: STATUS = %08x\n", readl(&spi->status));
+
+#ifdef CONFIG_USE_SLINK
+	/* Set master mode */
+	reg = readl(&spi->command);
+	writel(reg | SPI_CMD_M_S, &spi->command);
+	debug("spi_init: COMMAND = %08x\n", readl(&spi->command));
+#endif
 
 	/*
 	 * Use sw-controlled CS, so we can clock in data after ReadID, etc.
@@ -96,6 +110,7 @@ void spi_init(void)
 	writel(reg | SPI_CMD_CS_SOFT, &spi->command);
 	debug("spi_init: COMMAND = %08x\n", readl(&spi->command));
 
+#ifdef CONFIG_USE_SFLASH
 	/*
 	 * SPI pins on Tegra2 are muxed - change pinmux last due to UART
 	 * issue.
@@ -111,7 +126,8 @@ void spi_init(void)
 	 * spi_uart_switch().
 	 */
 	pinmux_set_func(PINGRP_GMC, PMUX_FUNC_SFLASH);
-#endif
+#endif	/* CONFIG_SPI_UART_SWITCH */
+#endif	/* CONFIG_USE_SFLASH */
 }
 
 int spi_claim_bus(struct spi_slave *slave)
@@ -134,8 +150,9 @@ void spi_cs_activate(struct spi_slave *slave)
 	struct spi_tegra *spi = (struct spi_tegra *)TEGRA_SPI_BASE;
 	u32 val;
 
+#ifdef CONFIG_USE_SFLASH
 	spi_enable();
-
+#endif
 	/* CS is negated on Tegra, so drive a 1 to get a 0 */
 	val = readl(&spi->command);
 	writel(val | SPI_CMD_CS_VAL, &spi->command);
@@ -168,11 +185,21 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 	status = readl(&spi->status);
 	writel(status, &spi->status);	/* Clear all SPI events via R/W */
 	debug("spi_xfer entry: STATUS = %08x\n", status);
+#ifdef CONFIG_USE_SLINK
+	reg = readl(&spi->status2);
+	writel(reg, &spi->status2);	/* Clear all STATUS2 events via R/W */
+	debug("spi_xfer entry: STATUS2 = %08x\n", reg);
 
+	debug("spi_xfer entry: COMMAND = %08x\n", readl(&spi->command));
+	reg = readl(&spi->command2);
+	writel((reg |= (SPI_CMD2_TXEN | SPI_CMD2_RXEN)), &spi->command2);
+	writel((reg |= SPI_CMD2_SS_EN), &spi->command2);
+	debug("spi_xfer: COMMAND2 = %08x\n", readl(&spi->command2));
+#else	/* SPIFLASH a la Tegra2 */
 	reg = readl(&spi->command);
 	writel((reg |= (SPI_CMD_TXEN | SPI_CMD_RXEN)), &spi->command);
 	debug("spi_xfer: COMMAND = %08x\n", readl(&spi->command));
-
+#endif
 	if (flags & SPI_XFER_BEGIN)
 		spi_cs_activate(slave);
 
@@ -189,8 +216,8 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 
 		num_bytes -= bytes;
 		if (dout)
-			dout     += bytes;
-		bitlen   -= bits;
+			dout += bytes;
+		bitlen -= bits;
 
 		reg = readl(&spi->command);
 		reg &= ~SPI_CMD_BIT_LENGTH_MASK;
@@ -240,12 +267,6 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen, const void *dout,
 							(tmpdin & 0xff);
 						tmpdin >>= 8;
 					}
-/* this is not the same!
-					for (i = 0; i < bytes; ++i) {
-						((u8 *)din)[i] = (tmpdin >> 24);
-						tmpdin <<= 8;
-					}
-*/
 					din += bytes;
 				}
 			}

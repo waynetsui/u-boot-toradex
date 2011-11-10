@@ -1,5 +1,5 @@
 /*
- * NVIDIA Tegra2 SPI-FLASH controller
+ * NVIDIA Tegra SPI (SPIFLASH & SLINK) controllers
  *
  * Copyright 2010-2011 NVIDIA Corporation
  *
@@ -28,6 +28,20 @@
 #include <asm/types.h>
 
 struct spi_tegra {
+#ifdef CONFIG_USE_SLINK
+	u32 command;	/* SLINK_COMMAND_0 register  */
+	u32 command2;	/* SLINK_COMMAND2_0 reg */
+	u32 status;	/* SLINK_STATUS_0 register */
+	u32 reserved;	/* Reserved offset 0C */
+	u32 mas_data;	/* SLINK_MAS_DATA_0 reg */
+	u32 slav_data;	/* SLINK_SLAVE_DATA_0 reg */
+	u32 dma_ctl;	/* SLINK_DMA_CTL_0 register */
+	u32 status2;	/* SLINK_STATUS2_0 reg */
+	u32 rsvd[56];	/* 0x20 to 0xFF reserved */
+	u32 tx_fifo;	/* SLINK_TX_FIFO_0 reg off 100h */
+	u32 rsvd2[31];	/* 0x104 to 0x17F reserved */
+	u32 rx_fifo;	/* SLINK_RX_FIFO_0 reg off 180h */
+#else	/* CONFIG_USE_SFLASH */
 	u32 command;	/* SPI_COMMAND_0 register  */
 	u32 status;	/* SPI_STATUS_0 register */
 	u32 rx_cmp;	/* SPI_RX_CMP_0 register  */
@@ -35,8 +49,44 @@ struct spi_tegra {
 	u32 tx_fifo;	/* SPI_TX_FIFO_0 register */
 	u32 rsvd[3];	/* offsets 0x14 to 0x1F reserved */
 	u32 rx_fifo;	/* SPI_RX_FIFO_0 register */
-
+#endif
 };
+
+#ifdef CONFIG_USE_SLINK
+/* COMMAND */
+#define SPI_CMD_ENB		(1 << 31)
+#define SPI_CMD_GO		(1 << 30)
+#define SPI_CMD_M_S		(1 << 28)
+#define SPI_CMD_CK_SDA		(1 << 21)
+#define SPI_CMD_CS_POL		(1 << 13)
+#define SPI_CMD_CS_VAL		(1 << 12)
+#define SPI_CMD_CS_SOFT		(1 << 11)
+#define SPI_CMD_BIT_LENGTH	(1 << 4)
+/* COMMAND2 */
+#define SPI_CMD2_TXEN		(1 << 30)
+#define SPI_CMD2_RXEN		(1 << 31)
+#define SPI_CMD2_SS_EN	(1 << 18)
+#define SPI_CMD2_CS_ACTIVE_BETWEEN	(1 << 17)
+/* STATUS */
+#define SPI_STAT_BSY		(1 << 31)
+#define SPI_STAT_RDY		(1 << 30)
+#define SPI_STAT_ERR		(1 << 29)
+#define SPI_STAT_RXF_FLUSH	(1 << 27)
+#define SPI_STAT_TXF_FLUSH	(1 << 26)
+#define SPI_STAT_RXF_OVF	(1 << 25)
+#define SPI_STAT_TXF_UNR	(1 << 24)
+#define SPI_STAT_RXF_EMPTY	(1 << 23)
+#define SPI_STAT_RXF_FULL	(1 << 22)
+#define SPI_STAT_TXF_EMPTY	(1 << 21)
+#define SPI_STAT_TXF_FULL	(1 << 20)
+#define SPI_STAT_TXF_OVF	(1 << 19)
+#define SPI_STAT_RXF_UNR	(1 << 18)
+#define SPI_STAT_CUR_BLKCNT	(1 << 15)
+/* STATUS2 */
+#define SPI_STAT2_RXF_FULL_CNT	(1 << 16)
+#define SPI_STAT2_TXF_FULL_CNT	(1 << 0)
+
+#else	/* CONFIG_USE_SFLASH */
 
 #define SPI_CMD_GO		(1 << 30)
 #define SPI_CMD_ACTIVE_SCLK	(1 << 26)
@@ -53,7 +103,6 @@ struct spi_tegra {
 #define SPI_CMD_CS1_EN		(1 << 6)
 #define SPI_CMD_CS0_EN		(1 << 5)
 #define SPI_CMD_BIT_LENGTH	(1 << 4)
-#define SPI_CMD_BIT_LENGTH_MASK	0x0000001F
 
 #define SPI_STAT_BSY		(1 << 31)
 #define SPI_STAT_RDY		(1 << 30)
@@ -67,10 +116,9 @@ struct spi_tegra {
 #define SPI_STAT_TXF_FULL	(1 << 22)
 #define SPI_STAT_SEL_TXRX_N	(1 << 16)
 #define SPI_STAT_CUR_BLKCNT	(1 << 15)
+#endif	/* CONFIG_USE_SLINK */
 
-#define GMD_SEL_SFLASH_RANGE	31 : 30
-#define GMC_SEL_SFLASH_RANGE	3 : 2
-
+#define SPI_CMD_BIT_LENGTH_MASK	0x0000001F
 #define SPI_TIMEOUT	1000
 
 #endif	/* _TEGRA_SPI_H_ */

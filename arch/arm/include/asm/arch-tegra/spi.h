@@ -22,8 +22,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _TEGRA2_SPI_H_
-#define _TEGRA2_SPI_H_
+#ifndef _TEGRA_SPI_H_ /* Prepend _TEGRA_ to avoid conflict with spi.h */
+#define _TEGRA_SPI_H_
 
 #include <asm/types.h>
 
@@ -73,4 +73,4 @@ struct spi_tegra {
 
 #define SPI_TIMEOUT	1000
 
-#endif	/* _TEGRA2_SPI_H_ */
+#endif	/* _TEGRA_SPI_H_ */

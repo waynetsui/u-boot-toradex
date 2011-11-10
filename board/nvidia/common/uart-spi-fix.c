@@ -27,10 +27,10 @@
 #include <fdt_decode.h>
 #include <fdt_support.h>
 #include <asm/arch-tegra/bitfield.h>
+#include <asm/arch-tegra/spi.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch/tegra.h>
-#include <asm/arch/tegra2_spi.h>
 #include "uart-spi-fix.h"
 
 

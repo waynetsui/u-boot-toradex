@@ -46,7 +46,7 @@
 #endif
 #include <asm/arch/tegra.h>
 
-#ifdef CONFIG_TEGRA2_SPI
+#ifdef CONFIG_TEGRA_SPI
 #include <spi.h>
 #endif
 #ifdef CONFIG_TEGRA_I2C
@@ -289,7 +289,7 @@ int board_init(void)
 	board_usb_init(gd->blob);
 #endif
 	clock_verify();
-#ifdef CONFIG_TEGRA2_SPI
+#ifdef CONFIG_TEGRA_SPI
 	spi_init();
 #endif
 	power_det_init();

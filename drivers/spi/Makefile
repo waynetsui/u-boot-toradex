@@ -42,9 +42,9 @@ COBJS-$(CONFIG_SOFT_SPI) += soft_spi.o
 COBJS-$(CONFIG_SH_SPI) += sh_spi.o
 COBJS-$(CONFIG_FSL_ESPI) += fsl_espi.o
 ifdef CONFIG_NEW_SPI_XFER
-COBJS-$(CONFIG_TEGRA2_SPI) += tegra2_spi_new.o
+COBJS-$(CONFIG_TEGRA_SPI) += tegra_spi_new.o
 else
-COBJS-$(CONFIG_TEGRA2_SPI) += tegra2_spi.o
+COBJS-$(CONFIG_TEGRA_SPI) += tegra_spi.o
 endif
 
 COBJS	:= $(COBJS-y)

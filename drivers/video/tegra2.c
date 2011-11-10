@@ -26,7 +26,7 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
-#include <asm/arch/power.h>
+#include <asm/arch-tegra/power.h>
 #include <asm/arch/pwfm.h>
 #include <asm/arch/display.h>
 #include <asm/system.h>

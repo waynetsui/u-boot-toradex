@@ -24,6 +24,8 @@
 #ifndef _TEGRA3_H_
 #define _TEGRA3_H_
 
+#define TEGRA_SLINK4_BASE	0x7000DA00	/* aka SBC4 */
+
 #define NV_PA_SDRAM_BASE	0x80000000
 
 #define NV_PA_SDMMC1_BASE	0x78000000

@@ -24,6 +24,16 @@
 #ifndef _TEGRA_H_
 #define _TEGRA_H_
 
+#if !(defined(TEGRA_SLINK4_BASE) ^ defined(TEGRA_SPIFLASH_BASE))
+#error "define either TEGRA_SLINK4_BASE or TEGRA_SPIFLASH_BASE"
+#endif
+
+#ifdef TEGRA_SLINK4_BASE
+#define TEGRA_SPI_BASE		TEGRA_SLINK4_BASE
+#else
+#define TEGRA_SPI_BASE		TEGRA_SPIFLASH_BASE
+#endif
+
 #define NV_PA_ARM_PERIPHBASE	0x50040000
 #define NV_PA_PG_UP_BASE	0x60000000
 #define NV_PA_TMRUS_BASE	0x60005010

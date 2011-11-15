@@ -23,7 +23,7 @@
 
 #include <asm/io.h>
 #include <asm/arch-tegra/bitfield.h>
-#include <asm/arch/pwfm.h>
+#include <asm/arch-tegra/pwfm.h>
 
 void pwfm_setup(struct pwfm_ctlr *pwfm, int enable, int pulse_width,
 		int freq_divider)

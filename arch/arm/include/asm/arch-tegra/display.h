@@ -21,10 +21,10 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __DRIVERS_VIDEO_TEGRA_DC_DC_H
-#define __DRIVERS_VIDEO_TEGRA_DC_DC_H
+#ifndef __ASM_ARCH_TEGRA_DISPLAY_H
+#define __ASM_ARCH_TEGRA_DISPLAY_H
 
-#include <asm/arch/dc.h>
+#include <asm/arch-tegra/dc.h>
 
 /* This holds information about a window which can be displayed */
 struct disp_ctl_win {
@@ -47,4 +47,4 @@ struct fdt_lcd;
 /* Register a new display based on the given configuration */
 void tegra2_display_register(struct fdt_lcd *config);
 
-#endif /*__DRIVERS_VIDEO_TEGRA_DC_DC_REG_H*/
+#endif /*__ASM_ARCH_TEGRA_DISPLAY_H*/

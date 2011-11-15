@@ -21,10 +21,10 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __DC_H
-#define __DC_H
+#ifndef __ASM_ARCH_TEGRA_DC_H
+#define __ASM_ARCH_TEGRA_DC_H
 
-/* Register definitions for the Tegra2 display controller */
+/* Register definitions for the Tegra display controller */
 
 /* CMD register 0x000 ~ 0x43 */
 struct dc_cmd_reg {
@@ -527,4 +527,4 @@ enum {
 #define H_DDA_INC_RANGE			15:0
 #define V_DDA_INC_RANGE			31:16
 
-#endif /* __DC_H */
+#endif /* __ASM_ARCH_TEGRA_DC_H */

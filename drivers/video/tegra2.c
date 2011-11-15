@@ -27,8 +27,8 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch-tegra/power.h>
-#include <asm/arch/pwfm.h>
-#include <asm/arch/display.h>
+#include <asm/arch-tegra/pwfm.h>
+#include <asm/arch-tegra/display.h>
 #include <asm/system.h>
 
 DECLARE_GLOBAL_DATA_PTR;

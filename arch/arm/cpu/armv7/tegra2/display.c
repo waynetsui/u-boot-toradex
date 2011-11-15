@@ -27,8 +27,8 @@
 #include <asm/arch/clock.h>
 #include <asm/arch/timer.h>
 #include <asm/arch/tegra.h>
-#include <asm/arch/display.h>
-#include <asm/arch/dc.h>
+#include <asm/arch-tegra/display.h>
+#include <asm/arch-tegra/dc.h>
 #include <common.h>
 #include "fdt_decode.h"
 

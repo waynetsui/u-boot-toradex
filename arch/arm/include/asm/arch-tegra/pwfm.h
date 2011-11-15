@@ -19,7 +19,10 @@
  * MA 02111-1307 USA
  */
 
-/* Tegra2 pulse width frequency modulator definitions */
+#ifndef __ASM_ARCH_TEGRA_PWFM_H
+#define __ASM_ARCH_TEGRA_PWFM_H
+
+/* Tegra pulse width frequency modulator definitions */
 
 /* This is a single PWFM channel */
 struct pwfm_ctlr {
@@ -42,3 +45,5 @@ struct pwfm_ctlr {
  */
 void pwfm_setup(struct pwfm_ctlr *pwfm, int enable, int pulse_width,
 		int freq_divider);
+
+#endif	/* __ASM_ARCH_TEGRA_PWFM_H */

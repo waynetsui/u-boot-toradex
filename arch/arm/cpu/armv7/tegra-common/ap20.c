@@ -65,7 +65,7 @@ static struct clk_pll_table tegra_pll_x_table[TEGRA_SOC_COUNT]
 	 { 600, 13, 0, 12},
 	},
 
-	/* T30: 1.5 GHz with slower PLLP */
+	/* T30: 1.5 GHz with slower (216MHz) PLLP */
 	{{ 0xd8,  13, 1, 8},
 	 { 0xb4,  22, 1, 4},
 	 { 0x1b0, 12, 1, 8},
@@ -119,6 +119,26 @@ int ap20_cpu_is_cortexa9(void)
 	return id == (PG_UP_TAG_0_PID_CPU & 0xff);
 }
 
+#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
+static void adjust_pllp_out_freqs(void)
+{
+	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
+	struct clk_pll *pll = &clkrst->crc_pll[CLOCK_ID_PERIPH];
+	u32 reg;
+
+	/* Set T30 PLLP_OUT1, 2, 3 & 4 freqs to 9.6, 48, 102 & 204MHz */
+	reg = readl(&pll->pll_out);	/* OUTA, contains OUT2 / OUT1 */
+	reg |= (IN_408_OUT_48_DIVISOR << PLLP_OUT2_RATIO) | PLLP_OUT2_OVR
+		| (IN_408_OUT_9_6_DIVISOR << PLLP_OUT1_RATIO) | PLLP_OUT1_OVR;
+	writel(reg, &pll->pll_out);
+
+	reg = readl(&pll->pll_out_b);	/* OUTB, contains OUT4 / OUT3 */
+	reg |= (IN_408_OUT_204_DIVISOR << PLLP_OUT4_RATIO) | PLLP_OUT4_OVR
+		| (IN_408_OUT_102_DIVISOR << PLLP_OUT3_RATIO) | PLLP_OUT3_OVR;
+	writel(reg, &pll->pll_out_b);
+}
+#endif
+
 static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 			 u32 cpcon)
 {
@@ -168,6 +188,9 @@ void ap20_init_pllx(int slow)
 	/* set pllx */
 	sel = &tegra_pll_x_table[chip_type][osc];
 	pllx_set_rate(pll, sel->n, sel->m, sel->p, sel->cpcon);
+#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
+	adjust_pllp_out_freqs();
+#endif
 }
 
 static void enable_cpu_clock(int enable)
@@ -340,7 +363,7 @@ void t30_init_clocks(void)
 	clrbits_le32(flow->control, 1 << 0);
 
 	/*
-	 * Switch system clock to PLLP_out 4 (108 MHz) MHz, AVP will now run
+	 * Switch system clock to PLLP_OUT4 (108 MHz), AVP will now run
 	 * at 108 MHz. This is glitch free as only the source is changed, no
 	 * special precaution needed.
 	 */
@@ -399,7 +422,15 @@ static void clock_enable_coresight(int enable)
 		 * Set PLLP_OUT0 [bits31:30 = 00], and use a 7.1 divisor
 		 *  (bits 7:0), so 00000001b == 1.5 (n+1 + .5)
 		 */
+#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
+		/*
+		 * Clock divider request for 204MHz would setup CSITE clock as
+		 * 144MHz for PLLP base 216MHz and 204MHz for PLLP base 408MHz
+		*/
+		src = CLK_DIVIDER(NVBL_PLLP_KHZ, 204000);
+#else
 		src = CLK_DIVIDER(NVBL_PLLP_KHZ, 144000);
+#endif
 		clock_ll_set_source_divisor(PERIPH_ID_CSI, 0, src);
 
 		/* Unlock the CPU CoreSight interfaces */

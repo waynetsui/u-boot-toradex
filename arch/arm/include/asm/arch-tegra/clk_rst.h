@@ -29,7 +29,7 @@
 struct clk_pll {
 	uint pll_base;		/* the control register */
 	uint pll_out;		/* output control */
-	uint reserved;
+	uint pll_out_b;		/* some have output B control */
 	uint pll_misc;		/* other misc things */
 };
 
@@ -127,6 +127,21 @@ struct clk_rst_ctlr {
 #define PLL_LFCON_RANGE		7:4
 #define PLLU_VCO_FREQ_RANGE	20:20
 #define PLL_VCO_FREQ_RANGE	3:0
+
+#define PLLP_OUT1_OVR		(1 << 2)
+#define PLLP_OUT2_OVR		(1 << 18)
+#define PLLP_OUT3_OVR		(1 << 2)
+#define PLLP_OUT4_OVR		(1 << 18)
+#define PLLP_OUT1_RATIO		8
+#define PLLP_OUT2_RATIO		24
+#define PLLP_OUT3_RATIO		8
+#define PLLP_OUT4_RATIO		24
+enum {
+	IN_408_OUT_204_DIVISOR = 2,
+	IN_408_OUT_102_DIVISOR = 6,
+	IN_408_OUT_48_DIVISOR = 15,
+	IN_408_OUT_9_6_DIVISOR = 83,
+};
 
 /* CLK_RST_CONTROLLER_OSC_CTRL_0 */
 #define OSC_FREQ_RANGE		31:30

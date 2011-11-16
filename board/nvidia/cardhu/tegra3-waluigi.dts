@@ -63,4 +63,34 @@
 		power-gpio = <&gpio 25 3>; /* power enable, gpio PD1 */
 	};
 
+	lcd {
+		compatible = "nvidia,tegra2-lcd";
+		width = <1280>;
+		height = <800>;
+		bits_per_pixel = <16>;
+		pwfm = <&pwfm0>;
+		display = <&display1>;
+		frame-buffer = <0x1C022000>;
+
+		pixel_clock = <68000000>;
+
+		/* Timing: ref_to_sync, sync_width. back_porch, front_porch */
+		horiz_timing = <0 30 52 64>;
+		vert_timing = <12 5 20 25>;
+
+		/* Parameter 3 bit 0:1=output, 0=input; bit 1:1=high, 0=low */
+		backlight-vdd = <&gpio 56 3>;		/* PH0, LCD1_BL_PWM */
+		backlight-enable = <&gpio 58 3>;	/* PH2, LCD1_BL_EN */
+		lvds-shutdown = <&gpio 90 3>;		/* PL2, LVDS1_SHTDN */
+		panel-vdd = <&gpio 92 3>;		/* PL4, EN_VDD_PNL1 */
+
+		/*
+		 * Panel required timings
+		 * Timing 1: delay between panel_vdd-rise and data-rise
+		 * Timing 2: delay between data-rise and backlight_vdd-rise
+		 * Timing 3: delay between backlight_vdd and pwm-rise
+		 */
+
+		panel-timings = <0 0 0 0>;
+	};
 };

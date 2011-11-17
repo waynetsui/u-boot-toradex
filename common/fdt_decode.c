@@ -23,7 +23,6 @@
 
 #include <fdt_decode.h>
 #include <libfdt.h>
-#include <malloc.h>
 #include <serial.h>
 
 /* we need a generic GPIO interface here */
@@ -703,22 +702,19 @@ int fdt_decode_nand(const void *blob, int node, struct fdt_nand *config)
 	return fdt_decode_gpio(blob, node, "wp-gpio", &config->wp_gpio);
 }
 
-void *fdt_decode_alloc_region(const void *blob, int node,
-		const char *prop_name, size_t *size)
+int fdt_decode_region(const void *blob, int node,
+		const char *prop_name, void **ptrp, size_t *size)
 {
 	const addr_t *cell;
-	void *ptr;
 	int len;
 
 	debug("%s: %s\n", __func__, prop_name);
 	cell = fdt_getprop(blob, node, prop_name, &len);
 	if (!cell || (len != sizeof(addr_t) * 2))
-		return NULL;
+		return -1;
 
-	ptr = (void *)addr_to_cpu(*cell);
+	*ptrp = (void *)addr_to_cpu(*cell);
 	*size = size_to_cpu(cell[1]);
 	debug("%s: size=%zx\n", __func__, *size);
-	if (!ptr)
-		ptr = malloc(*size);
-	return ptr;
+	return 0;
 }

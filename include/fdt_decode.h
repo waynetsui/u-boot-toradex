@@ -600,8 +600,7 @@ int fdt_decode_nand(const void *blob, int node, struct fdt_nand *config);
 
 /**
  * Look up a property in a node which contains a memory region address and
- * size. Then return a pointer to this address. if the address is zero, it is
- * allocated with malloc() instead.
+ * size. Then return a pointer to this address.
  *
  * The property must hold one address with a length. This is only tested on
  * 32-bit machines.
@@ -609,8 +608,9 @@ int fdt_decode_nand(const void *blob, int node, struct fdt_nand *config);
  * @param blob		FDT blob
  * @param node		node to examine
  * @param prop_name	name of property to find
+ * @param ptrp		returns pointer to region, or NULL if no address
  * @param size		returns size of region
- * @return pointer to region, or NULL if property not found/malloc failed
+ * @return 0 if ok, -1 on error (propery not found)
  */
-void *fdt_decode_alloc_region(const void *blob, int node,
-		const char *prop_name, size_t *size);
+int fdt_decode_region(const void *blob, int node,
+		const char *prop_name, void **ptrp, size_t *size);

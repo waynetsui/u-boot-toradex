@@ -260,8 +260,11 @@
 #define CONFIG_DEFAULT_DEVICE_TREE "tegra2-seaboard"
 
 /* NAND support */
+
+/* Remove this for now to reduce U-Boot size (tool chain?)
 #define CONFIG_CMD_NAND
 #define CONFIG_TEGRA2_NAND
+*/
 
 /* Max number of NAND devices */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1

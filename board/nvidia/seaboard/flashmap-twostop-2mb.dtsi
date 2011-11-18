@@ -47,7 +47,9 @@
 			/* Alignment: no requirement (yet). */
 			label = "fw-main-a";
 			reg = <0x00102000 0x00075000>;
-			type = "blob boot";
+
+			/* There is not enough space for this, so remove it */
+			/* type = "blob boot"; */
 		};
 		rw-a-firmware-id@177f00 {
 			/* Alignment: no requirement. */
@@ -80,7 +82,8 @@
 			label = "fw-main-b";
 			/* Alignment: no requirement (yet). */
 			reg = <0x0017a000 0x00075000>;
-			type = "blob boot";
+			/* There is not enough space for this, so remove it */
+			/* type = "blob boot"; */
 		};
 		rw-b-firmware-id@1eff00 {
 			label = "rw-fwid-b";

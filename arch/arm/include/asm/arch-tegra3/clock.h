@@ -19,4 +19,5 @@
  * MA 02111-1307 USA
  */
 
+#include "asm/arch/clock-tables.h"
 #include "asm/arch-tegra/clock.h"

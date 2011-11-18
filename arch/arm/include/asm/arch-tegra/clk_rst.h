@@ -39,6 +39,12 @@ struct clk_pll_simple {
 	uint pll_misc;		/* other misc things */
 };
 
+/* RST_DEV_(L,H,U,V,W)_(SET,CLR) and CLK_ENB_(L,H,U,V,W)_(SET,CLR) */
+struct clk_set_clr {
+	uint set;
+	uint clr;
+};
+
 /*
  * Most PLLs use the clk_pll structure, but some have a simpler two-member
  * structure for which we use clk_pll_simple. The reason for this non-
@@ -47,8 +53,10 @@ struct clk_pll_simple {
 enum {
 	TEGRA_CLK_PLLS		= 6,	/* Number of normal PLLs */
 	TEGRA_CLK_SIMPLE_PLLS	= 3,	/* Number of simple PLLs */
-	TEGRA_CLK_REGS		= 3,	/* Number of clock enable registers */
-	TEGRA_CLK_SOURCES	= 64,	/* Number of periph clock sources */
+	TEGRA_CLK_REGS		= 3,	/* Number of clock enable regs L/H/U */
+	TEGRA_CLK_SOURCES	= 64,	/* Number of ppl clock sources L/H/U */
+	TEGRA_CLK_REGS_VW	= 2,	/* Number of clock enable regs V/W */
+	TEGRA_CLK_SOURCES_VW	= 32,	/* Number of ppl clock sources V/W*/
 };
 
 /* Clock/Reset Controller (CLK_RST_CONTROLLER_) regs */
@@ -84,30 +92,49 @@ struct clk_rst_ctlr {
 	uint crc_reserved11;		/* _reserved_11,	0xFC */
 
 	uint crc_clk_src[TEGRA_CLK_SOURCES]; /*_I2S1_0...	0x100-1fc */
-	uint crc_reserved20[80];	/*			0x200-33C */
-	uint crc_cpu_cmplx_set;		/* _CPU_CMPLX_SET_0,	0x340	  */
-	uint crc_cpu_cmplx_clr;		/* _CPU_CMPLX_CLR_0,	0x344     */
 
-	/* T30 things */
-	uint crc_clk_cpu_cmplx_set;	/* _CLK_CPU_CMPLX_SET_0, 0x348	  */
-	uint crc_clk_cpu_cmplx_clr;	/* _CLK_CPU_CMPLX_CLR_0, 0x34c    */
-	uint crc_reserved12[2];		/* reserved_12		0x350-354 */
-	uint crc_rst_devices_v;		/* _RST_DEVICES_V	0x358	  */
-	uint crc_rst_devices_w;		/* _RST_DEVICES_W	0x35c	  */
-	uint crc_clk_out_enb_v;		/* _CLK_OUT_ENB_V	0x360	  */
-	uint crc_clk_out_enb_w;		/* _CLK_OUT_ENB_W	0x364	  */
-	uint crc_cclkg_burst_policy;	/* _CCLKG_BURST_POLICY	0x368	  */
-	uint crc_super_cclkg_divider;	/* _SUPER_CCLKG_DIVIDER	0x36c	  */
-	uint crc_cclklp_burst_policy;	/* _CCLKLP_BURST_POLICY	0x370	  */
-	uint crc_super_cclklp_divider;	/* _SUPER_CCLKLP_DIVIDER 0x374	  */
-	uint crc_clk_cpug_cmplx;	/* _CLK_CPUG_CMPLX	0x378	  */
-	uint crc_clk_cpulp_cmplx;	/* _CLK_CPULP_CMPLX	0x37c	  */
-	uint crc_cpu_softrst_ctrl;	/* _CPU_SOFTRST_CTRL	0x380	  */
-	uint crc_reserved13[11];	/* reserved_13		0x384-3ac */
-	uint crc_clk_source_g3d2;	/* _CLK_SOURCE_G3D2	0x3b0	  */
-	uint crc_clk_source_mselect;	/* _CLK_SOURCE_MSELECT	0x3b4	  */
+	uint crc_reserved20[64];	/* _reserved_20,	0x200-2fc */
 
-	/* the road goes ever on and on... */
+	/* _RST_DEV_L/H/U_SET_0 0x300 ~ 0x314 */
+	struct clk_set_clr crc_rst_dev_ex[TEGRA_CLK_REGS];
+
+	uint crc_reserved30[2];		/* _reserved_30,	0x318, 0x31c */
+
+	/* _CLK_ENB_L/H/U_CLR_0 0x320 ~ 0x334 */
+	struct clk_set_clr crc_clk_enb_ex[TEGRA_CLK_REGS];
+
+	uint crc_reserved31[2];		/* _reserved_31,	0x338, 0x33c */
+
+	uint crc_cpu_cmplx_set;		/* _RST_CPU_CMPLX_SET_0,    0x340 */
+	uint crc_cpu_cmplx_clr;		/* _RST_CPU_CMPLX_CLR_0,    0x344 */
+
+	/* Additional (T30) registers */
+	uint crc_clk_cpu_cmplx_set;	/* _CLK_CPU_CMPLX_SET_0,    0x348 */
+	uint crc_clk_cpu_cmplx_clr;	/* _CLK_CPU_CMPLX_SET_0,    0x34c */
+
+	uint crc_reserved32[2];		/* _reserved_32,      0x350,0x354 */
+
+	uint crc_rst_dev_vw[TEGRA_CLK_REGS_VW]; /* _RST_DEVICES_V/W_0 */
+	uint crc_clk_out_enb_vw[TEGRA_CLK_REGS_VW]; /* _CLK_OUT_ENB_V/W_0 */
+	uint crc_cclkg_brst_pol;	/* _CCLKG_BURST_POLICY_0,   0x368 */
+	uint crc_super_cclkg_div;	/* _SUPER_CCLKG_DIVIDER_0,  0x36C */
+	uint crc_cclklp_brst_pol;	/* _CCLKLP_BURST_POLICY_0,  0x370 */
+	uint crc_super_cclkp_div;	/* _SUPER_CCLKLP_DIVIDER_0, 0x374 */
+	uint crc_clk_cpug_cmplx;	/* _CLK_CPUG_CMPLX_0,       0x378 */
+	uint crc_clk_cpulp_cmplx;	/* _CLK_CPULP_CMPLX_0,      0x37C */
+	uint crc_cpu_softrst_ctrl;	/* _CPU_SOFTRST_CTRL_0,     0x380 */
+	uint crc_reserved33[11];	/* _reserved_33,        0x384-3ac */
+
+	uint crc_clk_src_vw[TEGRA_CLK_SOURCES_VW]; /* _G3D2_0..., 0x3b0-0x42c */
+	/* _RST_DEV_V/W_SET_0 0x430 ~ 0x43c */
+	struct clk_set_clr crc_rst_dev_ex_vw[TEGRA_CLK_REGS_VW];
+	/* _CLK_ENB_V/W_CLR_0 0x440 ~ 0x44c */
+	struct clk_set_clr crc_clk_enb_ex_vw[TEGRA_CLK_REGS_VW];
+
+	uint crc_reserved40[12];	/* _reserved_40,	0x450-47C */
+	uint crc_pll_cfg0;		/* _PLL_CFG0_0,		0x480 */
+	uint crc_pll_cfg1;		/* _PLL_CFG1_0,		0x484 */
+	uint crc_pll_cfg2;		/* _PLL_CFG2_0,		0x488 */
 };
 
 /* CLK_RST_CONTROLLER_CLK_CPU_CMPLX_0 */

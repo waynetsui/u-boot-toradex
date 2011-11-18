@@ -348,6 +348,7 @@ static void reset_A9_cpu(int reset)
  */
 void t30_init_clocks(void)
 {
+#if defined(CONFIG_TEGRA3)
 	/*
 	* Sadly our clock functions don't support the V and W clocks of T30
 	* yet, as well as a few other functions, so use low-level register
@@ -385,17 +386,16 @@ void t30_init_clocks(void)
 	/* Put i2c, mselect in reset and enable clocks */
 	reset_set_enable(PERIPH_ID_DVC_I2C, 1);
 	clock_set_enable(PERIPH_ID_DVC_I2C, 1);
-	setbits_le32(&clkrst->crc_clk_out_enb_v, 1 << 3);
+	reset_set_enable(PERIPH_ID_MSELECT, 1);
+	clock_set_enable(PERIPH_ID_MSELECT, 1);
 
-	/* Switch MSELECT clock to PLLP */
-	val = readl(&clkrst->crc_clk_source_mselect);
-	val &= ~MSELECT_CLK_M_MASK;
-	writel(val, &clkrst->crc_clk_source_mselect);
+	/* Switch MSELECT clock to PLLP (00) */
+	clock_ll_set_source(PERIPH_ID_MSELECT, 0);
 
 	/*
 	 * Our high-level clock routines are not available prior to
 	 * relocation. We use the low-level functions which require a
-	 * hard-coded divisor. Use CLK_M with divide by (n + 1 = 17
+	 * hard-coded divisor. Use CLK_M with divide by (n + 1 = 17)
 	 */
 	clock_ll_set_source_divisor(PERIPH_ID_DVC_I2C, 3, 16);
 
@@ -405,7 +405,8 @@ void t30_init_clocks(void)
 	 */
 	udelay(1000);
 	reset_set_enable(PERIPH_ID_DVC_I2C, 0);
-	clrbits_le32(&clkrst->crc_rst_devices_v, 1 << 3);
+	reset_set_enable(PERIPH_ID_MSELECT, 0);
+#endif	/* CONFIG_TEGRA3 */
 }
 
 static void clock_enable_coresight(int enable)

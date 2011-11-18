@@ -201,10 +201,6 @@ ifneq ($(OBJTREE),$(SRCTREE))
 CPPFLAGS += -I$(OBJTREE)/include2 -I$(OBJTREE)/include
 endif
 
-ifdef VBOOT
-CPPFLAGS += -I$(VBOOT)/include/vboot
-endif
-
 ifdef DEV_TREE_SEPARATE
 CPPFLAGS += -DCONFIG_OF_SEPARATE
 endif
@@ -212,6 +208,11 @@ endif
 CPPFLAGS += -I$(TOPDIR)/include
 CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
+
+ifdef VBOOT
+CPPFLAGS += -I$(if $(VBOOT_SOURCE),$(VBOOT_SOURCE)/firmware/include,\
+		$(VBOOT)/include/vboot)
+endif
 
 ifdef BUILD_TAG
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \

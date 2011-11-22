@@ -343,6 +343,8 @@ int do_zboot (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	void *load_address;
 	char *s;
 	ulong bzImage_size = 0;
+	ulong initrd_addr = 0;
+	ulong initrd_size = 0;
 
 	disable_interrupts();
 
@@ -359,9 +361,15 @@ int do_zboot (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (s)
 		bzImage_addr = (void *)simple_strtoul(s, NULL, 16);
 
-	if (argc >= 3)
+	if (argc >= 3) {
 		/* argv[2] holds the size of the bzImage */
 		bzImage_size = simple_strtoul(argv[2], NULL, 16);
+	}
+
+	if (argc >= 4)
+		initrd_addr = simple_strtoul(argv[3], NULL, 16);
+	if (argc >= 5)
+		initrd_size = simple_strtoul(argv[4], NULL, 16);
 
 	/* Lets look for*/
 	base_ptr = load_zimage(bzImage_addr, bzImage_size, &load_address);
@@ -371,7 +379,7 @@ int do_zboot (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return -1;
 	}
 	if (setup_zimage(base_ptr, (char *)base_ptr + COMMAND_LINE_OFFSET,
-			0, 0, 0)) {
+			0, initrd_addr, initrd_size)) {
 		printf("Setting up boot parameters failed ...\n");
 		return -1;
 	}
@@ -388,7 +396,7 @@ int do_zboot (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 U_BOOT_CMD(
-	zboot, 2, 0,	do_zboot,
+	zboot, 5, 0,	do_zboot,
 	"Boot bzImage",
 	""
 );

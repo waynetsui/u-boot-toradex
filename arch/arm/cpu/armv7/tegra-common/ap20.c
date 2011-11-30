@@ -152,7 +152,6 @@ int ap20_cpu_is_cortexa9(void)
 	return id == (PG_UP_TAG_0_PID_CPU & 0xff);
 }
 
-#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
 static void adjust_pllp_out_freqs(void)
 {
 	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
@@ -170,7 +169,6 @@ static void adjust_pllp_out_freqs(void)
 		| (IN_408_OUT_102_DIVISOR << PLLP_OUT3_RATIO) | PLLP_OUT3_OVR;
 	writel(reg, &pll->pll_out_b);
 }
-#endif
 
 static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 			 u32 cpcon)
@@ -223,9 +221,10 @@ void ap20_init_pllx(int slow)
 	/* set pllx */
 	sel = &tegra_pll_x_table[chip_type][osc];
 	pllx_set_rate(pll, sel->n, sel->m, sel->p, sel->cpcon);
-#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
-	adjust_pllp_out_freqs();
-#endif
+
+	/* once we are out of slow mode, set up the T30 PLLs also */
+	if (!slow && chip_type == TEGRA_SOC_T30_408MHZ)
+		adjust_pllp_out_freqs();
 }
 
 static void enable_cpu_clock(int enable)
@@ -457,16 +456,14 @@ static void clock_enable_coresight(int enable)
 		 *  1.5, giving an effective frequency of 144MHz.
 		 * Set PLLP_OUT0 [bits31:30 = 00], and use a 7.1 divisor
 		 *  (bits 7:0), so 00000001b == 1.5 (n+1 + .5)
-		 */
-#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
-		/*
+		 *
 		 * Clock divider request for 204MHz would setup CSITE clock as
 		 * 144MHz for PLLP base 216MHz and 204MHz for PLLP base 408MHz
-		*/
-		src = CLK_DIVIDER(NVBL_PLLP_KHZ, 204000);
-#else
-		src = CLK_DIVIDER(NVBL_PLLP_KHZ, 144000);
-#endif
+		 */
+		if (tegra_get_chip_type() == TEGRA_SOC_T30_408MHZ)
+			src = CLK_DIVIDER(NVBL_PLLP_KHZ, 204000);
+		else
+			src = CLK_DIVIDER(NVBL_PLLP_KHZ, 144000);
 		clock_ll_set_source_divisor(PERIPH_ID_CSI, 0, src);
 
 		/* Unlock the CPU CoreSight interfaces */

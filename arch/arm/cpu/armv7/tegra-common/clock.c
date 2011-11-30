@@ -1348,8 +1348,9 @@ uint32_t check_is_tegra_processor_reset(void)
 	return (base_reg & bf_mask(PLL_BASE_OVRRIDE)) ? 0 : 1;
 }
 
-void clock_early_init(void)
+int clock_early_init(ulong pllp_base)
 {
+	unsigned osc_freq_mhz;
 	/*
 	 * PLLP output frequency set to 216Mh
 	 * PLLC output frequency set to 228Mhz (Tegra3) or 600MHz (Tegra2)
@@ -1357,23 +1358,11 @@ void clock_early_init(void)
 	 */
 	switch (clock_get_osc_freq()) {
 	case CLOCK_OSC_FREQ_12_0: /* OSC is 12Mhz */
-#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
-		clock_set_rate(CLOCK_ID_PERIPH, 408, 12, 0, 8);
-		clock_set_rate(CLOCK_ID_CGENERAL, 456, 12, 1, 8);
-#else
-		clock_set_rate(CLOCK_ID_PERIPH, 432, 12, 1, 8);
-		clock_set_rate(CLOCK_ID_CGENERAL, 600, 12, 0, 8);
-#endif
+		osc_freq_mhz = 12;
 		break;
 
 	case CLOCK_OSC_FREQ_26_0: /* OSC is 26Mhz */
-#if defined(CONFIG_SYS_PLLP_BASE_IS_408MHZ)
-		clock_set_rate(CLOCK_ID_PERIPH, 408, 26, 0, 8);
-		clock_set_rate(CLOCK_ID_CGENERAL, 456, 26, 1, 8);
-#else
-		clock_set_rate(CLOCK_ID_PERIPH, 432, 26, 1, 8);
-		clock_set_rate(CLOCK_ID_CGENERAL, 600, 26, 0, 8);
-#endif
+		osc_freq_mhz = 26;
 		break;
 
 	case CLOCK_OSC_FREQ_13_0:
@@ -1384,8 +1373,19 @@ void clock_early_init(void)
 		 * message and the UART likely won't work anyway due to the
 		 * oscillator being wrong.
 		 */
-		break;
+		return -1;
 	}
+
+	if (pllp_base == 408000000) {
+		clock_set_rate(CLOCK_ID_PERIPH, 408, osc_freq_mhz, 0, 8);
+		clock_set_rate(CLOCK_ID_CGENERAL, 456, osc_freq_mhz, 1, 8);
+	} else {
+		assert(pllp_base == 216000000);
+		clock_set_rate(CLOCK_ID_PERIPH, 432, osc_freq_mhz, 1, 8);
+		clock_set_rate(CLOCK_ID_CGENERAL, 600, osc_freq_mhz, 0, 8);
+	}
+
+	return 0;
 }
 
 void clock_init(void)

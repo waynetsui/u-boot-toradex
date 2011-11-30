@@ -337,6 +337,7 @@ int board_init(void)
 int board_early_init_f(void)
 {
 	int uart_ids = 0;	/* bit mask of which UART ids to enable */
+	ulong pllp_rate = 216000000;	/* default PLLP clock rate */
 
 #ifdef CONFIG_OF_CONTROL
 	struct fdt_uart uart;
@@ -356,7 +357,10 @@ int board_early_init_f(void)
 #endif /* CONFIG_OF_CONTROL */
 
 	/* Initialize essential common plls */
-	clock_early_init();
+#ifdef CONFIG_OF_CONTROL
+	pllp_rate = fdt_decode_clock_rate(gd->blob, "pllp", pllp_rate);
+#endif
+	clock_early_init(pllp_rate);
 
 	/* Initialize UART clocks */
 	clock_init_uart(uart_ids);

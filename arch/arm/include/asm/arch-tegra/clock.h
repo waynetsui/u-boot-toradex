@@ -238,7 +238,12 @@ int clock_verify(void);
 /* Initialize the clocks */
 void clock_init(void);
 
-/* Initialize the PLLs */
-void clock_early_init(void);
+/**
+ * Initialize the PLLs
+ *
+ * @param pllp_base	Base clock for PLLP - should be 408000000 or
+ *			216000000 are supported for the moment.
+ */
+int clock_early_init(ulong pllp_base);
 
 #endif

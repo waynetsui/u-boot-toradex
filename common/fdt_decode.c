@@ -718,3 +718,18 @@ int fdt_decode_region(const void *blob, int node,
 	debug("%s: size=%zx\n", __func__, *size);
 	return 0;
 }
+
+int fdt_decode_clock_rate(const void *blob, const char *clock_name,
+			  ulong default_rate)
+{
+	int node;
+
+	node = fdt_node_offset_by_compatible(blob, 0, "board-clocks");
+	if (node >= 0) {
+		node = lookup_phandle(blob, node, clock_name);
+		if (node >= 0)
+			return get_int(blob, node, "clock-frequency",
+				       default_rate);
+	}
+	return default_rate;
+}

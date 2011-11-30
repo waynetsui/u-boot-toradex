@@ -614,3 +614,18 @@ int fdt_decode_nand(const void *blob, int node, struct fdt_nand *config);
  */
 int fdt_decode_region(const void *blob, int node,
 		const char *prop_name, void **ptrp, size_t *size);
+
+/**
+ * Look up the required rate of a particular clock in the FDT.
+ *
+ * These are expected to be in a board-clocks compatible node, with a
+ * property pointing to the phandle of each clock. The clock-frequency
+ * property in that phandle is returned.
+ *
+ * @param blob		FDT blob
+ * @param clock_name	Name of clock to look up (must name a phandle)
+ * @param default_rate	Default clock rate to return if property not found
+ * @return clock rate as found in FDT, or default_rate if not found
+ */
+int fdt_decode_clock_rate(const void *blob, const char *clock_name,
+			  ulong default_rate);

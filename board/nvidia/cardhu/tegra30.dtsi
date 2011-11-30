@@ -20,6 +20,19 @@
 		};
 	};
 
+	pllp: clock0 {
+		compatible = "nvidia,tegra20-pll-sys";
+		#clock-cells = <1>;
+		clock-frequency = <408000000>;
+		clock-output-names = "pllp";
+	};
+
+	/* TBD: provides an easy way to find clocks for now */
+	clocks {
+		compatible = "board-clocks";
+		pllp = <&pllp>;
+	};
+
 	gpio: gpio@6000d000 {
 		compatible = "nvidia,tegra250-gpio", "ns16550";
 		reg = < 0x6000d000 0x1000 >;

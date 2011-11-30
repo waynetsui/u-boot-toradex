@@ -406,21 +406,30 @@ static u32 uart_reg_addr[] = {
 	0
 };
 
-/*
- * This is called when we have no console. About the only reason that this
- * happen is if we don't have a valid fdt. So we don't know what kind of
- * Tegra board we are. We blindly try to print a message every which way we
- * know.
+/**
+ * Send out serial output wherever we can.
+ *
+ * This function produces a low-level panic message, after setting PLLP
+ * to the given value.
+ *
+ * @param pllp_rate	Required PLLP rate (408000000 or 216000000)
+ * @param str		String to output
  */
-void board_panic_no_console(const char *str)
+static void send_output_with_pllp(ulong pllp_rate, const char *str)
 {
 	int uart_ids = UART_ALL;	/* turn it all on! */
 	u32 *uart_addr;
 	int clock_freq, multiplier, baudrate, divisor;
 
+	clock_early_init(pllp_rate);
+
 	/* Try to enable all possible UARTs */
 	clock_init_uart(uart_ids);
 	pin_mux_uart(uart_ids);
+#ifdef CONFIG_TEGRA3
+	/* Until we sort out pinmux, we must do the global Tegra3 init */
+	pinmux_init(uart_ids);
+#endif
 
 	/*
 	 * Seaboard has a UART switch on PI3. We might be a Seaboard,
@@ -434,7 +443,7 @@ void board_panic_no_console(const char *str)
 	 * Now send the string out all the Tegra UARTs. We don't try all
 	 * possible configurations, but this could be added if required.
 	 */
-	clock_freq = CONFIG_DEFAULT_NS16550_CLK;
+	clock_freq = pllp_rate;
 	multiplier = CONFIG_DEFAULT_NS16550_MULT;
 	baudrate = CONFIG_BAUDRATE;
 	divisor = (clock_freq + (baudrate * (multiplier / 2))) /
@@ -450,4 +459,17 @@ void board_panic_no_console(const char *str)
 				NS16550_putc((NS16550_t)*uart_addr, '\r');
 		}
 	}
+}
+
+/*
+ * This is called when we have no console. About the only reason that this
+ * happen is if we don't have a valid fdt. So we don't know what kind of
+ * Tegra board we are. We blindly try to print a message every which way we
+ * know.
+ */
+void board_panic_no_console(const char *str)
+{
+	/* We don't know what PLLP to use, so try both */
+	send_output_with_pllp(216000000, str);
+	send_output_with_pllp(408000000, str);
 }

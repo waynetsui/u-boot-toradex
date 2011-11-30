@@ -28,9 +28,9 @@
 #include <asm/arch/sys_proto.h>
 
 #include <asm/arch/pmu.h>
+#include <asm/arch-tegra/ap20.h>
 #include <asm/arch-tegra/pmc.h>
 #include <i2c.h>
-#include "board.h"
 #include "pmu.h"
 
 /*

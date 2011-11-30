@@ -30,6 +30,5 @@ void gpio_config_mmc(void);
 int tegra_mmc_init(const void *blob);
 void lcd_early_init(const void *blob);
 int lcd_pinmux_early_init(const void *blob);
-int tegra_get_chip_type(void);
 
 #endif	/* BOARD_H */

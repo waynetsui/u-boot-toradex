@@ -118,3 +118,14 @@ void ap20_init_pllx(int slow);
  * @return number of CPUs (1-4)
  */
 int ap20_get_num_cpus(void);
+
+/**
+ * Works out the SOC type used for clocks settings
+ *
+ * Note that T30 will return TEGRA_SOC_T30 until we have the fdt set up,
+ * when it may change to TEGRA_SOC_T30_408MHZ depending on what we set PLLP
+ * to.
+ *
+ * @return	SOC type - see TEGRA_SOC...
+ */
+int tegra_get_chip_type(void);

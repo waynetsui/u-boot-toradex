@@ -89,6 +89,12 @@ enum {
 	SKU_ID_T30		= 0x81,	/* TBD use real Cardhu value */
 };
 
+/*
+ * These are used to distinguish SOC types for setting up clocks. Mostly
+ * we can tell the clocking required by looking at the SOC sku_id, but
+ * for T30 it is a user option as to whether to run PLLP in fast or slow
+ * mode, so we have two options there.
+ */
 enum {
 	TEGRA_SOC_T20,
 	TEGRA_SOC_T25,

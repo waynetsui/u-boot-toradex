@@ -6,13 +6,13 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch-tegra/ap20.h>
 #include <asm/arch-tegra/bitfield.h>
+#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/tegra.h>
 #include <asm/arch/sys_proto.h>
-#include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/emc.h>
-#include "board.h"
 #include "pmu.h"
 
 static const struct tegra_emc_table *tegra_emc_table;

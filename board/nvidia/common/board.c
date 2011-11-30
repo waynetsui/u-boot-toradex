@@ -26,8 +26,6 @@
 #include <asm/clocks.h>
 #include <asm/io.h>
 
-#include <asm/arch-tegra/fuse.h>
-
 /* TBD: bring these over when Tegra3 is ready, then remove these #ifdefs */
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch-tegra/clk_rst.h>
@@ -392,37 +390,6 @@ int board_mmc_init(bd_t *bd)
 	return 0;
 }
 #endif
-
-int tegra_get_chip_type(void)
-{
-	uint tegra_sku_id;
-
-	struct fuse_regs *fuse = (struct fuse_regs *)NV_PA_FUSE_BASE;
-
-	tegra_sku_id = readl(&fuse->sku_info) & 0xff;
-
-	switch (tegra_sku_id) {
-	case SKU_ID_T20:
-		return TEGRA_SOC_T20;
-	case SKU_ID_T25SE:
-	case SKU_ID_AP25:
-	case SKU_ID_T25:
-	case SKU_ID_AP25E:
-	case SKU_ID_T25E:
-		return TEGRA_SOC_T25;
-	case SKU_ID_T30:
-#ifdef CONFIG_SYS_PLLP_BASE_IS_408MHZ
-		return TEGRA_SOC_T30_408MHZ;
-#else
-		return TEGRA_SOC_T30;
-#endif
-
-	default:
-		/* unknown sku id */
-		return TEGRA_SOC_UNKNOWN;
-	}
-}
-
 
 /*
  * Possible UART locations: we ignore UARTC at 0x70006200 and UARTE at

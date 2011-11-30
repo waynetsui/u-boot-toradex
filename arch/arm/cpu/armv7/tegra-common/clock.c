@@ -1398,4 +1398,5 @@ void clock_init(void)
 	debug("Osc = %d\n", pll_rate[CLOCK_ID_OSC]);
 	debug("PLLM = %d\n", pll_rate[CLOCK_ID_MEMORY]);
 	debug("PLLP = %d\n", pll_rate[CLOCK_ID_PERIPH]);
+	debug("Chip type = %d\n", tegra_get_chip_type());
 }

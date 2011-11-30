@@ -23,18 +23,18 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <asm/arch/clock.h>
+#include <asm/arch/pinmux.h>
 #include <asm/arch/tegra.h>
+#include <asm/arch-tegra/ap20.h>
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch-tegra/flow.h>
-#include <asm/arch/clock.h>
-#include <asm/arch-tegra/pmc.h>
-#include <asm/arch/pinmux.h>
-#include <asm/arch-tegra/scu.h>
+#include <asm/arch-tegra/fuse.h>
 #include <asm/arch-tegra/i2c.h>
+#include <asm/arch-tegra/pmc.h>
+#include <asm/arch-tegra/scu.h>
 #include <asm/arch-tegra/warmboot.h>
-#include <asm/arch-tegra/ap20.h>
-#include "../../../../../board/nvidia/common/board.h"
 
 struct clk_pll_table {
 	u16		n;
@@ -93,6 +93,39 @@ enum tegra_family_t {
 };
 
 #define GP_HIDREV	0x804
+
+int tegra_get_chip_type(void)
+{
+	struct fuse_regs *fuse = (struct fuse_regs *)NV_PA_FUSE_BASE;
+	uint tegra_sku_id;
+
+	tegra_sku_id = readl(&fuse->sku_info) & 0xff;
+
+	switch (tegra_sku_id) {
+	case SKU_ID_T20:
+		return TEGRA_SOC_T20;
+	case SKU_ID_T25SE:
+	case SKU_ID_AP25:
+	case SKU_ID_T25:
+	case SKU_ID_AP25E:
+	case SKU_ID_T25E:
+		return TEGRA_SOC_T25;
+	case SKU_ID_T30:
+		/*
+		 * T30 has two options. We will return TEGRA_SOC_T30 until
+		 * we have the fdt set up when it may change to
+		 * TEGRA_SOC_T30_408MHZ depending on what we set PLLP to.
+		 */
+		if (clock_get_rate(CLOCK_ID_PERIPH) == 408000000)
+			return TEGRA_SOC_T30_408MHZ;
+		else
+			return TEGRA_SOC_T30;
+
+	default:
+		/* unknown sku id */
+		return TEGRA_SOC_UNKNOWN;
+	}
+}
 
 static enum tegra_family_t ap20_get_family(void)
 {

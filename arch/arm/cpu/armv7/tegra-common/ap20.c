@@ -605,3 +605,8 @@ void tegra_start(void)
 	is_tegra_processor_reset = check_is_tegra_processor_reset();
 }
 
+void tegra_update_clocks(void)
+{
+	/* Enable CoreSight with new clock speed */
+	clock_enable_coresight(1);
+}

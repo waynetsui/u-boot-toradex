@@ -129,3 +129,8 @@ int ap20_get_num_cpus(void);
  * @return	SOC type - see TEGRA_SOC...
  */
 int tegra_get_chip_type(void);
+
+/**
+ * Update any clocks that need to be adjusted after the fdt is available
+ */
+void tegra_update_clocks(void);

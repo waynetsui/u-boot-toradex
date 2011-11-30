@@ -1384,6 +1384,7 @@ int clock_early_init(ulong pllp_base)
 		clock_set_rate(CLOCK_ID_PERIPH, 432, osc_freq_mhz, 1, 8);
 		clock_set_rate(CLOCK_ID_CGENERAL, 600, osc_freq_mhz, 0, 8);
 	}
+	tegra_update_clocks();
 
 	return 0;
 }

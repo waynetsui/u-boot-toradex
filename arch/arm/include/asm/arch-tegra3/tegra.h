@@ -33,6 +33,10 @@
 #define NV_PA_SDMMC3_BASE	0x78000400
 #define NV_PA_SDMMC4_BASE	0x78000600
 
+#define NV_PA_USB1_BASE		0x7D000000
+#define NV_PA_USB2_BASE		0x7D004000
+#define NV_PA_USB3_BASE		0x7D008000
+
 #include <asm/arch-tegra/tegra.h>
 
 #endif

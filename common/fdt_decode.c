@@ -572,6 +572,10 @@ int fdt_decode_usb(const void *blob, int node, unsigned osc_frequency_mhz,
 	if (config->periph_id == -1)
 		return -FDT_ERR_MISSING;
 
+	fdt_decode_gpio(blob, node, "vbus-gpio", &config->vbus_gpio);
+	fdt_decode_gpio(blob, node, "vbus-pullup-gpio",
+		&config->vbus_pullup_gpio);
+
 	return get_int_array(blob, clk_node, "params", config->params,
 			PARAM_COUNT);
 }

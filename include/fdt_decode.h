@@ -192,6 +192,9 @@ struct fdt_usb {
 	int utmi;		/* 1 if port has external tranceiver, else 0 */
 	int enabled;		/* 1 to enable, 0 to disable */
 	enum periph_id periph_id;/* peripheral id */
+	struct fdt_gpio_state vbus_gpio;/* GPIO to turn on VBus */
+	struct fdt_gpio_state vbus_pullup_gpio;
+				/* GPIO to have VBus_En pulled up */
 };
 
 /* Information about an SDMMC port */

@@ -178,10 +178,11 @@ static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 	u32 reg;
 
 	reg = readl(&pll->pll_base);
-	/* Set m, n and p to PLLX_BASE */
+	/* Set m, n and p to PLLX_BASE and clear bypass */
 	bf_update(PLL_DIVM, reg, divm);
 	bf_update(PLL_DIVN, reg, divn);
 	bf_update(PLL_DIVP, reg, divp);
+	bf_update(PLL_BYPASS, reg, 0);
 	writel(reg, &pll->pll_base);
 
 	/* Set cpcon to PLLX_MISC */
@@ -192,15 +193,7 @@ static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 	/* Enable PLLX if not enabled */
 	if (!bf_unpack(PLL_ENABLE, reg)) {
 		bf_update(PLL_ENABLE, reg, 1);
-		bf_update(PLL_BYPASS, reg, 0);
 		writel(reg, &pll->pll_base);
-		/*
-		 * Wait for 200uS, this is done based on what is done in the
-		 * Linux kernel PLL code for Tegra2, this is being kept here
-		 * for now pending on going stability testing on removing
-		 * or lowering it.
-		 */
-		udelay(200);
 	}
 
 	return 0;

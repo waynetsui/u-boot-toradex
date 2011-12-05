@@ -29,6 +29,37 @@
 
 #define CONFIG_TEGRA3			/* NVidia Tegra3 core */
 
+/*
+ * USB Host.
+ */
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_TEGRA
+
+/* Tegra requires USB buffers to be aligned to a 32-byte boundary */
+#define CONFIG_USB_EHCI_DATA_ALIGN	32
+
+/*
+ * This parameter affects a TXFILLTUNING field that controls how much data is
+ * sent to the latency fifo before it is sent to the wire. Without this
+ * parameter, the default (2) causes occasional Data Buffer Errors in OUT
+ * packets depending on the buffer address and size.
+ */
+#define CONFIG_USB_EHCI_TXFIFO_THRESH	10
+
+#define CONFIG_EHCI_IS_TDI
+#define CONFIG_EHCI_DCACHE
+#define CONFIG_EHCI_HAS_STATUS2
+#define CONFIG_USB_MAX_CONTROLLER_COUNT 3
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_STOR_NO_RETRY
+
+#define CONFIG_CMD_USB		/* USB Host support		*/
+
+/* partition types and file systems we want */
+#define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION
+#define CONFIG_CMD_EXT2
+
 /* include default commands */
 #include <config_cmd_default.h>
 

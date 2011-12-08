@@ -4,8 +4,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef __configs_chromeos_tegra2_twostop_h__
-#define __configs_chromeos_tegra2_twostop_h__
+#ifndef __configs_chromeos_seaboard_h__
+#define __configs_chromeos_seaboard_h__
 
 /* So far all our tegra2-based boards share the seaboard config. */
 #include <configs/seaboard.h>
@@ -21,4 +21,4 @@
 /* Store the VbNvContext in the first block of the disk. */
 #define CHROMEOS_VBNVCONTEXT_LBA	0
 
-#endif /* __configs_chromeos_tegra2_twostop_h__ */
+#endif /* __configs_chromeos_seaboard_h__ */

@@ -89,11 +89,21 @@ struct ehci_hcor {
 #define FLAG_CF		(1 << 0)	/* true:  we'll support "high speed" */
 	uint32_t or_portsc[CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS];
 	uint32_t or_systune;
+	uint32_t _reserved_2_[13];
+	uint32_t hostpc1_devlc;
 } __attribute__ ((packed));
 
-#define USBMODE		0x68		/* USB Device mode */
-#define USBMODE_SDIS	(1 << 3)	/* Stream disable */
-#define USBMODE_BE	(1 << 2)	/* BE/LE endiannes select */
+#if defined(CONFIG_TEGRA3)
+/*
+ * Tegra3 USBMODE is at offset 0x1F8, or hcor + 0xC8.
+ * Tegra2 USBMODE is at offset 0x1A8, or hcor + 0x68.
+ * hcor is at 0x130 on Tegra3 and 0x140 on Tegra2
+ */
+#define USBMODE		0xC8		/* Device Mode reg offset */
+#else
+#define USBMODE		0x68		/* Device Mode reg offset */
+#endif
+#define USBMODE_BE	(1 << 2)	/* BE/LE select */
 #define USBMODE_CM_HC	(3 << 0)	/* host controller mode */
 #define USBMODE_CM_IDLE	(0 << 0)	/* idle state */
 

@@ -595,6 +595,10 @@ ehci_submit_root(struct usb_device *dev, unsigned long pipe, void *buffer,
 	int len, srclen;
 	uint32_t reg;
 	uint32_t *status_reg;
+#if defined(CONFIG_EHCI_HAS_STATUS2)
+	uint32_t *status_reg2;
+	uint32_t reg2;
+#endif
 	struct ehci_ctrl *ctrl = dev->controller;
 	struct ehci_hccr *hccr = ctrl->hccr;
 	volatile struct ehci_hcor *hcor = ctrl->hcor;
@@ -698,6 +702,21 @@ ehci_submit_root(struct usb_device *dev, unsigned long pipe, void *buffer,
 		if (reg & EHCI_PS_PP)
 			tmpbuf[1] |= USB_PORT_STAT_POWER >> 8;
 
+#if defined(CONFIG_EHCI_HAS_STATUS2)
+		status_reg2 = (uint32_t *)&hcor->hostpc1_devlc;
+		reg2 = ehci_readl(status_reg2);
+		switch ((reg2 >> 25) & 3) {
+		case 0:
+			break;
+		case 1:
+			tmpbuf[1] |= USB_PORT_STAT_LOW_SPEED >> 8;
+			break;
+		case 2:
+		default:
+			tmpbuf[1] |= USB_PORT_STAT_HIGH_SPEED >> 8;
+			break;
+		}
+#else
 		if (ehci_is_TDI()) {
 			switch ((reg >> 26) & 3) {
 			case 0:
@@ -713,7 +732,7 @@ ehci_submit_root(struct usb_device *dev, unsigned long pipe, void *buffer,
 		} else {
 			tmpbuf[1] |= USB_PORT_STAT_HIGH_SPEED >> 8;
 		}
-
+#endif
 		if (reg & EHCI_PS_CSC)
 			tmpbuf[2] |= USB_PORT_STAT_C_CONNECTION;
 		if (reg & EHCI_PS_PEC)

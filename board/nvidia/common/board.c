@@ -39,7 +39,7 @@
 #endif
 #include <asm/arch/pinmux.h>
 #include <asm/arch/sys_proto.h>
-#ifdef CONFIG_TEGRA2
+#ifdef CONFIG_USB_EHCI_TEGRA
 #include <asm/arch/usb.h>
 #endif
 #include <asm/arch/tegra.h>

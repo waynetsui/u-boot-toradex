@@ -924,6 +924,8 @@ int board_nand_init(struct nand_chip *nand)
 		printf("Could not decode nand-flash in device tree\n");
 		return -1;
 	}
+	if (!config->enabled)
+		return -1;
 	info->reg = config->reg;
 #else
 	int gpio;

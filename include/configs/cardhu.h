@@ -28,42 +28,72 @@
 #include <asm/sizes.h>
 
 /* High-level configuration options */
-#define TEGRA3_SYSMEM		"mem=384M@0M nvmem=128M@384M mem=512M@512M"
+#define TEGRA3_SYSMEM		"mem=1023M@2048M vmalloc=128M"
 #define V_PROMPT		"Tegra3 # "
 
+#define CONFIG_TEGRA3_CARDHU
+#define CONFIG_SYS_SKIP_ARM_RELOCATION
+
+#define CONFIG_EXTRA_BOOTARGS \
+	"panel=lvds " \
+	"tegraid=30.1.2.0.0 " \
+	"debug_uartport=lsport\0" \
+
 #include "tegra3-common.h"
-
-#define CONFIG_TEGRA_BOARD_STRING	"NVIDIA Cardhu"
-
-#define CONFIG_TEGRA_ENABLE_UARTA
-#define CONFIG_SYS_NS16550_COM1		NV_PA_APB_UARTA_BASE
-
-#define CONFIG_MACH_TYPE	MACH_TYPE_CARDHU
-
-#define CONFIG_CONSOLE_MUX
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV
-#define CONFIG_STD_DEVICES_SETTINGS	"stdin=serial\0" \
-					"stdout=serial\0" \
-					"stderr=serial\0"
-
-#define CONFIG_SYS_BOARD_ODMDATA	0x800d8011 /* lp1, 1GB */
-
-/* default environment */
-#define CONFIG_ENV_IS_NOWHERE
-#define CONFIG_ENV_SECT_SIZE    CONFIG_ENV_SIZE
-#define CONFIG_ENV_OFFSET       (SZ_4M - CONFIG_ENV_SECT_SIZE)
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_EXTRA_ENV_SETTINGS_COMMON \
 	"board=cardhu\0" \
 
+#define CONFIG_DEFAULT_DEVICE_TREE "tegra3-cardhu"
+
+#define CONFIG_CONSOLE_MUX
+#define CONFIG_SYS_CONSOLE_IS_IN_ENV
+#define CONFIG_STD_DEVICES_SETTINGS	"stdin=serial,tegra-kbc\0" \
+					"stdout=serial,lcd\0" \
+					"stderr=serial,lcd\0"
+
+#define CONFIG_SYS_BOARD_ODMDATA	0x40080105	/* 1GB, UARTA, etc */
+
+#define CONFIG_ENV_SECT_SIZE    CONFIG_ENV_SIZE
+#define CONFIG_ENV_OFFSET       (SZ_4M - CONFIG_ENV_SECT_SIZE)
+
+/* GPIO */
+#define CONFIG_TEGRA_GPIO
+#define CONFIG_CMD_TEGRA_GPIO_INFO
+
 /* SPI */
 #define CONFIG_TEGRA_SPI
 #define CONFIG_USE_SLINK	/* Cardhu SPI chip is on SBC4 */
 #define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_ATMEL
 #define CONFIG_SPI_FLASH_WINBOND
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_SF
+
+/* I2C */
+#define CONFIG_TEGRA_I2C
+#define CONFIG_SYS_I2C_INIT_BOARD
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_MAX_I2C_BUS		4
+#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_CMD_I2C
+
+/* PMU */
+#define CONFIG_TEGRA_PMU
+
+/* SD/MMC */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_TEGRA_MMC
+#define CONFIG_CMD_MMC
+
+#define CONFIG_DOS_PARTITION
+#define CONFIG_EFI_PARTITION
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
+
+#define CONFIG_ENV_IS_NOWHERE
 
 #endif /* __CONFIG_H */

@@ -217,11 +217,8 @@ static void pin_mux_mmc(void)
  * Routine: pinmux_init
  * Description: Do individual peripheral pinmux configs
  */
-static void pinmux_init(int uart_ids)
+static void pinmux_init(void)
 {
-#if defined(CONFIG_TEGRA2)
-	pin_mux_uart(uart_ids);
-#endif
 	pin_mux_switches();
 
 #if defined(CONFIG_TEGRA3)
@@ -233,13 +230,34 @@ static void pinmux_init(int uart_ids)
 #endif
 }
 
-/**
- * Do individual peripheral GPIO configs
- *
- * @param blob	FDT blob with configuration information
- */
-static void gpio_init(const void *blob)
+static void init_uarts(const void *blob)
 {
+	int uart_ids = 0;	/* bit mask of which UART ids to enable */
+#ifdef CONFIG_OF_CONTROL
+	struct fdt_uart uart;
+
+	if (!fdt_decode_uart_console(blob, &uart, gd->baudrate))
+		uart_ids = 1 << uart.id;
+#else
+#ifdef CONFIG_TEGRA2_ENABLE_UARTA
+	uart_ids |= UARTA;
+#endif
+#ifdef CONFIG_TEGRA2_ENABLE_UARTB
+	uart_ids |= UARTB;
+#endif
+#ifdef CONFIG_TEGRA2_ENABLE_UARTD
+	uart_ids |= UARTD;
+#endif
+#endif /* CONFIG_OF_CONTROL */
+	/* Initialize UART clocks */
+	clock_init_uart(uart_ids);
+
+	/* Initialize periph pinmuxes */
+#if defined(CONFIG_TEGRA2)
+	pin_mux_uart(uart_ids);
+#endif
+
+	/* Initialize periph GPIOs */
 #ifdef CONFIG_SPI_UART_SWITCH
 	gpio_early_init_uart(blob);
 #endif
@@ -346,25 +364,7 @@ int board_init(void)
 
 int board_early_init_f(void)
 {
-	int uart_ids = 0;	/* bit mask of which UART ids to enable */
 	ulong pllp_rate = 216000000;	/* default PLLP clock rate */
-
-#ifdef CONFIG_OF_CONTROL
-	struct fdt_uart uart;
-
-	if (!fdt_decode_uart_console(gd->blob, &uart, gd->baudrate))
-		uart_ids = 1 << uart.id;
-#else
-#ifdef CONFIG_TEGRA2_ENABLE_UARTA
-	uart_ids |= UARTA;
-#endif
-#ifdef CONFIG_TEGRA2_ENABLE_UARTB
-	uart_ids |= UARTB;
-#endif
-#ifdef CONFIG_TEGRA2_ENABLE_UARTD
-	uart_ids |= UARTD;
-#endif
-#endif /* CONFIG_OF_CONTROL */
 
 	/* Initialize essential common plls */
 #ifdef CONFIG_OF_CONTROL
@@ -372,14 +372,8 @@ int board_early_init_f(void)
 #endif
 	clock_early_init(pllp_rate);
 
-	/* Initialize UART clocks */
-	clock_init_uart(uart_ids);
-
-	/* Initialize periph pinmuxes */
-	pinmux_init(uart_ids);
-
-	/* Initialize periph GPIOs */
-	gpio_init(gd->blob);
+	pinmux_init();
+	init_uarts(gd->blob);
 
 #ifdef CONFIG_VIDEO_TEGRA2
 	/* Get LCD panel size */
@@ -438,7 +432,7 @@ static void send_output_with_pllp(ulong pllp_rate, const char *str)
 	pin_mux_uart(uart_ids);
 #ifdef CONFIG_TEGRA3
 	/* Until we sort out pinmux, we must do the global Tegra3 init */
-	pinmux_init(uart_ids);
+	pinmux_init();
 #endif
 
 	/*

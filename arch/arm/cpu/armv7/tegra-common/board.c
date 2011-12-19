@@ -95,4 +95,7 @@ int arch_cpu_init(void)
 void arch_full_speed(void)
 {
 	ap20_init_pllx(0);
+	debug("CPU at %d\n", clock_get_rate(CLOCK_ID_XCPU));
+	debug("Memory at %d\n", clock_get_rate(CLOCK_ID_MEMORY));
+	debug("Periph at %d\n", clock_get_rate(CLOCK_ID_PERIPH));
 }

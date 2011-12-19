@@ -47,6 +47,13 @@ static enum stage_t stage;	/* Current stage we are at */
 static unsigned long timer_next; /* Time we can move onto next stage */
 static struct fdt_lcd config;	/* Our LCD config, set up in handle_stage() */
 
+enum {
+	/* Maximum LCD size we support */
+	LCD_MAX_WIDTH		= 1366,
+	LCD_MAX_HEIGHT		= 768,
+	LCD_MAX_LOG2_BPP	= 4,		/* 16 bpp */
+};
+
 int lcd_line_length;
 int lcd_color_fg;
 int lcd_color_bg;
@@ -208,7 +215,13 @@ void lcd_ctrl_init(void *lcdbase)
 		config.frame_buffer = (u32)lcd_base;
 	}
 
-	update_panel_size(&config);
+	/* Make sure that we can acommodate the selected LCD */
+	assert(config.width <= LCD_MAX_WIDTH);
+	assert(config.height <= LCD_MAX_HEIGHT);
+	assert(config.log2_bpp <= LCD_MAX_LOG2_BPP);
+	if (config.width <= LCD_MAX_WIDTH && config.height <= LCD_MAX_HEIGHT &&
+			config.log2_bpp <= LCD_MAX_LOG2_BPP)
+		update_panel_size(&config);
 	size = lcd_get_size(&line_length),
 
 	/* call board specific hw init */
@@ -238,11 +251,13 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
 
 void lcd_early_init(const void *blob)
 {
-	struct fdt_lcd config;
-
-	/* get panel details */
-	if (!fdt_decode_lcd(gd->blob, &config))
-		update_panel_size(&config);
+	/*
+	 * Go with the maximum size for now. We will fix this up after
+	 * relocation. These values are only used for memory alocation.
+	 */
+	panel_info.vl_col = LCD_MAX_WIDTH;
+	panel_info.vl_row = LCD_MAX_HEIGHT;
+	panel_info.vl_bpix = LCD_MAX_LOG2_BPP;
 }
 
 static int handle_stage(const void *blob)

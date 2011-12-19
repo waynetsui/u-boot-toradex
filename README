@@ -556,6 +556,11 @@ The following options need to be configured:
 		the "silent" environment variable. See
 		doc/README.silent for more information.
 
+		When CONFIG_DELAY_CONSOLE is defined, the console init is
+		delayed until after relocation. To use this feature, the
+		board architecture code must call console_ready() after
+		relocation once everything is ready.
+
 - Console Baudrate:
 		CONFIG_BAUDRATE - in bps
 		Select one of the baudrates listed in

@@ -263,8 +263,10 @@ init_fnc_t *init_sequence[] = {
 	get_clocks,
 #endif
 	env_init,		/* initialize environment */
+#ifndef CONFIG_DELAY_CONSOLE
 	init_baudrate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
+#endif
 	console_init_f,		/* stage 1 init of console */
 	display_banner,		/* say that we are here */
 #if defined(CONFIG_DISPLAY_CPUINFO)
@@ -533,6 +535,13 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	monitor_flash_len = _end_ofs;
 	debug ("monitor flash len: %08lX\n", monitor_flash_len);
 	board_init();	/* Setup chipselects */
+
+	/* Do the delayed console init here, after board init is complete */
+#ifdef CONFIG_DELAY_CONSOLE
+	init_baudrate();
+	serial_init();
+	console_ready();
+#endif
 
 #ifdef CONFIG_SERIAL_MULTI
 	serial_initialize();

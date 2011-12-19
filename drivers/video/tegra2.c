@@ -339,6 +339,8 @@ int tegra_lcd_check_next_stage(const void *blob, int wait)
 
 void lcd_enable(void)
 {
-	/* This will be done when tegra_lcd_check_next_stage() is called */
-	tegra_lcd_check_next_stage(gd->blob, 1);
+	/*
+	 * This will be done when tegra_lcd_check_next_stage() is called
+	 * board_late_init().
+	 */
 }

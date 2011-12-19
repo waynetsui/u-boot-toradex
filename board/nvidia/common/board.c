@@ -482,3 +482,12 @@ void board_panic_no_console(const char *str)
 	send_output_with_pllp(216000000, str);
 	send_output_with_pllp(408000000, str);
 }
+
+int board_late_init(void)
+{
+	/* Make sure we finish initing the LCD */
+#ifdef CONFIG_VIDEO_TEGRA2
+	tegra_lcd_check_next_stage(gd->blob, 1);
+#endif
+	return 0;
+}

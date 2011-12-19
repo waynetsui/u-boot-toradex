@@ -10,6 +10,9 @@
 /* So far all our tegra2-based boards share the seaboard config. */
 #include <configs/seaboard.h>
 
+/* We don't need to fully init the LCD - verified boot does this */
+#undef BOARD_LATE_INIT
+
 /* Support USB booting */
 #define CONFIG_CHROMEOS_USB
 

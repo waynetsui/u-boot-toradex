@@ -471,6 +471,7 @@ void board_init_f (ulong bootflag)
 	}
 	memcpy (id, (void *)gd, sizeof (gd_t));
 
+	bootstage_mark(BOOTSTAGE_START_RELOC, "relocate");
 	relocate_code (addr_sp, id, addr);
 
 	/* NOTREACHED - relocate_code() does not return */

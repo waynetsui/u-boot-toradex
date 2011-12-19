@@ -182,11 +182,20 @@ stack_setup:
 	ldr	r3, _bss_start_ofs
 	add	r2, r0, r3		/* r2 <- source end address	    */
 
+#if 0
 copy_loop:
 	ldmia	r0!, {r9-r10}		/* copy from source address [r0]    */
 	stmia	r1!, {r9-r10}		/* copy to   target address [r1]    */
 	cmp	r0, r2			/* until source end address [r2]    */
 	blo	copy_loop
+#else
+	mov	r7, r4
+	mov	r0, r1
+	adr	r1, _start
+	ldr	r2, _bss_start_ofs
+	bl	memcpy
+	mov	r4, r7
+#endif
 
 #ifndef CONFIG_PRELOADER
 	/*
@@ -236,10 +245,17 @@ clear_bss:
 	add	r1, r1, r4
 	mov	r2, #0x00000000		/* clear			    */
 
+#if 0
 clbss_l:str	r2, [r0]		/* clear loop...		    */
 	add	r0, r0, #4
 	cmp	r0, r1
 	bne	clbss_l
+#else
+	sub	r2, r1, r0
+	mov	r1, #0
+	bl	memset
+#endif
+
 #endif	/* #ifndef CONFIG_PRELOADER */
 
 /*

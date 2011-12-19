@@ -306,6 +306,9 @@ int board_init(void)
 #ifdef CONFIG_VIDEO_TEGRA2
 	lcd_pinmux_early_init(gd->blob);
 #endif
+#ifdef CONFIG_DELAY_CONSOLE
+	init_uarts(gd->blob);
+#endif
 	/* Do clocks and UART first so that printf() works */
 	clock_init();
 #ifdef CONFIG_SPI_UART_SWITCH
@@ -373,7 +376,9 @@ int board_early_init_f(void)
 	clock_early_init(pllp_rate);
 
 	pinmux_init();
+#ifndef CONFIG_DELAY_CONSOLE
 	init_uarts(gd->blob);
+#endif
 
 #ifdef CONFIG_VIDEO_TEGRA2
 	/* Get LCD panel size */

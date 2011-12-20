@@ -527,4 +527,6 @@ enum {
 #define H_DDA_INC_RANGE			15:0
 #define V_DDA_INC_RANGE			31:16
 
+int tegra_lcd_check_next_stage(const void *blob, int wait);
+
 #endif /* __ASM_ARCH_TEGRA_DC_H */

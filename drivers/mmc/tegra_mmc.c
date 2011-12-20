@@ -248,6 +248,7 @@ static int mmc_wait_inhibit(struct mmc_host *host,
 			    unsigned int timeout)
 {
 	unsigned int mask = 0;
+	ulong start_time;
 
 	/*
 	 * PRNSTS
@@ -263,13 +264,12 @@ static int mmc_wait_inhibit(struct mmc_host *host,
 	if ((data == NULL) && (cmd->resp_type & MMC_RSP_BUSY))
 		mask |= (1 << 1);
 
+	start_time = get_timer(0);
 	while (readl(&host->reg->prnsts) & mask) {
-		if (timeout == 0) {
+		if (get_timer(start_time) > timeout) {
 			printf("%s: timeout error\n", __func__);
 			return -1;
 		}
-		timeout--;
-		udelay(1000);
 	}
 
 	return 0;
@@ -282,7 +282,8 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	int flags, i;
 	int result;
 	unsigned int mask = 0;
-	unsigned int retry = 0x100000;
+	unsigned start;
+
 	debug(" mmc_send_cmd called\n");
 
 	if ((result = mmc_wait_inhibit(host, cmd, data, 10 /* ms */)) < 0)
@@ -335,7 +336,8 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	writew((cmd->cmdidx << 8) | flags, &host->reg->cmdreg);
 
-	for (i = 0; i < retry; i++) {
+	start = get_timer(0);
+	do {
 		mask = readl(&host->reg->norintsts);
 		/* Command Complete */
 		if (mask & (1 << 0)) {
@@ -343,13 +345,12 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 				writel(mask, &host->reg->norintsts);
 			break;
 		}
-	}
-
-	if (i == retry) {
-		printf("%s: waiting for status update\n", __func__);
-		writel(mask, &host->reg->norintsts);
-		return TIMEOUT;
-	}
+		if (get_timer(start) > 100) {
+			printf("%s: waiting for status update\n", __func__);
+			writel(mask, &host->reg->norintsts);
+			return TIMEOUT;
+		}
+	} while (1);
 
 	if (mask & (1 << 16)) {
 		/* Timeout Error */
@@ -379,18 +380,20 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 						i, cmd->response[i]);
 			}
 		} else if (cmd->resp_type & MMC_RSP_BUSY) {
-			for (i = 0; i < retry; i++) {
+			start = get_timer(0);
+			do {
 				/* PRNTDATA[23:20] : DAT[3:0] Line Signal */
 				if (readl(&host->reg->prnsts)
 					& (1 << 20))	/* DAT[0] */
 					break;
-			}
 
-			if (i == retry) {
-				printf("%s: card is still busy\n", __func__);
-				writel(mask, &host->reg->norintsts);
-				return TIMEOUT;
-			}
+				if (get_timer(start) > 1000) {
+					printf("%s: card is still busy\n",
+					       __func__);
+					writel(mask, &host->reg->norintsts);
+					return TIMEOUT;
+				}
+			} while (1);
 
 			cmd->response[0] = readl(&host->reg->rspreg0);
 			debug("cmd->resp[0]: %08x\n", cmd->response[0]);
@@ -442,8 +445,6 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 		}
 		writel(mask, &host->reg->norintsts);
 	}
-
-	udelay(1000);
 
 	if (data)
 		mmc_restore_data(host, data);

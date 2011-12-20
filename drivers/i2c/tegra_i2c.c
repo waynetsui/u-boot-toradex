@@ -572,10 +572,19 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 	uint offset;
 	int i;
 
-	debug("i2c_read: chip=0x%x, addr=0x%x, len=0x%x\n",
-				chip, addr, len);
+	debug("%s: chip=0x%x, addr=0x%x, len=0x%x\n", __func__,
+			chip, addr, len);
+
+	if (!alen) {
+		if (i2c_read_data(chip, buffer, len)) {
+			debug("%s: error reading\n", __func__);
+			return 1;
+		}
+		return 0;
+	}
+
 	if (!i2c_addr_ok(addr, alen)) {
-		debug("i2c_read: Bad address %x.%d.\n", addr, alen);
+		debug("%s: Bad address %x.%d.\n", __func__, addr, alen);
 		return 1;
 	}
 	for (offset = 0; offset < len; offset++) {
@@ -586,13 +595,13 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 					(addr + offset) >> (8 * i);
 			}
 			if (i2c_write_data(chip, data, alen)) {
-				debug("i2c_read: error sending (0x%x)\n",
-					addr);
+				debug("%s: error sending (0x%x)\n", __func__,
+						addr);
 				return 1;
 			}
 		}
 		if (i2c_read_data(chip, buffer + offset, 1)) {
-			debug("i2c_read: error reading (0x%x)\n", addr);
+			debug("%s: error reading (0x%x)\n", __func__, addr);
 			return 1;
 		}
 	}
@@ -606,10 +615,19 @@ int i2c_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
 	uint offset;
 	int i;
 
-	debug("i2c_write: chip=0x%x, addr=0x%x, len=0x%x\n",
-				chip, addr, len);
+	debug("%s: chip=0x%x, addr=0x%x, len=0x%x\n", __func__,
+			chip, addr, len);
+
+	if (!alen) {
+		if (i2c_write_data(chip, buffer, len)) {
+			debug("%s: error sending\n", __func__);
+			return 1;
+		}
+		return 0;
+	}
+
 	if (!i2c_addr_ok(addr, alen)) {
-		debug("i2c_write: Bad address %x.%d.\n", addr, alen);
+		debug("%s: Bad address %x.%d.\n", __func__, addr, alen);
 		return 1;
 	}
 	for (offset = 0; offset < len; offset++) {
@@ -618,7 +636,7 @@ int i2c_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
 			data[alen - i - 1] = (addr + offset) >> (8 * i);
 		data[alen] = buffer[offset];
 		if (i2c_write_data(chip, data, alen + 1)) {
-			debug("i2c_write: error sending (0x%x)\n", addr);
+			debug("%s: error sending (0x%x)\n", __func__, addr);
 			return 1;
 		}
 	}

@@ -314,9 +314,12 @@ static int handle_stage(const void *blob)
 
 int tegra_lcd_check_next_stage(const void *blob, int wait)
 {
+	int err = 0;
+
 	if (stage == STAGE_DONE)
 		return 0;
 
+	bootstage_start(BOOTSTAGE_LCD_WAIT, "lcd_wait");
 	do {
 		/* wait if we need to */
 		debug("%s: stage %d\n", __func__, stage);
@@ -332,9 +335,11 @@ int tegra_lcd_check_next_stage(const void *blob, int wait)
 		}
 
 		if (handle_stage(blob))
-			return -1;
-	} while (wait && stage != STAGE_DONE);
-	return 0;
+			err = -1;
+
+	} while (wait && !err && stage != STAGE_DONE);
+	bootstage_accum(BOOTSTAGE_LCD_WAIT);
+	return err;
 }
 
 void lcd_enable(void)

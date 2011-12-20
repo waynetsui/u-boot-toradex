@@ -47,6 +47,7 @@ enum bootstage_id {
 	BOOTSTAGE_MAIN_CPU_READY,
 
 	BOOTSTAGE_TPM_SEND_RECV,
+	BOOTSTAGE_LCD_WAIT,
 
 	/* a few spare for the user, from here */
 	BOOTSTAGE_USER,

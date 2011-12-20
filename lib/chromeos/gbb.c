@@ -16,25 +16,13 @@
 
 #define PREFIX "gbb: "
 
-int gbb_init(read_buf_type gbb, firmware_storage_t *file, uint32_t gbb_offset,
-	     size_t gbb_size)
+int gbb_init(read_buf_type gbb, firmware_storage_t *file, uint32_t gbb_offset)
 {
 #ifndef CONFIG_HARDWARE_MAPPED_SPI
 	GoogleBinaryBlockHeader *gbbh = (GoogleBinaryBlockHeader *)gbb;
-	uint32_t hwid_end;
-	uint32_t rootkey_end;
 
 	if (file->read(file, gbb_offset, sizeof(*gbbh), gbbh)) {
 		VBDEBUG(PREFIX "failed to read GBB header\n");
-		return 1;
-	}
-
-	hwid_end = gbbh->hwid_offset + gbbh->hwid_size;
-	rootkey_end = gbbh->rootkey_offset + gbbh->rootkey_size;
-	if (hwid_end < gbbh->hwid_offset || hwid_end >= gbb_size ||
-			rootkey_end < gbbh->rootkey_offset ||
-			rootkey_end >= gbb_size) {
-		VBDEBUG(PREFIX "invalid gbb header entries");
 		return 1;
 	}
 
@@ -52,7 +40,6 @@ int gbb_init(read_buf_type gbb, firmware_storage_t *file, uint32_t gbb_offset,
 		return 1;
 	}
 #else
-	/* No data is actually moved in this case so no bounds checks. */
 	if (file->read(file, gbb_offset,
 		       sizeof(GoogleBinaryBlockHeader), gbb)) {
 		VBDEBUG(PREFIX "failed to read GBB header\n");
@@ -64,16 +51,9 @@ int gbb_init(read_buf_type gbb, firmware_storage_t *file, uint32_t gbb_offset,
 }
 
 #ifndef CONFIG_HARDWARE_MAPPED_SPI
-int gbb_read_bmp_block(void *gbb, firmware_storage_t *file, uint32_t gbb_offset,
-		       size_t gbb_size)
+int gbb_read_bmp_block(void *gbb, firmware_storage_t *file, uint32_t gbb_offset)
 {
 	GoogleBinaryBlockHeader *gbbh = (GoogleBinaryBlockHeader *)gbb;
-	uint32_t bmpfv_end = gbbh->bmpfv_offset + gbbh->bmpfv_size;
-
-	if (bmpfv_end < gbbh->bmpfv_offset || bmpfv_end >= gbb_size) {
-		VBDEBUG(PREFIX "invalid gbb header entries");
-		return 1;
-	}
 
 	if (file->read(file, gbb_offset + gbbh->bmpfv_offset,
 				gbbh->bmpfv_size,
@@ -85,17 +65,10 @@ int gbb_read_bmp_block(void *gbb, firmware_storage_t *file, uint32_t gbb_offset,
 	return 0;
 }
 
-int gbb_read_recovery_key(void *gbb, firmware_storage_t *file,
-			  uint32_t gbb_offset, size_t gbb_size)
+int gbb_read_recovery_key(void *gbb,
+		firmware_storage_t *file, uint32_t gbb_offset)
 {
 	GoogleBinaryBlockHeader *gbbh = (GoogleBinaryBlockHeader *)gbb;
-	uint32_t rkey_end = gbbh->recovery_key_offset +
-		gbbh->recovery_key_size;
-
-	if (rkey_end < gbbh->recovery_key_offset || rkey_end >= gbb_size) {
-		VBDEBUG(PREFIX "invalid gbb header entries");
-		return 1;
-	}
 
 	if (file->read(file, gbb_offset + gbbh->recovery_key_offset,
 				gbbh->recovery_key_size,

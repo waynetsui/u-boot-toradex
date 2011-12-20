@@ -77,6 +77,17 @@ static struct tpm_inf_dev tpm_dev = {
 	.addr = TPM_I2C_ADDR
 };
 
+struct op_stats {
+	int ok;
+	int fail;
+	int ok_retries;
+	int fail_retries;
+};
+
+static struct stats_info {
+	struct op_stats read, write;
+} stats;
+
 /*
  * iic_tpm_read() - read from TPM register
  * @addr: register address to read from
@@ -106,20 +117,25 @@ int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
 		udelay(SLEEP_DURATION);
 	}
 
-	if (rc)
-		return -rc;
-
 	/* After the TPM has successfully received the register address it needs
 	 * some time, thus we're sleeping here again, before retrieving the data
 	 */
-	for (count = 0; count < MAX_COUNT; count++) {
-		udelay(SLEEP_DURATION);
-		rc = i2c_read(tpm_dev.addr, 0, 0, buffer, len);
-		if (rc == 0)
-			break; /*success, break to skip sleep*/
-
+	if (!rc) {
+		for (count = 0; count < MAX_COUNT; count++) {
+			udelay(SLEEP_DURATION);
+			rc = i2c_read(tpm_dev.addr, 0, 0, buffer, len);
+			if (rc == 0)
+				break; /*success, break to skip sleep*/
+		}
 	}
 
+	if (rc) {
+		stats.read.fail++;
+		stats.read.fail_retries += count;
+	} else {
+		stats.read.ok++;
+		stats.read.ok_retries += count;
+	}
 	if (rc)
 		return -rc;
 
@@ -145,6 +161,13 @@ static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
 		udelay(sleep_time);
 	}
 
+	if (rc) {
+		stats.write.fail++;
+		stats.write.fail_retries += count;
+	} else {
+		stats.write.ok++;
+		stats.write.ok_retries += count;
+	}
 	if (rc)
 		return -rc;
 
@@ -551,4 +574,17 @@ out_err:
 void tpm_vendor_cleanup(struct tpm_chip *chip)
 {
 	release_locality(chip, chip->vendor.locality, 1);
+}
+
+static void show_stats(const char *op_name, struct op_stats *stats)
+{
+	printf("TPM stats for %s\n", op_name);
+	printf("   ok %d, retries %d\n", stats->ok, stats->ok_retries);
+	printf("   fail %d, retries %d\n", stats->fail, stats->fail_retries);
+}
+
+void tpm_show_stats(void)
+{
+	show_stats("read", &stats.read);
+	show_stats("write", &stats.read);
 }

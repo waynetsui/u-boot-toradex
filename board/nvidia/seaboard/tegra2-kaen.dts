@@ -68,7 +68,7 @@
 
 	sdhci@c8000600 {
 		status = "ok";
-		width = <4>;	/* width of SDIO port */
+		width = <8>;	/* width of SDIO port */
 		removable = <0>;
 	};
 

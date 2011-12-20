@@ -109,6 +109,8 @@ int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
 	uint myaddr = addr;
 	/* we have to use uint here, uchar hangs the board */
 
+	debug("%s: len %d", __func__, len);
+
 	for (count = 0; count < MAX_COUNT; count++) {
 		rc = i2c_write(tpm_dev.addr, 0, 0, (uchar *) &myaddr, 1);
 		if (rc == 0)
@@ -136,6 +138,7 @@ int iic_tpm_read(u8 addr, u8 *buffer, size_t len)
 		stats.read.ok++;
 		stats.read.ok_retries += count;
 	}
+	debug(" = %d (retry_count=%d)\n", rc, count);
 	if (rc)
 		return -rc;
 
@@ -150,6 +153,7 @@ static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
 	int count;
 
 	/* prepare send buffer */
+	debug("%s: len %d", __func__, len);
 	tpm_dev.buf[0] = addr;
 	memcpy(&(tpm_dev.buf[1]), buffer, len);
 
@@ -168,6 +172,7 @@ static int iic_tpm_write_generic(u8 addr, u8 *buffer, size_t len,
 		stats.write.ok++;
 		stats.write.ok_retries += count;
 	}
+	debug(" = %d (retry_count=%d)\n", rc, count);
 	if (rc)
 		return -rc;
 
@@ -238,22 +243,27 @@ static int check_locality(struct tpm_chip *chip, int loc)
 	u8 buf;
 	int rc;
 
+	debug("(%s: loc=%d, ", __func__, loc);
 	rc = iic_tpm_read(TPM_ACCESS(loc), &buf, 1);
-	if (rc < 0)
-		return rc;
-
-	if ((buf & (TPM_ACCESS_ACTIVE_LOCALITY | TPM_ACCESS_VALID)) ==
-		(TPM_ACCESS_ACTIVE_LOCALITY | TPM_ACCESS_VALID)) {
-		chip->vendor.locality = loc;
-		return loc;
+	if (rc >= 0) {
+		if ((buf & (TPM_ACCESS_ACTIVE_LOCALITY | TPM_ACCESS_VALID)) ==
+			(TPM_ACCESS_ACTIVE_LOCALITY | TPM_ACCESS_VALID)) {
+			chip->vendor.locality = loc;
+			rc = loc;
+		} else {
+			rc = -1;
+		}
 	}
+	debug("= %d) ", rc);
 
-	return -1;
+	return rc;
 }
 
 static void release_locality(struct tpm_chip *chip, int loc, int force)
 {
 	u8 buf;
+
+	debug("%s\n", __func__);
 	if (iic_tpm_read(TPM_ACCESS(loc), &buf, 1) < 0)
 		return;
 
@@ -268,29 +278,39 @@ static int request_locality(struct tpm_chip *chip, int loc)
 {
 	unsigned long start, stop;
 	u8 buf = TPM_ACCESS_REQUEST_USE;
+	int err;
 
-	if (check_locality(chip, loc) >= 0)
-		return loc; /* we already have the locality */
+	debug("%s: loc=%d ", __func__, loc);
+	if (check_locality(chip, loc) >= 0) {
+		err = loc; /* we already have the locality */
+	} else {
+		err = -1;
+		iic_tpm_write(TPM_ACCESS(loc), &buf, 1);
 
-	iic_tpm_write(TPM_ACCESS(loc), &buf, 1);
+		/* wait for burstcount */
+		start = get_timer(0);
+		stop = chip->vendor.timeout_a;
+		do {
+			if (check_locality(chip, loc) >= 0)
+				return loc;
+			msleep(TPM_TIMEOUT);
+		} while (get_timer(start) < stop);
+	}
 
-	/* wait for burstcount */
-	start = get_timer(0);
-	stop = chip->vendor.timeout_a;
-	do {
-		if (check_locality(chip, loc) >= 0)
-			return loc;
-		msleep(TPM_TIMEOUT);
-	} while (get_timer(start) < stop);
-
-	return -1;
+	debug(" = %d\n", err);
+	return err;
 }
 
 static u8 tpm_tis_i2c_status(struct tpm_chip *chip)
 {
 	/* NOTE: since i2c read may fail, return 0 in this case --> time-out */
 	u8 buf;
-	if (iic_tpm_read(TPM_STS(chip->vendor.locality), &buf, 1) < 0)
+	int err;
+
+	debug("%s [", __func__);
+	err = iic_tpm_read(TPM_STS(chip->vendor.locality), &buf, 1);
+	debug("] = 0x%x\n", err < 0 ? 0 : buf);
+	if (err < 0)
 		return 0;
 	else
 		return buf;
@@ -396,6 +416,7 @@ static int tpm_tis_i2c_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 		goto out;
 	}
 
+	/* This may do nothing if there is nothing more to read */
 	size += recv_data(chip, &buf[TPM_HEADER_SIZE],
 				expected - TPM_HEADER_SIZE);
 	if (size < expected) {

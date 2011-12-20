@@ -336,10 +336,6 @@ static int recv_data(struct tpm_chip *chip, u8 *buf, size_t count)
 	while (size < count) {
 		burstcnt = get_burstcount(chip);
 
-		/* burstcount < 0 = tpm is busy */
-		if (burstcnt < 0)
-			return burstcnt;
-
 		/* limit received data to max. left */
 		if (burstcnt > (count - size))
 			burstcnt = count - size;
@@ -430,13 +426,9 @@ static int tpm_tis_i2c_send(struct tpm_chip *chip, u8 *buf, size_t len)
 
 	burstcnt = get_burstcount(chip);
 
-	/* burstcount < 0 = tpm is busy */
-	if (burstcnt < 0)
-		return burstcnt;
-
-	while (count < len - 1) {
-		if (burstcnt > (len-1-count))
-			burstcnt = len-1-count;
+	while (count < len) {
+		if (burstcnt > (len - count))
+			burstcnt = len - count;
 
 #ifdef CONFIG_TPM_I2C_BURST_LIMITATION
 		if (retry && burstcnt > CONFIG_TPM_I2C_BURST_LIMITATION)
@@ -460,8 +452,6 @@ static int tpm_tis_i2c_send(struct tpm_chip *chip, u8 *buf, size_t len)
 
 	}
 
-	/* write last byte */
-	iic_tpm_write(TPM_DATA_FIFO(chip->vendor.locality), &(buf[count]), 1);
 	wait_for_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c, &status);
 	if ((status & TPM_STS_DATA_EXPECT) != 0) {
 		rc = -EIO;

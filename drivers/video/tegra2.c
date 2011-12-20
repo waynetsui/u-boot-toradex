@@ -33,7 +33,19 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-unsigned long timer_last;
+/* These are the stages we go throuh in enabling the LCD */
+enum stage_t {
+	STAGE_START,
+	STAGE_LVDS,
+	STAGE_BACKLIGHT_VDD,
+	STAGE_PWFM,
+	STAGE_BACKLIGHT_EN,
+	STAGE_DONE,
+};
+
+static enum stage_t stage;	/* Current stage we are at */
+static unsigned long timer_next; /* Time we can move onto next stage */
+static struct fdt_lcd config;	/* Our LCD config, set up in handle_stage() */
 
 int lcd_line_length;
 int lcd_color_fg;
@@ -109,59 +121,12 @@ struct pingroup_config pinmux_cros_1[] = {
 	PINMUX(SLXD,  SPDIF,      NORMAL,    NORMAL),
 };
 
-/* Initialize the Tegra LCD pinmuxs */
-static void init_lcd_pinmux(struct fdt_lcd *config)
-{
-	/* TODO: put pinmux into the FDT */
-	pinmux_config_table(pinmux_cros_1, ARRAY_SIZE(pinmux_cros_1));
-
-	fdt_setup_gpio(&config->panel_vdd);
-	fdt_setup_gpio(&config->lvds_shutdown);
-	fdt_setup_gpio(&config->backlight_vdd);
-	fdt_setup_gpio(&config->backlight_en);
-
-	gpio_set_value(config->panel_vdd.gpio, 1);
-	udelay(config->panel_timings[0] * 1000);
-
-	gpio_set_value(config->lvds_shutdown.gpio, 1);
-	timer_last = timer_get_us();
-}
-
 /* Initialize the Tegra LCD panel and controller */
 void init_lcd(struct fdt_lcd *config)
 {
 	clk_init();
 	power_enable_partition(POWERP_3D);
 	tegra2_display_register(config);
-}
-
-static void init_lcd_pwm(struct fdt_lcd *config)
-{
-	long pre_delay;
-
-	/*
-	 * Compare the current timer valuse with the timer_last to
-	 * figure out the pre_delay which is the passed time from
-	 * the end of init_lcd_pinmux to now.
-	 * If the required delay(timings[1]) is bigger than pre_delay,
-	 * we have to do a delay (timings[1] - pre_delay) to make
-	 * sure the required delay(timings[1]) has passed.
-	 */
-	pre_delay = timer_get_us() - timer_last;
-
-	if ((long)(config->panel_timings[1] * 1000) > pre_delay)
-		udelay((long)(config->panel_timings[1] * 1000) - pre_delay);
-
-	if (fdt_gpio_isvalid(&config->backlight_vdd)) {
-		gpio_set_value(config->backlight_vdd.gpio, 1);
-		udelay(config->panel_timings[2] * 1000);
-	}
-
-	/* Enable PWM at 15/16 high, divider 1 */
-	pwfm_setup(config->pwfm, 1, 0xdf, 1);
-	udelay(config->panel_timings[3] * 1000);
-
-	gpio_set_value(config->backlight_en.gpio, 1);
 }
 
 void lcd_cursor_size(ushort width, ushort height)
@@ -225,14 +190,7 @@ static void update_panel_size(struct fdt_lcd *config)
 
 void lcd_ctrl_init(void *lcdbase)
 {
-	struct fdt_lcd config;
 	int line_length, size;
-
-	/* get panel details */
-	if (fdt_decode_lcd(gd->blob, &config)) {
-		printf("No LCD information in device tree\n");
-		return;
-	}
 
 	/*
 	 * The framebuffer address should be specified in the device tree.
@@ -278,20 +236,6 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
 {
 }
 
-void lcd_enable(void)
-{
-	struct fdt_lcd config;
-
-	/* get panel details */
-	if (fdt_decode_lcd(gd->blob, &config)) {
-		printf("No LCD information in device tree\n");
-		return;
-	}
-
-	/* call board specific hw init for backlight PWM */
-	init_lcd_pwm(&config);
-}
-
 void lcd_early_init(const void *blob)
 {
 	struct fdt_lcd config;
@@ -301,14 +245,85 @@ void lcd_early_init(const void *blob)
 		update_panel_size(&config);
 }
 
-int lcd_pinmux_early_init(const void *blob)
+static int handle_stage(const void *blob)
 {
-	struct fdt_lcd config;
+	/* do the things for this stage */
+	switch (stage) {
+	case STAGE_START:
+		/* get panel details */
+		if (fdt_decode_lcd(blob, &config)) {
+			printf("No LCD information in device tree\n");
+			return -1;
+		}
 
-	/* get panel details */
-	if (fdt_decode_lcd(gd->blob, &config))
-		return -1;
+		/* TODO: put pinmux into the FDT */
+		pinmux_config_table(pinmux_cros_1, ARRAY_SIZE(pinmux_cros_1));
 
-	init_lcd_pinmux(&config);
+		fdt_setup_gpio(&config.panel_vdd);
+		fdt_setup_gpio(&config.lvds_shutdown);
+		fdt_setup_gpio(&config.backlight_vdd);
+		fdt_setup_gpio(&config.backlight_en);
+
+		gpio_set_value(config.panel_vdd.gpio, 1);
+		break;
+
+	case STAGE_LVDS:
+		gpio_set_value(config.lvds_shutdown.gpio, 1);
+		break;
+
+	case STAGE_BACKLIGHT_VDD:
+		if (fdt_gpio_isvalid(&config.backlight_vdd))
+			gpio_set_value(config.backlight_vdd.gpio, 1);
+		break;
+
+	case STAGE_PWFM:
+		/* Enable PWM at 15/16 high, divider 1 */
+		pwfm_setup(config.pwfm, 1, 0xdf, 1);
+		break;
+
+	case STAGE_BACKLIGHT_EN:
+		gpio_set_value(config.backlight_en.gpio, 1);
+		break;
+
+	case STAGE_DONE:
+		break;
+	}
+
+	/* set up timer for next stage */
+	timer_next = timer_get_us() + config.panel_timings[stage] * 1000;
+
+	/* move to next stage */
+	stage++;
 	return 0;
+}
+
+int tegra_lcd_check_next_stage(const void *blob, int wait)
+{
+	if (stage == STAGE_DONE)
+		return 0;
+
+	do {
+		/* wait if we need to */
+		debug("%s: stage %d\n", __func__, stage);
+		if (stage != STAGE_START) {
+			int delay = timer_next - timer_get_us();
+
+			if (delay > 0) {
+				if (wait)
+					udelay(delay);
+				else
+					return 0;
+			}
+		}
+
+		if (handle_stage(blob))
+			return -1;
+	} while (wait && stage != STAGE_DONE);
+	return 0;
+}
+
+void lcd_enable(void)
+{
+	/* This will be done when tegra_lcd_check_next_stage() is called */
+	tegra_lcd_check_next_stage(gd->blob, 1);
 }

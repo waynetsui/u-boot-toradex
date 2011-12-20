@@ -304,7 +304,7 @@ static void power_det_init(void)
 int board_init(void)
 {
 #ifdef CONFIG_VIDEO_TEGRA2
-	lcd_pinmux_early_init(gd->blob);
+	tegra_lcd_check_next_stage(gd->blob, 0);
 #endif
 #ifdef CONFIG_DELAY_CONSOLE
 	init_uarts(gd->blob);

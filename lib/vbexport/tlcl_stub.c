@@ -41,7 +41,12 @@ VbError_t VbExTpmOpen(void)
 VbError_t VbExTpmSendReceive(const uint8_t* request, uint32_t request_length,
 		uint8_t* response, uint32_t* response_length)
 {
-	if (tis_sendrecv(request, request_length, response, response_length))
+	int err;
+
+	bootstage_start(BOOTSTAGE_TPM_SEND_RECV, "tpm_send_recv");
+	err = tis_sendrecv(request, request_length, response, response_length);
+	bootstage_accum(BOOTSTAGE_TPM_SEND_RECV);
+	if (err)
 		return TPM_E_IOERROR;
 	return TPM_SUCCESS;
 }

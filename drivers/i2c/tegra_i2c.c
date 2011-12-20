@@ -206,12 +206,12 @@ static void send_packet_headers(
 				bf_pack(PKT_HDR1_PKT_ID, packet_id) |
 				bf_pack(PKT_HDR1_CTLR_ID, i2c_bus->id);
 	writel(data, &i2c_bus->control->tx_fifo);
-	debug("pkt header 1 sent (0x%x)\n", data);
+	debug("   pkt header 1 sent (0x%x)\n", data);
 
 	/* prepare header2 */
 	data = bf_pack(PKT_HDR2_PAYLOAD_SIZE, (trans->num_bytes - 1));
 	writel(data, &i2c_bus->control->tx_fifo);
-	debug("pkt header 2 sent (0x%x)\n", data);
+	debug("   pkt header 2 sent (0x%x)\n", data);
 
 	/* prepare IO specific header: configure the slave address */
 	data = bf_pack(PKT_HDR3_SLAVE_ADDR, trans->address);
@@ -222,7 +222,7 @@ static void send_packet_headers(
 
 	/* Write I2C specific header */
 	writel(data, &i2c_bus->control->tx_fifo);
-	debug("pkt header 3 sent (0x%x)\n", data);
+	debug("   pkt header 3 sent (0x%x)\n", data);
 }
 
 static int wait_for_tx_fifo_empty(struct i2c_control *control)
@@ -319,18 +319,21 @@ static int send_recv_packets(
 			if ((unsigned)dptr & 3) {
 				memcpy(&local, dptr, sizeof(u32));
 				writel(local, &control->tx_fifo);
-				debug("pkt data sent (0x%x)\n", local);
+				debug("   u pkt data sent (0x%x)\n", local);
 			} else {
 				writel(*(u32 *)dptr, &control->tx_fifo);
-				debug("pkt data sent (0x%x)\n", *(u32 *)dptr);
+				debug("   a pkt data sent (0x%x)\n",
+				      *(u32 *)dptr);
 			}
 			if (!wait_for_tx_fifo_empty(control)) {
 				error = -1;
+				debug("   wait_for_tx_fifo_empty failed\n");
 				goto exit;
 			}
 		} else {
 			if (!wait_for_rx_fifo_notempty(control)) {
 				error = -1;
+				debug("   wait_for_rx_fifo_notempty failed\n");
 				goto exit;
 			}
 			/*
@@ -344,7 +347,7 @@ static int send_recv_packets(
 				memcpy(dptr, &local, sizeof(u32));
 			else
 				*(u32 *)dptr = local;
-			debug("pkt data received (0x%x)\n", local);
+			debug("   pkt data received (0x%x)\n", local);
 		}
 		words--;
 		dptr += sizeof(u32);
@@ -352,6 +355,7 @@ static int send_recv_packets(
 
 	if (wait_for_transfer_complete(control)) {
 		error = -1;
+		debug("   wait_for_transfer_complete failed\n");
 		goto exit;
 	}
 	return 0;
@@ -375,7 +379,7 @@ static int tegra_i2c_write_data(u32 addr, u8 *data, u32 len)
 
 	error = send_recv_packets(&i2c_controllers[i2c_bus_num], &trans_info);
 	if (error)
-		debug("tegra_i2c_write_data: Error (%d) !!!\n", error);
+		debug("   tegra_i2c_write_data: Error (%d) !!!\n", error);
 
 	return error;
 }
@@ -504,7 +508,7 @@ int i2c_write_data(uchar chip, uchar *buffer, int len)
 	int rc;
 
 	debug("i2c_write_data: chip=0x%x, len=0x%x\n", chip, len);
-	debug("write_data: ");
+	debug("   write_data: ");
 	/* use rc for counter */
 	for (rc = 0; rc < len; ++rc)
 		debug(" 0x%02x", buffer[rc]);

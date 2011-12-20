@@ -192,9 +192,19 @@ static void pin_mux_mmc(void)
 	pinmux_set_func(PINGRP_SDC, PMUX_FUNC_SDIO3);
 	pinmux_set_func(PINGRP_SDD, PMUX_FUNC_SDIO3);
 
+	pinmux_set_func(PINGRP_SLXA, PMUX_FUNC_SDIO3);
+	pinmux_set_func(PINGRP_SLXC, PMUX_FUNC_SDIO3);
+	pinmux_set_func(PINGRP_SLXD, PMUX_FUNC_SDIO3);
+	pinmux_set_func(PINGRP_SLXK, PMUX_FUNC_SDIO3);
+
 	pinmux_tristate_disable(PINGRP_SDC);
 	pinmux_tristate_disable(PINGRP_SDD);
 	pinmux_tristate_disable(PINGRP_SDB);
+
+	pinmux_tristate_disable(PINGRP_SLXA);
+	pinmux_tristate_disable(PINGRP_SLXC);
+	pinmux_tristate_disable(PINGRP_SLXD);
+	pinmux_tristate_disable(PINGRP_SLXK);
 #endif
 }
 #endif

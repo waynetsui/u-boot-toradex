@@ -552,7 +552,8 @@ int mmc_change_freq(struct mmc *mmc)
 	if (mmc->version < MMC_VERSION_4)
 		goto out;
 
-	mmc->card_caps |= MMC_MODE_4BIT;
+	/* Tegra: temporary fix */
+	mmc->card_caps |= MMC_MODE_4BIT | MMC_MODE_8BIT;
 
 	err = mmc_send_ext_csd(mmc, ext_csd);
 

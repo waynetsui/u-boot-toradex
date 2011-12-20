@@ -77,6 +77,8 @@ static struct tpm_inf_dev tpm_dev = {
 	.addr = TPM_I2C_ADDR
 };
 
+static int burst_count;	/* maximum number of bytes in one transfer */
+
 struct op_stats {
 	int ok;
 	int fail;
@@ -377,7 +379,7 @@ static int recv_data(struct tpm_chip *chip, u8 *buf, size_t count)
 	int rc;
 
 	while (size < count) {
-		burstcnt = get_burstcount(chip);
+		burstcnt = burst_count;
 
 		/* limit received data to max. left */
 		if (burstcnt > (count - size))
@@ -468,7 +470,7 @@ static int tpm_tis_i2c_send(struct tpm_chip *chip, u8 *buf, size_t len)
 		}
 	}
 
-	burstcnt = get_burstcount(chip);
+	burstcnt = burst_count;
 
 	while (count < len) {
 		if (burstcnt > (len - count))
@@ -576,6 +578,9 @@ int tpm_vendor_init(uint32_t dev_addr)
 	}
 
 	dev_info(dev, "1.2 TPM (device-id 0x%X)\n", vendor >> 16);
+
+	burst_count = get_burstcount(chip);
+	debug("burst count = %d\n", burst_count);
 
 	/*
 	 * A timeout query to TPM can be placed here.

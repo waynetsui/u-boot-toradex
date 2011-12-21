@@ -233,10 +233,13 @@
 			"source ${loadaddr}; " \
 		"fi\0" \
 	\
-	"ext2_boot=" \
+	"regen_ext2_bootargs=" \
 		"setenv bootdev_bootargs " \
-			"root=/dev/${devname}${rootpart} rootwait ro; " \
-		"run regen_all; " \
+		"root=/dev/${devname}${rootpart} rootwait ro; " \
+		"run regen_all\0" \
+	\
+	"ext2_boot=" \
+		"run regen_ext2_bootargs; " \
 		"if ext2load ${devtype} ${devnum}:${rootpart} " \
 			"${loadaddr} ${cros_bootfile}; then " \
 			"bootm ${loadaddr};" \
@@ -290,6 +293,17 @@
 			"echo 'ERROR: Could not load root/kernel from TFTP'; " \
 			"exit; " \
 		"fi\0" \
+	"tftp_ext2_boot=" \
+		"run tftp_setup; " \
+		"run regen_ext2_bootargs; " \
+		"bootp; " \
+		"if tftpboot ${loadaddr} ${tftpserverip}:${tftpkernelpath}; " \
+		"then " \
+			"bootm ${loadaddr}; " \
+		"else " \
+			"echo 'ERROR: Could not load kernel from TFTP'; " \
+			"exit; " \
+		"fi\0" \
 	"nfsroot_boot=" \
 		"run tftp_setup; " \
 		"run regen_nfsroot_bootargs; " \
@@ -336,15 +350,21 @@
 		"run run_disk_boot_script;" \
 		"run ext2_boot\0" \
 	\
-	"mmc_boot=mmc rescan ${devnum}; " \
+	"mmc_setup=" \
+		"mmc rescan ${devnum}; " \
 		"setenv devtype mmc; " \
-		"setenv devname mmcblk${devnum}p; " \
+		"setenv devname mmcblk${devnum}p\0" \
+	"mmc_boot=" \
+		"run mmc_setup; " \
 		"run run_disk_boot_script;" \
 		"run ext2_boot\0" \
 	"mmc0_boot=setenv devnum 0; " \
 		"run mmc_boot\0" \
 	"mmc1_boot=setenv devnum 1; " \
 		"run mmc_boot\0" \
+	"mmc0_tftpboot=setenv devnum 0; " \
+		"run mmc_setup; " \
+		"run tftp_ext2_boot\0" \
 	\
 	"non_verified_boot=" \
 		"usb start; " \

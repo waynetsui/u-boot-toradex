@@ -29,6 +29,7 @@
 
 #include <common.h>
 #include <libfdt.h>
+#include <fdt_decode.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -199,8 +200,11 @@ void bootstage_report(void)
 	uint32_t prev;
 	u32 flags = gd->flags;
 
+#ifdef CONFIG_OF_CONTROL
 	/* Force this information to display even on silent console */
-	gd->flags &= ~GD_FLG_SILENT;
+	if (fdt_decode_get_config_int(gd->blob, "bootstage-force-report", 0))
+		gd->flags &= ~GD_FLG_SILENT;
+#endif
 	puts("Timer summary in microseconds:\n");
 	printf("%11s%11s  %s\n", "Mark", "Elapsed", "Stage");
 

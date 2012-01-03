@@ -166,8 +166,8 @@ static int mmc_prepare_data(struct mmc_host *host, struct mmc_data *data)
 	 */
 	if (((uint)data->dest) & (CACHE_LINE_SIZE - 1))
 	{
-		printf("%s: Unaligned data, using slower bounce buffer\n",
-		       __func__);
+		debug("%s: Unaligned data, using slower bounce buffer\n",
+		__func__);
 
 		if (mmc_setup_bounce_data(host, data) < 0)
 			return -1;

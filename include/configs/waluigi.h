@@ -39,6 +39,9 @@
 	"tegraid=30.1.2.0.0 " \
 	"debug_uartport=lsport,3 " \
 
+#define CONFIG_TEGRA_LP0
+#define CONFIG_TEGRA3_WARMBOOT
+
 #include "tegra3-common.h"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \

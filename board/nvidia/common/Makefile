@@ -31,8 +31,8 @@ COBJS-$(CONFIG_SPI_UART_SWITCH) += uart-spi-fix.o
 COBJS-$(CONFIG_TEGRA_CLOCK_SCALING) += emc.o
 COBJS-$(CONFIG_TEGRA_PMU) += pmu.o
 COBJS-$(CONFIG_TEGRA_KEYBOARD) += generic_kbc.o
-COBJS-$(CONFIG_TEGRA2_LP0) += crypto/aes_ref.o
-COBJS-$(CONFIG_TEGRA2_LP0) += crypto/crypto.o
+COBJS-$(CONFIG_TEGRA_LP0) += crypto/aes_ref.o
+COBJS-$(CONFIG_TEGRA_LP0) += crypto/crypto.o
 COBJS-$(CONFIG_TEGRA2_NAND) += tegra2_nand.o
 
 COBJS	:= $(COBJS-y)

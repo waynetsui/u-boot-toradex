@@ -34,10 +34,8 @@ LIB	=  $(obj)lib$(SOC).o
 
 SOBJS-y	:=
 COBJS-y	:= board.o pinmux.o sys_info.o
-
-COBJS-$(CONFIG_TEGRA2_LP0) += warmboot.o
-COBJS-$(CONFIG_TEGRA2_LP0) += warmboot_avp.o
 COBJS-$(CONFIG_VIDEO_TEGRA) += display.o
+COBJS-$(CONFIG_TEGRA2_WARMBOOT) += warmboot.o warmboot_avp.o
 
 SOBJS	:= $(SOBJS-y)
 COBJS	:= $(COBJS-y)

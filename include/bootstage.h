@@ -105,6 +105,10 @@ void bootstage_report(void);
 
 static inline uint32_t bootstage_mark(enum bootstage_id id, const char *name)
 { return 0; }
+static inline uint32_t bootstage_start(enum bootstage_id id, const char *name)
+{ return 0; }
+static inline uint32_t bootstage_accum(enum bootstage_id id)
+{ return 0; }
 
 #endif
 

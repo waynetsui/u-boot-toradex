@@ -183,7 +183,7 @@
 #define CONFIG_SYS_NAND_BASE_LIST {}
 #endif /* CONFIG_OF_CONTROL not defined ^^^^^^^ */
 
-#define CONFIG_TEGRA2_KEYBOARD
+#define CONFIG_TEGRA_KEYBOARD
 #define CONFIG_KEYBOARD
 
 #define CONFIG_CONSOLE_MUX

@@ -103,6 +103,10 @@
 #define LCD_BPP	LCD_COLOR16
 #define CONFIG_SYS_WHITE_ON_BLACK	/* Console colors */
 
+/*KEYBOARD*/
+#define CONFIG_TEGRA_KEYBOARD
+#define CONFIG_KEYBOARD
+
 #define CONFIG_ENV_IS_NOWHERE
 
 #endif /* __CONFIG_H */

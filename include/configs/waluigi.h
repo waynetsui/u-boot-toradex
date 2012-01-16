@@ -93,6 +93,16 @@
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 
+/*
+ *  LCDC configuration
+ */
+#define CONFIG_LCD
+#define CONFIG_VIDEO_TEGRA
+
+/* TODO: This needs to be configurable at run-time */
+#define LCD_BPP	LCD_COLOR16
+#define CONFIG_SYS_WHITE_ON_BLACK	/* Console colors */
+
 #define CONFIG_ENV_IS_NOWHERE
 
 #endif /* __CONFIG_H */

@@ -69,7 +69,7 @@ vidinfo_t panel_info = {
 	.vl_col = -1,
 };
 
-char lcd_cursor_enabled = 0;	/* set initial value to false */
+char lcd_cursor_enabled;	/* set initial value to false */
 
 ushort lcd_cursor_width;
 ushort lcd_cursor_height;
@@ -89,7 +89,7 @@ static void clk_init(void)
  * The PINMUX macro is used per board to setup the pinmux configuration.
  */
 #define PINMUX(grp, mux, pupd, tri)                   \
-        {PINGRP_##grp, PMUX_FUNC_##mux, PMUX_PULL_##pupd, PMUX_TRI_##tri}
+	{PINGRP_##grp, PMUX_FUNC_##mux, PMUX_PULL_##pupd, PMUX_TRI_##tri}
 
 struct pingroup_config pinmux_cros_1[] = {
 	PINMUX(GPU,   PWM,        NORMAL,    NORMAL),

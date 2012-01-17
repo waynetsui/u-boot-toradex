@@ -125,4 +125,6 @@
 #define CONFIG_SYS_TEXT_BASE	0x80E08000
 #define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
 
+#define CONFIG_INITRD_TAG		/* enable initrd ATAG */
+
 #endif /* __TEGRA3_COMMON_H */

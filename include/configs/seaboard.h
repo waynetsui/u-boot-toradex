@@ -247,7 +247,7 @@
  *  LCDC configuration
  */
 #define CONFIG_LCD
-#define CONFIG_VIDEO_TEGRA2
+#define CONFIG_VIDEO_TEGRA
 
 /* TODO: This needs to be configurable at run-time */
 #define LCD_BPP             LCD_COLOR16

@@ -259,5 +259,10 @@
                 periph-id = <22>;	// PERIPH_ID_USBD
 		status = "disabled";
 	};
+
+	kbc@0x7000e200 {
+		compatible = "nvidia,tegra250-kbc";
+		reg = <0x7000e200 0x0078>;
+	};
 };
 

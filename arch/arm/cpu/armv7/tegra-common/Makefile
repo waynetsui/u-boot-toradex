@@ -32,6 +32,7 @@ LIB	= $(obj)libtegra-common.o
 
 SOBJS-y	:= lowlevel_init.o
 COBJS-y	:= ap20.o board.o clock.o power.o timer.o
+COBJS-$(CONFIG_VIDEO_TEGRA) += display.o pwfm.o
 
 SOBJS	:= $(SOBJS-y)
 COBJS	:= $(COBJS-y)

@@ -33,7 +33,7 @@ include $(TOPDIR)/config.mk
 LIB	=  $(obj)lib$(SOC).o
 
 SOBJS-y	:=
-COBJS-y	:= board.o display.o pinmux.o pwfm.o sys_info.o
+COBJS-y	:= board.o pinmux.o sys_info.o
 
 COBJS-$(CONFIG_TEGRA2_LP0) += warmboot.o
 COBJS-$(CONFIG_TEGRA2_LP0) += warmboot_avp.o

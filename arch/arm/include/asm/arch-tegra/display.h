@@ -47,4 +47,7 @@ struct fdt_lcd;
 /* Register a new display based on the given configuration */
 void tegra2_display_register(struct fdt_lcd *config);
 
+ /* Initialize platform specific display clocks */
+void display_clk_init(void);
+
 #endif /*__ASM_ARCH_TEGRA_DISPLAY_H*/

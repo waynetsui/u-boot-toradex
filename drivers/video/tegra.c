@@ -22,8 +22,6 @@
 #include <common.h>
 #include <lcd.h>
 #include <fdt_decode.h>
-#include <asm/clocks.h>
-#include <asm/arch/clock.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch-tegra/power.h>
@@ -74,17 +72,6 @@ char lcd_cursor_enabled;	/* set initial value to false */
 ushort lcd_cursor_width;
 ushort lcd_cursor_height;
 
-
-static void clk_init(void)
-{
-	/* TODO: Put this into the FDT when we have clock support there */
-	clock_start_periph_pll(PERIPH_ID_3D, CLOCK_ID_MEMORY, CLK_300M);
-	clock_start_periph_pll(PERIPH_ID_2D, CLOCK_ID_MEMORY, CLK_300M);
-	clock_start_periph_pll(PERIPH_ID_HOST1X, CLOCK_ID_PERIPH, CLK_144M);
-	clock_start_periph_pll(PERIPH_ID_DISP1, CLOCK_ID_CGENERAL, CLK_600M);
-	clock_start_periph_pll(PERIPH_ID_PWM, CLOCK_ID_SFROM32KHZ, CLK_32768);
-}
-
 #if defined(CONFIG_TEGRA2)
 /*
  * The PINMUX macro is used per board to setup the pinmux configuration.
@@ -133,7 +120,7 @@ struct pingroup_config pinmux_cros_1[] = {
 /* Initialize the Tegra LCD panel and controller */
 void init_lcd(struct fdt_lcd *config)
 {
-	clk_init();
+	display_clk_init();
 	power_enable_partition(POWERP_3D);
 	tegra2_display_register(config);
 }

@@ -29,6 +29,8 @@ LIB	=  $(obj)lib$(SOC).o
 
 COBJS-y	:= board.o pinmux.o sys_info.o
 
+COBJS-$(CONFIG_VIDEO_TEGRA) += display.o
+
 COBJS	:= $(COBJS-y)
 
 SRCS	:= $(COBJS:.o=.c)

@@ -22,13 +22,14 @@
  */
 
 #include <common.h>
-#include <malloc.h>
 #include <stdio_dev.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
-#include <asm/arch/pinmux.h>
 #include <tegra-kbc.h>
 #include <fdt_decode.h>
+#if defined(CONFIG_TEGRA2)
+#include <asm/arch/pinmux.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -508,6 +509,7 @@ static int tegra_kbc_open(void)
 	return 0;
 }
 
+#if defined(CONFIG_TEGRA2)
 void config_kbc_pinmux(void)
 {
 	enum pmux_pingrp pingrp[] = {PINGRP_KBCA, PINGRP_KBCB, PINGRP_KBCC,
@@ -520,6 +522,7 @@ void config_kbc_pinmux(void)
 		pinmux_set_pullupdown(pingrp[i], PMUX_PULL_UP);
 	}
 }
+#endif
 
 int drv_keyboard_init(void)
 {
@@ -547,7 +550,9 @@ int drv_keyboard_init(void)
 	kbc_fn_keycode    = board_keyboard_config.fn_keycode;
 #endif
 
+#if defined(CONFIG_TEGRA2)
 	config_kbc_pinmux();
+#endif
 
 	/*
 	 * All of the Tegra board use the same clock configuration for now.

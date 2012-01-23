@@ -303,11 +303,3 @@ do_reset:
 	goto do_reset;
 }
 
-/*
- * wb_end() is a dummy function, and must be directly following wb_start(),
- * and is used to calculate the size of wb_start().
- */
-void wb_end(void)
-{
-}
-

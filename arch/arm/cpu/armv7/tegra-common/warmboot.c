@@ -32,6 +32,8 @@
 
 #include <asm/arch/gp_padctrl.h>
 
+extern u32 __wb_end; /* End of WB assembly code */
+
 /*
  * NOTE: If more than one of the following is enabled, only one of them will
  *	 actually be used. RANDOM takes precedence over PATTERN and ZERO, and
@@ -166,7 +168,7 @@ int warmboot_prepare_code(u32 seg_address, u32 seg_length)
 	determine_crypto_options(&is_encrypted, &is_signed, &use_zero_key);
 
 	/* Get the actual code limits. */
-	length = roundup(((u32)wb_end - (u32)wb_start), 16);
+	length = roundup(((u32)&__wb_end - (u32)wb_start), 16);
 
 	/*
 	 * The region specified by seg_address must not be in IRAM and must be

@@ -160,6 +160,9 @@
  */
 #define CONFIG_SYS_BOOTMAPSZ	(1 << 25)
 
+/* BCT starts at 0x100 in RAM */
+#define BCT_OFFSET		0x100
+
 /*
  * Defines the regen_all variable, which is used by other commands
  * defined in this file.  Usage is to override one or more of the environment

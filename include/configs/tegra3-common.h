@@ -126,5 +126,6 @@
 #define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
 
 #define CONFIG_INITRD_TAG		/* enable initrd ATAG */
+#define BCT_SDRAM_PARAMS_OFFSET	(BCT_OFFSET + 0x148)
 
 #endif /* __TEGRA3_COMMON_H */

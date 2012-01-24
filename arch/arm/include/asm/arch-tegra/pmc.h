@@ -119,6 +119,17 @@ struct pmc_ctlr {
 	uint pmc_sys_33v_en;		/* _SYS_33V_EN_0, offset 154 */
 	uint pmc_bo_mirror_access;	/* _BOUNDOUT_MIRROR_ACCESS_0, off158 */
 	uint pmc_gate;			/* _GATE_0, offset 15C */
+#if defined(CONFIG_TEGRA3)
+	uint pmc_unused[51];		/* currently unused: 160 ~ 228 */
+	uint pmc_scratch43;		/* _SCRATCH43_0, offset 22C */
+	uint pmc_scratch44;		/* _SCRATCH44_0, offset 230 */
+	uint pmc_scratch45;		/* _SCRATCH45_0, offset 234 */
+	uint pmc_scratch46;		/* _SCRATCH46_0, offset 238 */
+	uint pmc_scratch47;		/* _SCRATCH47_0, offset 23C */
+	uint pmc_scratch48;		/* _SCRATCH48_0, offset 240 */
+	uint pmc_scratch49;		/* _SCRATCH49_0, offset 244 */
+	uint pmc_scratch50;		/* _SCRATCH50_0, offset 248 */
+#endif
 };
 
 #define PWRGATE_ENABLE	0x100

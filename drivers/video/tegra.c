@@ -85,6 +85,7 @@ static void clk_init(void)
 	clock_start_periph_pll(PERIPH_ID_PWM, CLOCK_ID_SFROM32KHZ, CLK_32768);
 }
 
+#if defined(CONFIG_TEGRA2)
 /*
  * The PINMUX macro is used per board to setup the pinmux configuration.
  */
@@ -127,6 +128,7 @@ struct pingroup_config pinmux_cros_1[] = {
 	PINMUX(LVS,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(SLXD,  SPDIF,      NORMAL,    NORMAL),
 };
+#endif
 
 /* Initialize the Tegra LCD panel and controller */
 void init_lcd(struct fdt_lcd *config)
@@ -271,8 +273,10 @@ static int handle_stage(const void *blob)
 			return -1;
 		}
 
+#if defined(CONFIG_TEGRA2)
 		/* TODO: put pinmux into the FDT */
 		pinmux_config_table(pinmux_cros_1, ARRAY_SIZE(pinmux_cros_1));
+#endif
 
 		fdt_setup_gpio(&config.panel_vdd);
 		fdt_setup_gpio(&config.lvds_shutdown);

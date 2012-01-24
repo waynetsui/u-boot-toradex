@@ -33,6 +33,13 @@ struct flow_ctlr {
 	u32	cpu1_csr;
 	u32	spare[5];
 	u32	control;
+#if defined(CONFIG_TEGRA3)
+	u32	halt_cpu2_events;
+	u32	cpu2_csr;
+	u32	halt_cpu3_events;
+	u32	cpu3_csr;
+	u32	cluster_control;
+#endif
 };
 
 #endif

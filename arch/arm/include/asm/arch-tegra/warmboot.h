@@ -33,7 +33,10 @@
 #define HIDREV_HIDFAM_RANGE			3 : 0
 
 /* CHIPID field returned from APB_MISC_GP_HIDREV register */
-#define CHIPID_TEGRA2				0x20
+enum tegra_chip_id {
+	CHIPID_TEGRA2 = 0x20,
+	CHIPID_TEGRA3 = 0x30,
+};
 
 #define STRAP_OPT_A_RAM_CODE_RANGE		7 : 4
 

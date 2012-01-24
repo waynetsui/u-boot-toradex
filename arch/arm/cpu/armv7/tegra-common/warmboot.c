@@ -101,7 +101,7 @@ static enum fuse_operating_mode fuse_get_operation_mode(void)
 		(struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
 
 	chip_id = bf_readl(HIDREV_CHIPID, &gp->hidrev);
-	if (chip_id == CHIPID_TEGRA2) {
+	if (chip_id == CHIPID_TEGRA2 || chip_id == CHIPID_TEGRA3) {
 		if (is_odm_production_mode()) {
 			printf("!! odm_production_mode is not supported !!\n");
 			return MODE_UNDEFINED;

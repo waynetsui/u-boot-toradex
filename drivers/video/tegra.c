@@ -50,7 +50,7 @@ static struct fdt_lcd config;	/* Our LCD config, set up in handle_stage() */
 enum {
 	/* Maximum LCD size we support */
 	LCD_MAX_WIDTH		= 1366,
-	LCD_MAX_HEIGHT		= 768,
+	LCD_MAX_HEIGHT		= 800,
 	LCD_MAX_LOG2_BPP	= 4,		/* 16 bpp */
 };
 
@@ -199,7 +199,7 @@ static void update_panel_size(struct fdt_lcd *config)
 
 void lcd_ctrl_init(void *lcdbase)
 {
-	int line_length, size;
+	int size;
 
 	/*
 	 * The framebuffer address should be specified in the device tree.
@@ -221,10 +221,11 @@ void lcd_ctrl_init(void *lcdbase)
 	assert(config.width <= LCD_MAX_WIDTH);
 	assert(config.height <= LCD_MAX_HEIGHT);
 	assert(config.log2_bpp <= LCD_MAX_LOG2_BPP);
-	if (config.width <= LCD_MAX_WIDTH && config.height <= LCD_MAX_HEIGHT &&
+	if (config.width <= LCD_MAX_WIDTH &&
+		config.height <= LCD_MAX_HEIGHT &&
 			config.log2_bpp <= LCD_MAX_LOG2_BPP)
 		update_panel_size(&config);
-	size = lcd_get_size(&line_length),
+	size = lcd_get_size(&lcd_line_length),
 
 	/* call board specific hw init */
 	init_lcd(&config);

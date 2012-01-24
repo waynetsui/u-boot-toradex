@@ -117,10 +117,16 @@ static int update_display_mode(struct dc_disp_reg *disp,
 	/*
 	 * The pixel clock divider is in 7.1 format (where the bottom bit
 	 * represents 0.5). Here we calculate the divider needed to get from
-	 * the display clock (typically 600MHz) to the pixel clock. We round
-	 * up or down as requried.
+	 * the display clock (typically 600MHz for tegra2 and 216MHZ
+	 * for tegra3) to the pixel clock. We round up or down as requried.
 	 */
+#if defined(CONFIG_TEGRA2)
 	rate = clock_get_periph_rate(PERIPH_ID_DISP1, CLOCK_ID_CGENERAL);
+#endif
+#if defined(CONFIG_TEGRA3)
+	rate = clock_get_periph_rate(PERIPH_ID_DISP1, CLOCK_ID_PERIPH);
+#endif
+
 	div = ((rate * 2 + config->pixel_clock / 2) / config->pixel_clock) - 2;
 	debug("Display clock %lu, divider %lu\n", rate, div);
 

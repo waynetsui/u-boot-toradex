@@ -49,7 +49,14 @@ unsigned int board_query_sdram_size(void)
 		return 0x10000000;	/* 256 MB */
 	case 2:
 		return 0x20000000;	/* 512 MB */
-	case 3:
+	case 4:
+		return 0x40000000;	/* 1GB */
+	case 8:
+		/*
+		 * On tegra3, out of 2GB, 1MB(0xFFF00000 - FFFFFFFF) is used for
+		 * Bootcode(IROM) and arm specific exception vector code.
+		 */
+		return 0x7ff00000;	/* 2GB - 1MB */
 	default:
 		return 0x40000000;	/* 1GB */
 	}

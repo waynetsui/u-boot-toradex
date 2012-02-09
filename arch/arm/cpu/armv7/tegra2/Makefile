@@ -37,17 +37,11 @@ COBJS-y	:= board.o pinmux.o sys_info.o
 COBJS-$(CONFIG_VIDEO_TEGRA) += display.o
 COBJS-$(CONFIG_TEGRA2_WARMBOOT) += warmboot.o warmboot_avp.o
 
-ifeq ($(CONFIG_TEGRA2_WARMBOOT),y)
-	LDSCRIPT= warmboot_avp.lds
-else
-	LDSCRIPT=
-endif
-
 SOBJS	:= $(SOBJS-y)
 COBJS	:= $(COBJS-y)
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS) $(LDSCRIPT))
+OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
 
 all:	 $(obj).depend $(LIB)
 

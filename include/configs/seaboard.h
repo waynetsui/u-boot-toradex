@@ -27,10 +27,9 @@
 
 #include <asm/sizes.h>
 
-#define CONFIG_SPI_UART_SWITCH
+#define CONFIG_TEGRA2_LP0
 
-#define CONFIG_TEGRA_LP0
-#define CONFIG_TEGRA2_WARMBOOT
+#define CONFIG_SPI_UART_SWITCH
 
 /* High-level configuration options */
 #define TEGRA2_SYSMEM		"mem=1024M@0M"

@@ -24,10 +24,6 @@
 #ifndef _WARM_BOOT_H_
 #define _WARM_BOOT_H_
 
-#define BCT_OFFSET		0x100		/* BCT starts at 0x100 */
-#define BCT_SDRAM_PARAMS_OFFSET	(BCT_OFFSET + 0x88)
-#define SDRAM_PARAMS_BASE	(AP20_BASE_PA_SRAM + BCT_SDRAM_PARAMS_OFFSET)
-
 /* bit fields definitions for APB_MISC_GP_HIDREV register */
 #define HIDREV_MINOPREV_RANGE			19 : 16
 #define HIDREV_CHIPID_RANGE			15 : 8

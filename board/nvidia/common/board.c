@@ -346,7 +346,7 @@ int board_init(void)
 	board_emc_init();
 #endif
 
-#ifdef CONFIG_TEGRA_LP0
+#ifdef CONFIG_TEGRA2_LP0
 	/* prepare the WB code to LP0 location */
 	warmboot_prepare_code(TEGRA_LP0_ADDR, TEGRA_LP0_SIZE);
 #endif

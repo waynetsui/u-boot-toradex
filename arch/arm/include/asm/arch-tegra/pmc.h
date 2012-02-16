@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2010,2011
+ *  (C) Copyright 2010-2012
  *  NVIDIA Corporation <www.nvidia.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -131,6 +131,8 @@ struct pmc_ctlr {
 	uint pmc_scratch50;		/* _SCRATCH50_0, offset 248 */
 #endif
 };
+
+#define PLLM_OVERRIDE_ENABLE	(1 << 11)
 
 #define PWRGATE_ENABLE	0x100
 

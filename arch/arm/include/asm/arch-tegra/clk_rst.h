@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2010,2011
+ *  (C) Copyright 2010-2012
  *  NVIDIA Corporation <www.nvidia.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -267,6 +267,117 @@ enum {
 #define UTMIP_FORCE_PD_SAMP_B_POWERDOWN_RANGE		2:2
 #define UTMIP_FORCE_PD_SAMP_A_POWERUP_RANGE		1:1
 #define UTMIP_FORCE_PD_SAMP_A_POWERDOWN_RANGE		0:0
+
+/* CRC_CCLK_BURST_POLICY_0 20h */
+#define CCLK_PLLP_BURST_POLICY			0x20004444
+
+/* CRC_SUPER_CCLK_DIVIDER_0 24h */
+#define SUPER_CDIV_ENB				(1 << 31)
+
+/* CRC_SCLK_BURST_POLICY_0 28h */
+#define SCLK_SYS_STATE_RUN			(2 << 28)
+#define SCLK_SWAKE_FIQ_SRC_CLKM			(0 << 12)
+#define SCLK_SWAKE_IRQ_SRC_CLKM			(0 << 8)
+#define SCLK_SWAKE_RUN_SRC_CLKM			(0 << 4)
+#define SCLK_SWAKE_IDLE_SRC_CLKM		(0 << 0)
+
+/* CRC_CLK_CPU_CMPLX_CLR_0 34ch */
+#define CPU_CMPLX_CLR_CPU0_CLK_STP		(1 << 8)
+
+/* CRC_MISC_CLK_ENN_0 48h */
+#define MISC_CLK_ENB_EN_PPSB_STOPCLK_ENABLE	(1 << 0)
+
+/* CRC_OSC_CTRL_0 50h */
+#define OSC_CTRL_XOE		(1 << 0)
+#define OSC_CTRL_XOE_ENABLE	(1 << 0)
+#define OSC_CTRL_XOFS		(0x3f << 4)
+#define OSC_CTRL_XOFS_4		(0x4 << 4)
+#define OSC_CTRL_OSC_FREQ_SHIFT	28
+#define OSC_FREQ_OSC19P2		4	/* 19.2MHz */
+#define OSC_FREQ_OSC12			8	/* 12.0MHz */
+#define OSC_FREQ_OSC26			12	/* 26.0MHz */
+#define OSC_FREQ_OSC16P8		1	/* 16.8MHz */
+#define OSC_FREQ_OSC38P4		5	/* 38.4MHz */
+#define OSC_FREQ_OSC48			9	/* 48.0MHz */
+
+/* CRC_PLLP_BASE_0 a0h */
+#define PLLP_BASE_PLLP_DIVM_SHIFT		0
+#define PLLP_BASE_PLLP_DIVN_SHIFT		8
+#define PLLP_BASE_PLLP_LOCK_LOCK		(1 << 27)
+#define PLLP_BASE_OVRRIDE_ENABLE		(1 << 28)
+#define PLLP_BASE_PLLP_ENABLE			(1 << 30)
+
+/* CRC_PLLP_OUTA_0 a4h */
+#define PLLP_OUTA_OUT1_RSTN_RESET_DISABLE	(1 << 0)
+#define PLLP_OUTA_OUT1_CLKEN			(1 << 1)
+#define PLLP_OUTA_OUT1_OVRRIDE			(1 << 2)
+#define PLLP_OUTA_OUT1_RATIO_83			(83 << 8)
+#define PLLP_OUTA_OUT2_RSTN_RESET_DISABLE	(1 << 16)
+#define PLLP_OUTA_OUT2_CLKEN			(1 << 17)
+#define PLLP_OUTA_OUT2_OVRRIDE			(1 << 18)
+#define PLLP_OUTA_OUT2_RATIO_15			(15 << 24)
+#define PLLP_408_OUTA (PLLP_OUTA_OUT2_RATIO_15 |		\
+			PLLP_OUTA_OUT2_OVRRIDE |		\
+			PLLP_OUTA_OUT2_CLKEN |		\
+			PLLP_OUTA_OUT2_RSTN_RESET_DISABLE |	\
+			PLLP_OUTA_OUT1_RATIO_83 |		\
+			PLLP_OUTA_OUT1_OVRRIDE |		\
+			PLLP_OUTA_OUT1_CLKEN |		\
+			PLLP_OUTA_OUT1_RSTN_RESET_DISABLE)
+
+/* CRC_PLLP_OUTB_0 a8h */
+#define PLLP_OUTA_OUT3_RSTN_RESET_DISABLE	(1 << 0)
+#define PLLP_OUTA_OUT3_CLKEN			(1 << 1)
+#define PLLP_OUTA_OUT3_OVRRIDE			(1 << 2)
+#define PLLP_OUTA_OUT3_RATIO_6			(6 << 8)
+#define PLLP_OUTA_OUT4_RSTN_RESET_DISABLE	(1 << 16)
+#define PLLP_OUTA_OUT4_CLKEN			(1 << 17)
+#define PLLP_OUTA_OUT4_OVRRIDE			(1 << 18)
+#define PLLP_OUTA_OUT4_RATIO_6			(6 << 24)
+#define PLLP_408_OUTB (PLLP_OUTA_OUT4_RATIO_6 |		\
+			PLLP_OUTA_OUT4_OVRRIDE |	\
+			PLLP_OUTA_OUT4_CLKEN |	\
+			PLLP_OUTA_OUT4_RSTN_RESET_DISABLE |	\
+			PLLP_OUTA_OUT3_RATIO_6 |	\
+			PLLP_OUTA_OUT3_OVRRIDE |	\
+			PLLP_OUTA_OUT3_CLKEN |	\
+			PLLP_OUTA_OUT3_RSTN_RESET_DISABLE)
+
+/* CRC_PLLP_MISC_0 ach */
+#define PLLP_MISC_PLLP_CPCON_8			(8 << 8)
+#define PLLP_MISC_PLLP_LOCK_ENABLE		(1 << 18)
+
+/* CRC_PLLU_BASE_0 c0h */
+#define PLLU_BYPASS_ENABLE			(1 << 31)
+#define PLLU_ENABLE				(1 << 30)
+
+/* CRC_PLLU_MISC_0 cch */
+#define PLLU_LOCK_ENABLE			(1 << 22)
+
+/* CRC_RST_DEV_L_CLR_0 304h */
+#define CLR_SDMMC4_RST_ENABLE			(1 << 15)
+
+/* CRC_CLK_ENB_L_SET_0 320h */
+#define SET_CLK_ENB_SDMMC4			(1 << 15)
+
+/* CRC_CLK_ENB_L_CLR_0 324h */
+#define CLR_CLK_ENB_SDMMC4_ENABLE		(1 << 15)
+
+/* CRC_CLK_CPU_CMPLX_SET_0 348h */
+#define SET_CPU0_CLK_STP			(1 << 8)
+#define SET_CPU1_CLK_STP			(1 << 9)
+#define SET_CPU2_CLK_STP			(1 << 10)
+#define SET_CPU3_CLK_STP			(1 << 11)
+
+/* CRC_CLK_SOURCE_MSELECT_0 3b4 */
+#define MSELECT_CLK_SRC_PLLP_OUT0		(0 << 30)
+
+/* CRC_RST_DEV_V_SET_0 430h */
+#define SET_MSELECT_RST_ENABLE			(1 << 3)
+
+/* CRC_CLK_ENB_V_SET_0 440h */
+#define SET_CLK_ENB_MSELECT			(1 << 3)
+
 #endif	/* Tegra3 */
 
 #endif	/* CLK_RST_H */

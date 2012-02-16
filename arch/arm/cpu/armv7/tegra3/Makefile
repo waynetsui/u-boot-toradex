@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2010,2011 Nvidia Corporation.
+# (C) Copyright 2010-2012 Nvidia Corporation.
 #
 # (C) Copyright 2000-2003
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -23,6 +23,10 @@
 # MA 02111-1307 USA
 #
 
+# The AVP is ARMv4T architecture so we must use special compiler
+# flags for any files it might use.
+CFLAGS_arch/arm/cpu/armv7/tegra3/warmboot_avp.o += -march=armv4t
+
 include $(TOPDIR)/config.mk
 
 LIB	=  $(obj)lib$(SOC).o
@@ -30,6 +34,7 @@ LIB	=  $(obj)lib$(SOC).o
 COBJS-y	:= board.o pinmux.o sys_info.o
 
 COBJS-$(CONFIG_VIDEO_TEGRA) += display.o
+COBJS-$(CONFIG_TEGRA3_WARMBOOT) += warmboot.o warmboot_avp.o
 
 COBJS	:= $(COBJS-y)
 

@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2010,2011
+ *  (C) Copyright 2010-2012
  *  NVIDIA Corporation <www.nvidia.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -79,6 +79,15 @@
 #define CONFIG_AUTOCOMPLETE
 
 #define CONFIG_SYS_NO_FLASH
+
+#ifdef CONFIG_TEGRA3_WARMBOOT
+#define TEGRA_LP0_ADDR			0x9C406000
+#define TEGRA_LP0_SIZE			SZ_8K
+#define TEGRA_LP0_VEC \
+	"lp0_vec=" QUOTE(TEGRA_LP0_SIZE) "@" QUOTE(TEGRA_LP0_ADDR) " "
+#else
+#define TEGRA_LP0_VEC
+#endif
 
 #define CONFIG_LOADADDR		0x80408000	/* def. location for kernel */
 #define CONFIG_BOOTDELAY	3		/* -1 to disable auto boot */

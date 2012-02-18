@@ -423,6 +423,10 @@ static uint8_t *read_gbb_from_firmware(void)
 		return NULL;
 	}
 
+#ifdef CONFIG_HARDWARE_MAPPED_SPI
+	gbb = (void *) (fmap.readonly.gbb.offset + fmap.flash_base);
+#endif
+
 	if (gbb_init(gbb, &file, fmap.readonly.gbb.offset, gbb_size)) {
 		VbExDebug("Failed to read GBB!\n");
 		return NULL;
@@ -449,6 +453,14 @@ static int show_images_and_delay(BmpBlockHeader *bmph, int index)
 	void *rawimg;
         uint32_t inoutsize;
 
+	if (memcmp(bmph->signature,
+		   BMPBLOCK_SIGNATURE,
+		   sizeof(bmph->signature))) {
+		VbExDebug("%s: corrupted BMP block header at %p\n",
+			  __func__, bmph);
+		return 1;
+	}
+
 	screen = (ScreenLayout *)(bmph + 1);
 	screen += index;
 
@@ -457,6 +469,10 @@ static int show_images_and_delay(BmpBlockHeader *bmph, int index)
 	     i++) {
 		info = (ImageInfo *)((uint8_t *)bmph +
 				screen->images[i].image_info_offset);
+
+		if (info->format != FORMAT_BMP)
+			continue;
+
 		inoutsize = info->original_size;
 
                 if (COMPRESS_NONE == info->compression) {

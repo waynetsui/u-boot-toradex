@@ -30,6 +30,7 @@
 
 	chosen {
 		bootargs = "";
+		serial = <0x0c5b0a00 0x02430300>; /* board serial number */
 	};
 
 	memory {

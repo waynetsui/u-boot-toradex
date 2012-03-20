@@ -25,6 +25,13 @@
 #define AT45_STATUS_P2_PAGE_SIZE	(1 << 0)
 #define AT45_STATUS_READY		(1 << 7)
 
+/* AT25DFxx-specific commands */
+#define CMD_DF25_WRSR		0x01	/* Write Status Register */
+#define CMD_DF25_PP		0x02	/* Page Program */
+#define CMD_DF25_SE		0x20	/* Sector (4K) Erase */
+
+#define ATMEL_SR_WIP		(1 << 0)	/* Write-in-Progress */
+
 /* DataFlash family IDs, as obtained from the second idcode byte */
 #define DF_FAMILY_AT26F			0
 #define DF_FAMILY_AT45			1
@@ -108,6 +115,15 @@ static const struct atmel_spi_flash_params atmel_spi_flash_table[] = {
 		.blocks_per_sector	= 32,
 		.nr_sectors		= 32,
 		.name			= "AT45DB642D",
+	},
+
+	{
+		.idcode1		= 0x47,
+		.l2_page_size		= 8,
+		.pages_per_block	= 16,
+		.blocks_per_sector	= 16,
+		.nr_sectors		= 64,
+		.name			= "AT25DF321A",
 	},
 };
 
@@ -450,6 +466,122 @@ out:
 	return ret;
 }
 
+/*
+ * This function is used to globally unprotect all sectors on the chip prior
+ * to writing or erasing. It only needs to run once, as the unprotect 'sticks'
+ * until the next chip reset.
+ */
+
+static int at25df_global_unprotect(struct spi_flash *flash)
+{
+	int ret;
+	u8 cmd[2];
+
+	cmd[0] = CMD_DF25_WRSR;
+	cmd[1] = 0;
+
+	ret = spi_claim_bus(flash->spi);
+	if (ret) {
+		debug("SF: Unable to claim SPI bus\n");
+		return ret;
+	}
+
+	debug("Unprotect: %02x %02x\n", cmd[0], cmd[1]);
+	ret = spi_flash_cmd(flash->spi, CMD_WRITE_ENABLE, NULL, 0);
+	if (ret < 0) {
+		debug("SF: Enabling Write failed\n");
+		goto out;
+	}
+
+	ret = spi_flash_cmd_write(flash->spi, cmd, 2, NULL, 0);
+	if (ret < 0) {
+		debug("SF: Global Unprotect failed\n");
+		goto out;
+	}
+
+	ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+	if (ret < 0) {
+		debug("SF: Global Unprotect timed out\n");
+		goto out;
+	}
+
+	debug("SF: Atmel: Successfully unprotected the chip\n");
+	ret = 0;
+out:
+	spi_release_bus(flash->spi);
+	return ret;
+}
+
+static int at25df_write(struct spi_flash *flash,
+		u32 offset, size_t len, const void *buf)
+{
+	struct atmel_spi_flash *stm = to_atmel_spi_flash(flash);
+	unsigned long page_addr;
+	unsigned long byte_addr;
+	unsigned long page_size;
+	unsigned int page_shift;
+	size_t chunk_len;
+	size_t actual;
+	int ret;
+	u8 cmd[4];
+
+	page_shift = stm->params->l2_page_size;
+	page_size = (1 << page_shift);
+	page_addr = offset / page_size;
+	byte_addr = offset % page_size;
+
+	ret = spi_claim_bus(flash->spi);
+	if (ret) {
+		debug("SF: Unable to claim SPI bus\n");
+		return ret;
+	}
+
+	for (actual = 0; actual < len; actual += chunk_len) {
+		chunk_len = min(len - actual, page_size - byte_addr);
+
+		cmd[0] = CMD_DF25_PP;
+		cmd[1] = page_addr >> (16 - page_shift);
+		cmd[2] = page_addr << (page_shift - 8) | (byte_addr >> 8);
+		cmd[3] = byte_addr;
+		debug("PP: 0x%p => cmd = {0x%02x 0x%02x%02x%02x} chunk = %d\n",
+			buf + actual,
+			cmd[0], cmd[1], cmd[2], cmd[3], chunk_len);
+
+		ret = spi_flash_cmd(flash->spi, CMD_WRITE_ENABLE, NULL, 0);
+		if (ret < 0) {
+			debug("SF: Enabling Write failed\n");
+			goto out;
+		}
+
+		ret = spi_flash_cmd_write(flash->spi, cmd, 4,
+				buf + actual, chunk_len);
+		if (ret < 0) {
+			debug("SF: Atmel Page Program failed\n");
+			goto out;
+		}
+
+		ret = spi_flash_cmd_wait_ready(flash, SPI_FLASH_PROG_TIMEOUT);
+		if (ret)
+			goto out;
+
+		page_addr++;
+		byte_addr = 0;
+	}
+
+	debug("SF: Atmel: Successfully programmed %u bytes @ 0x%x\n",
+			len, offset);
+	ret = 0;
+
+out:
+	spi_release_bus(flash->spi);
+	return ret;
+}
+
+static int at25df_erase(struct spi_flash *flash, u32 offset, size_t len)
+{
+	return spi_flash_cmd_erase(flash, CMD_DF25_SE, offset, len);
+}
+
 struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 {
 	const struct atmel_spi_flash_params *params;
@@ -515,6 +647,15 @@ struct spi_flash *spi_flash_probe_atmel(struct spi_slave *spi, u8 *idcode)
 	case DF_FAMILY_AT26F:
 	case DF_FAMILY_AT26DF:
 		asf->flash.read = spi_flash_cmd_read_fast;
+		asf->flash.write = at25df_write;
+		asf->flash.erase = at25df_erase;
+
+		ret = at25df_global_unprotect(&asf->flash);
+		if (ret) {
+			printf("SF: Unprotect failed!\n");
+			goto err;
+		}
+
 		break;
 
 	default:

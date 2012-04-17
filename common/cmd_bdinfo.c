@@ -350,6 +350,11 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 	print_num("relocaddr", gd->relocaddr);
 	print_num("reloc off", gd->reloc_off);
+#ifdef CONFIG_GDB_SECTION_STARTS
+	print_num("data_start", gd->data_start);
+	print_num("rodata_start", gd->rodata_start);
+	print_num("bss_start", gd->bss_start);
+#endif
 	print_num("irq_sp", gd->irq_sp);	/* irq stack pointer */
 	print_num("sp start ", gd->start_addr_sp);
 	print_num("FB base  ", gd->fb_base);
@@ -462,3 +467,18 @@ U_BOOT_CMD(
 	"print Board Info structure",
 	""
 );
+
+#ifdef CONFIG_GDB_SECTION_STARTS
+int do_gdb_debug(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	printf("add-symbol-file u-boot %#lx -s .data %#lx \\\n\t-s .rodata %#lx -s .bss %#lx\n",
+		gd->relocaddr, gd->data_start, gd->rodata_start, gd->bss_start);
+	return 0;
+}
+
+U_BOOT_CMD(
+	gdb_debug,	1,	1,	do_gdb_debug,
+	"print gdb 'add-symbol-file' command",
+	""
+);
+#endif

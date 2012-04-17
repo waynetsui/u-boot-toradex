@@ -29,12 +29,7 @@
 #include <nand.h>
 
 #if defined(CONFIG_CMD_MTDPARTS)
-
-/* partition handling routines */
-int mtdparts_init(void);
-int id_parse(const char *id, const char **ret_id, u8 *dev_type, u8 *dev_num);
-int find_dev_and_part(const char *id, struct mtd_device **dev,
-		      u8 *part_num, struct part_info **part);
+#include "mtd_parts.h"
 #endif
 
 static int nand_dump(nand_info_t *nand, ulong off, int only_oob, int repeat)
@@ -98,7 +93,7 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob, int repeat)
 
 /* ------------------------------------------------------------------------- */
 
-static int set_dev(int dev)
+int nand_set_dev(int dev)
 {
 	if (dev < 0 || dev >= CONFIG_SYS_MAX_NAND_DEVICE ||
 	    !nand_info[dev].name) {
@@ -148,7 +143,7 @@ static int get_part(const char *partname, int *idx, loff_t *off, loff_t *size)
 	if (ret)
 		return ret;
 
-	ret = find_dev_and_part(partname, &dev, &pnum, &part);
+	ret = find_dev_and_part(partname, &dev, &pnum, &part, 0);
 	if (ret)
 		return ret;
 
@@ -161,7 +156,7 @@ static int get_part(const char *partname, int *idx, loff_t *off, loff_t *size)
 	*size = part->size;
 	*idx = dev->id->num;
 
-	ret = set_dev(*idx);
+	ret = nand_set_dev(*idx);
 	if (ret)
 		return ret;
 
@@ -283,7 +278,7 @@ int do_nand_env_oob(cmd_tbl_t *cmdtp, int argc, char *const argv[])
 		return 1;
 	}
 
-	set_dev(0);
+	nand_set_dev(0);
 
 	if (!strcmp(cmd, "get")) {
 		ret = get_nand_env_oob(nand, &nand_env_oob_offset);
@@ -423,7 +418,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		}
 
 		dev = (int)simple_strtoul(argv[2], NULL, 10);
-		set_dev(dev);
+		nand_set_dev(dev);
 
 		return 0;
 	}
@@ -637,6 +632,17 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		return 1;
 	}
 
+#ifdef CONFIG_MTD_DEBUG
+	if (strcmp(cmd, "debug") == 0) {
+		if (argc == 3) {
+			ulong val = simple_strtoul(argv[2], NULL, 16);
+			mtd_debug_verbose = val;
+		} else
+			printf("%d\n", mtd_debug_verbose);
+		return 1;
+	}
+#endif
+
 #ifdef CONFIG_CMD_NAND_LOCK_UNLOCK
 	if (strcmp(cmd, "lock") == 0) {
 		int tight = 0;
@@ -717,6 +723,10 @@ U_BOOT_CMD(
 	"    first device.\n"
 	"nand env.oob set off|partition - set enviromnent offset\n"
 	"nand env.oob get - get environment offset"
+#endif
+#ifdef CONFIG_MTD_DEBUG
+	"\n"
+	"nand debug [level] - display or set the MTD debug level"
 #endif
 );
 
@@ -827,7 +837,7 @@ int do_nandboot(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	if (argc >= 2) {
 		char *p = (argc == 2) ? argv[1] : argv[2];
 		if (!(str2long(p, &addr)) && (mtdparts_init() == 0) &&
-		    (find_dev_and_part(p, &dev, &pnum, &part) == 0)) {
+			(find_dev_and_part(p, &dev, &pnum, &part, 0) == 0)) {
 			if (dev->id->type != MTD_DEV_TYPE_NAND) {
 				puts("Not a NAND device\n");
 				return 1;

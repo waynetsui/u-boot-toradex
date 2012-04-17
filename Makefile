@@ -88,7 +88,7 @@ endif
 
 ifdef O
 ifeq ("$(origin O)", "command line")
-BUILD_DIR := $(O)
+export BUILD_DIR := $(O)
 endif
 endif
 
@@ -99,7 +99,7 @@ saved-output := $(BUILD_DIR)
 $(shell [ -d ${BUILD_DIR} ] || mkdir -p ${BUILD_DIR})
 
 # Verify if it was successful.
-BUILD_DIR := $(shell cd $(BUILD_DIR) && /bin/pwd)
+export BUILD_DIR := $(shell cd $(BUILD_DIR) && /bin/pwd)
 $(if $(BUILD_DIR),,$(error output directory "$(saved-output)" does not exist))
 endif # ifneq ($(BUILD_DIR),)
 
@@ -225,7 +225,7 @@ LIBS += arch/arm/cpu/ixp/npe/libnpe.o
 endif
 LIBS += arch/$(ARCH)/lib/lib$(ARCH).o
 LIBS += fs/cramfs/libcramfs.o fs/fat/libfat.o fs/fdos/libfdos.o fs/jffs2/libjffs2.o \
-	fs/reiserfs/libreiserfs.o fs/ext2/libext2fs.o fs/yaffs2/libyaffs2.o \
+	fs/reiserfs/libreiserfs.o fs/ext2/libext2fs.o fs/yaffs2-new/libyaffs2-new.o \
 	fs/ubifs/libubifs.o
 LIBS += net/libnet.o
 LIBS += disk/libdisk.o
@@ -356,6 +356,10 @@ ifeq ($(CONFIG_MMC_U_BOOT),y)
 ALL += $(obj)mmc_spl/u-boot-mmc-spl.bin
 endif
 
+ifeq ($(CONFIG_TOOL_SIGNGP),y)
+ALL += $(obj)u-boot.bin.ift
+endif
+
 all:		$(ALL)
 
 $(obj)u-boot.hex:	$(obj)u-boot
@@ -367,6 +371,9 @@ $(obj)u-boot.srec:	$(obj)u-boot
 $(obj)u-boot.bin:	$(obj)u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 		$(BOARD_SIZE_CHECK)
+
+$(obj)u-boot.bin.ift:	$(obj)u-boot.bin
+		tools/sign-nand-image u-boot.bin $(CONFIG_SYS_TEXT_BASE)
 
 $(obj)u-boot.ldr:	$(obj)u-boot
 		$(CREATE_LDR_ENV)
@@ -539,8 +546,8 @@ $(VERSION_FILE):
 		@( localvers='$(shell $(TOPDIR)/tools/setlocalversion $(TOPDIR))' ; \
 		   printf '#define PLAIN_VERSION "%s%s"\n' \
 			"$(U_BOOT_VERSION)" "$${localvers}" ; \
-		   printf '#define U_BOOT_VERSION "U-Boot %s%s"\n' \
-			"$(U_BOOT_VERSION)" "$${localvers}" ; \
+		   printf '#define U_BOOT_VERSION "U-Boot %s%s %s"\n' \
+			"$(U_BOOT_VERSION)" "$${localvers}" "$(BSP_RELEASE_LEVEL)"; \
 		) > $@.tmp
 		@( printf '#define CC_VERSION_STRING "%s"\n' \
 		 '$(shell $(CC) --version | head -n 1)' )>>  $@.tmp
@@ -565,9 +572,7 @@ include/license.h: tools/bin2header COPYING
 #########################################################################
 
 unconfig:
-	@rm -f $(obj)include/config.h $(obj)include/config.mk \
-		$(obj)board/*/config.tmp $(obj)board/*/*/config.tmp \
-		$(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+	@rm -f $(obj)board/*/config.tmp $(obj)board/*/*/config.tmp
 
 %_config::	unconfig
 	@$(MKCONFIG) -A $(@:_config=)
@@ -1120,6 +1125,10 @@ clobber:	clean
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
 	@[ ! -d $(obj)onenand_ipl ] || find $(obj)onenand_ipl -name "*" -type l -print | xargs rm -f
 	@[ ! -d $(obj)mmc_spl ] || find $(obj)mmc_spl -name "*" -type l -print | xargs rm -f
+	@rm -f $(obj)include/config.h $(obj)include/config.mk \
+		$(obj)board/*/config.tmp $(obj)board/*/*/config.tmp \
+		$(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+
 
 ifeq ($(OBJTREE),$(SRCTREE))
 mrproper \

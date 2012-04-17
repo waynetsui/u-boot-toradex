@@ -47,6 +47,7 @@
 #include <net.h>
 #include <serial.h>
 #include <nand.h>
+#include <asm/arch/sys_proto.h>
 #include <onenand_uboot.h>
 #include <mmc.h>
 
@@ -413,6 +414,11 @@ void board_init_f (ulong bootflag)
 	gd->relocaddr = addr;
 	gd->start_addr_sp = addr_sp;
 	gd->reloc_off = addr - _TEXT_BASE;
+#ifdef CONFIG_GDB_SECTION_STARTS
+	gd->bss_start = addr + _bss_start_ofs;
+	gd->data_start = addr + _data_start_ofs;
+	gd->rodata_start = addr + _rodata_start_ofs;
+#endif
 	debug ("relocation Offset is: %08lx\n", gd->reloc_off);
 	memcpy (id, (void *)gd, sizeof (gd_t));
 
@@ -471,6 +477,10 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
 #if !defined(CONFIG_SYS_NO_FLASH)
+#ifdef CONFIG_SYS_FLASH_PRESENCE
+	if (!CONFIG_SYS_FLASH_PRESENCE)
+		goto skip_flash;
+#endif
 	puts ("Flash: ");
 
 	if ((flash_size = flash_init ()) > 0) {
@@ -495,6 +505,10 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		puts (failed);
 		hang ();
 	}
+#ifdef CONFIG_SYS_FLASH_PRESENCE
+skip_flash:
+	;
+#endif
 #endif
 
 #if defined(CONFIG_CMD_NAND)
@@ -504,6 +518,10 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
+#endif
+
+#if defined(CONFIG_NAND_MULTIPLE_ECC)
+	nand_setup_default_ecc_method(); /* Set the default ECC method */
 #endif
 
 #ifdef CONFIG_GENERIC_MMC

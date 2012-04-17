@@ -25,6 +25,7 @@
 #define _NAND_H_
 
 extern void nand_init(void);
+extern int nand_set_dev(int idx);
 
 #include <linux/mtd/compat.h>
 #include <linux/mtd/mtd.h>
@@ -125,6 +126,9 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts);
 int nand_lock( nand_info_t *meminfo, int tight );
 int nand_unlock( nand_info_t *meminfo, ulong start, ulong length );
 int nand_get_lock_status(nand_info_t *meminfo, loff_t offset);
+
+int nand_get_features( nand_info_t *meminfo, uint8_t faddr, uint8_t *features);
+int nand_set_features( nand_info_t *meminfo, uint8_t faddr, uint8_t *features);
 
 #ifdef CONFIG_SYS_NAND_SELECT_DEVICE
 void board_nand_select_device(struct nand_chip *nand, int chip);

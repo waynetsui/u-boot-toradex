@@ -15,14 +15,24 @@
 #include <common.h>
 #include <malloc.h>
 
+#include <jffs2/load_kernel.h>
+
 #include "yaffsfs.h"
 #include "yaffs_guts.h"
 #include "yaffscfg.h"
 #include "yportenv.h"
 
-/* XXX U-BOOT XXX */
-#if 0
-#include <string.h> // for memset
+#include "yaffs_mtdif.h"
+#include "yaffs_mtdif2.h"
+#include "yaffs_flashif.h"
+#include "nand.h"
+
+#include "mtd_parts.h"
+#include <linux/mtd/mtd.h>
+#include <linux/mtd/nand.h>
+
+#if (CONFIG_SYS_MALLOC_LEN < (512 << 10))
+#error Malloc Area too small for YAFFS, increas CONFIG_SYS_MALLOC_LEN to >= 512KiB
 #endif
 
 #define YAFFSFS_MAX_SYMLINK_DEREFERENCES 5
@@ -33,10 +43,6 @@
 
 
 const char *yaffsfs_c_version="$Id: yaffsfs.c,v 1.18 2007/07/18 19:40:38 charles Exp $";
-
-// configurationList is the list of devices that are supported
-static yaffsfs_DeviceConfiguration *yaffsfs_configurationList;
-
 
 /* Some forward references */
 static yaffs_Object *yaffsfs_FindObject(yaffs_Object *relativeDirectory, const char *path, int symDepth);
@@ -151,58 +157,135 @@ int yaffsfs_Match(char a, char b)
 	return (a == b);
 }
 
-// yaffsfs_FindDevice
-// yaffsfs_FindRoot
-// Scan the configuration list to find the root.
-// Curveballs: Should match paths that end in '/' too
-// Curveball2 Might have "/x/ and "/x/y". Need to return the longest match
-static yaffs_Device *yaffsfs_FindDevice(const char *path, char **restOfPath)
+/* yaffsfs_FindDevice
+ * yaffsfs_FindRoot
+ * Scan the parttion list to find the root; split out rest of path from
+ *  Initialial partition.  path must be /<partition>/<dir-or-file> */
+
+#define N_MAX_PARTLEN 64
+
+typedef enum {
+	YAFFSFS_ACTION_CREATE,
+	YAFFSFS_ACTION_FIND,
+	YAFFSFS_ACTION_DESTROY
+} yaffsfs_action_t;
+
+static struct yaffs_dev *yaffsfs_FindDevice(const char *path, char **restOfPath, yaffsfs_action_t action)
 {
-	yaffsfs_DeviceConfiguration *cfg = yaffsfs_configurationList;
-	const char *leftOver;
-	const char *p;
-	yaffs_Device *retval = NULL;
-	int thisMatchLength;
-	int longestMatch = -1;
+	int slash_cnt, i, ret;
+	char partname[N_MAX_PARTLEN];
+	void *part_priv;
+	loff_t part_off, part_size;
+	int part_idx;
+	struct mtd_device *dev;
+	void *cookie;
+	struct yaffs_dev *flashDev;
+	struct mtd_info *mtd;
 
-	// Check all configs, choose the one that:
-	// 1) Actually matches a prefix (ie /a amd /abc will not match
-	// 2) Matches the longest.
-	while(cfg && cfg->prefix && cfg->dev)
-	{
-		leftOver = path;
-		p = cfg->prefix;
-		thisMatchLength = 0;
-
-		while(*p &&  //unmatched part of prefix
-		      strcmp(p,"/") && // the rest of the prefix is not / (to catch / at end)
-		      *leftOver &&
-		      yaffsfs_Match(*p,*leftOver))
-		{
-			p++;
-			leftOver++;
-			thisMatchLength++;
-		}
-		if((!*p || strcmp(p,"/") == 0) &&      // end of prefix
-		   (!*leftOver || *leftOver == '/') && // no more in this path name part
-		   (thisMatchLength > longestMatch))
-		{
-			// Matched prefix
-			*restOfPath = (char *)leftOver;
-			retval = cfg->dev;
-			longestMatch = thisMatchLength;
-		}
-		cfg++;
+	if (!path)
+		return NULL;
+	if (*path != '/') {
+		printf("Path '%s' does not start with '/'!\n", path);
+		return NULL;
 	}
-	return retval;
+	path++;	/* Skip over leading '/' */
+
+	for (slash_cnt=i=0; i<N_MAX_PARTLEN && path[i]; ++i) {
+		if (path[i] == '/')
+			break;
+		partname[i] = path[i];
+	}
+	partname[i] = '\0';
+
+	/* save rest of path(if exists) */
+	*restOfPath = (char *)path+i;
+	if (**restOfPath == '/')
+		(*restOfPath)++;
+
+	/* Find the partition */
+	ret = mtd_get_part_priv(partname, &part_idx, &dev, &part_off, &part_size, &cookie, &part_priv);
+	if (ret)
+		return NULL;
+
+	switch(action) {
+	case YAFFSFS_ACTION_FIND:
+		return (struct yaffs_dev *)part_priv;
+
+	case YAFFSFS_ACTION_CREATE:
+		if (part_priv) {
+			printf("Huh? mount of partition '%s' already has device %p\n", partname, part_priv);
+			return NULL;
+		}
+
+		/* First time we're seeing this device, create it using
+		   information inside of the MTD_DEVICE structure */
+		flashDev = malloc(sizeof(struct yaffs_dev));
+		if (!flashDev) {
+			printf("%s:%d out of memory!\n", __FUNCTION__, __LINE__);
+			return NULL;
+		}
+		memset(flashDev, 0, sizeof(*flashDev));
+
+
+		printf("%s: initialise struct yaffs_dev %p\n", __FUNCTION__, flashDev);
+
+		/* Side effect of mtd_get_part_priv() is to set nand_curr_device */
+		mtd = &nand_info[nand_curr_device];
+
+		flashDev->genericDevice = mtd;
+		flashDev->startBlock = part_off / mtd->erasesize;
+		flashDev->endBlock = (part_off + part_size - 1) / mtd->erasesize;
+#if 0
+		printf("%s: part_off %x part_size %x startBlock %u endBlock %u\n", __FUNCTION__, (unsigned int)part_off, (unsigned int)part_size, flashDev->startBlock, flashDev->endBlock);
+#endif
+		flashDev->nReservedBlocks = 5;
+
+		flashDev->writeChunkWithTagsToNAND = nandmtd2_WriteChunkWithTagsToNAND;
+		flashDev->readChunkWithTagsFromNAND = nandmtd2_ReadChunkWithTagsFromNAND;
+		flashDev->markNANDBlockBad = nandmtd2_MarkNANDBlockBad;
+		flashDev->queryNANDBlock = nandmtd2_QueryNANDBlock;
+		flashDev->isYaffs2 = 1;
+#if 1
+		Yaffs_DeviceToContext(dev)->spareBuffer = YMALLOC(mtd->oobsize);
+#else
+		flashDev->spareBuffer = YMALLOC(mtd->oobsize);
+#endif
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,17))
+		flashDev->nDataBytesPerChunk = mtd->writesize;
+		flashDev->nChunksPerBlock = mtd->erasesize / mtd->writesize;
+#else
+		flashDev->nDataBytesPerChunk = mtd->oobblock;
+		flashDev->nChunksPerBlock = mtd->erasesize / mtd->oobblock;
+#endif
+		flashDev->nCheckpointReservedBlocks = 10;
+
+		/* ... and common functions */
+		flashDev->eraseBlockInNAND = nandmtd_EraseBlockInNAND;
+		flashDev->initialiseNAND = nandmtd_InitialiseNAND;
+		flashDev->removeObjectCallback = yaffsfs_RemoveObjectCallback;
+
+		mtd_set_part_priv(cookie, flashDev);
+
+		return flashDev;
+
+	case YAFFSFS_ACTION_DESTROY:
+		free(part_priv);
+		mtd_set_part_priv(cookie, NULL);
+		return NULL;
+
+	default:
+		printf("%s: unknown action %d\n", __FUNCTION__, (int)action);
+		return NULL;
+	}
+
 }
 
 static yaffs_Object *yaffsfs_FindRoot(const char *path, char **restOfPath)
 {
 
-	yaffs_Device *dev;
+	struct yaffs_dev *dev;
 
-	dev= yaffsfs_FindDevice(path,restOfPath);
+	dev= yaffsfs_FindDevice(path,restOfPath, YAFFSFS_ACTION_FIND);
 	if(dev && dev->isMounted)
 	{
 		return dev->rootDir;
@@ -1032,13 +1115,13 @@ int yaffs_mount(const char *path)
 {
 	int retVal=-1;
 	int result=YAFFS_FAIL;
-	yaffs_Device *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	char *dummy;
 
 	T(YAFFS_TRACE_ALWAYS,("yaffs: Mounting %s\n",path));
 
 	yaffsfs_Lock();
-	dev = yaffsfs_FindDevice(path,&dummy);
+	dev = yaffsfs_FindDevice(path,&dummy, YAFFSFS_ACTION_CREATE);
 	if(dev)
 	{
 		if(!dev->isMounted)
@@ -1071,11 +1154,11 @@ int yaffs_mount(const char *path)
 int yaffs_unmount(const char *path)
 {
 	int retVal=-1;
-	yaffs_Device *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	char *dummy;
 
 	yaffsfs_Lock();
-	dev = yaffsfs_FindDevice(path,&dummy);
+	dev = yaffsfs_FindDevice(path,&dummy, YAFFSFS_ACTION_FIND);
 	if(dev)
 	{
 		if(dev->isMounted)
@@ -1097,6 +1180,8 @@ int yaffs_unmount(const char *path)
 			if(!inUse)
 			{
 				yaffs_Deinitialise(dev);
+
+				yaffsfs_FindDevice(path, &dummy, YAFFSFS_ACTION_DESTROY);
 
 				retVal = 0;
 			}
@@ -1127,11 +1212,11 @@ int yaffs_unmount(const char *path)
 loff_t yaffs_freespace(const char *path)
 {
 	loff_t retVal=-1;
-	yaffs_Device *dev=NULL;
+	struct yaffs_dev *dev=NULL;
 	char *dummy;
 
 	yaffsfs_Lock();
-	dev = yaffsfs_FindDevice(path,&dummy);
+	dev = yaffsfs_FindDevice(path,&dummy, YAFFSFS_ACTION_FIND);
 	if(dev  && dev->isMounted)
 	{
 		retVal = yaffs_GetNumberOfFreeChunks(dev);
@@ -1151,21 +1236,7 @@ loff_t yaffs_freespace(const char *path)
 
 void yaffs_initialise(yaffsfs_DeviceConfiguration *cfgList)
 {
-
-	yaffsfs_DeviceConfiguration *cfg;
-
-	yaffsfs_configurationList = cfgList;
-
 	yaffsfs_InitHandles();
-
-	cfg = yaffsfs_configurationList;
-
-	while(cfg && cfg->prefix && cfg->dev)
-	{
-		cfg->dev->isMounted = 0;
-		cfg->dev->removeObjectCallback = yaffsfs_RemoveObjectCallback;
-		cfg++;
-	}
 }
 
 
@@ -1487,7 +1558,7 @@ int yaffs_DumpDevStruct(const char *path)
 
 	if(obj)
 	{
-		yaffs_Device *dev = obj->myDev;
+		struct yaffs_dev *dev = obj->myDev;
 
 		printf("\n"
 			   "nPageWrites.......... %d\n"

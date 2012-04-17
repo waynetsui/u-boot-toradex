@@ -33,6 +33,36 @@
 
 #include "omap3_mmc.h"
 
+#undef DEBUG_MMC
+
+#ifdef DEBUG_MMC
+#define MMC_PRINTF(fmt, args...) printf(fmt, ## args)
+#else
+#define MMC_PRINTF(fmt, args...)
+#endif
+
+#define USE_NEW_TRANSPEED_ENCODING
+
+#ifdef USE_NEW_TRANSPEED_ENCODING
+/* TRAN_SPEED Bit encoding:
+ * bits 2:0 transfer rate unit
+ *  0=100kbit/s, 1=1Mbit/s, 2=10Mbit/s, 3=100Mbit/s, 4... 7=reserved
+ * 6:3 time value
+ *  0=reserved, 1=1.0, 2=1.2, 3=1.3, 4=1.5, 5=2.0, 6=2.5, 7=3.0,
+ *  8=3.5, 9=4.0, A=4.5, B=5.0, C=5.5, D=6.0, E=7.0, F=8.0
+ */
+
+/* trans_rate is 1/10 of actual while trans_value is 10x actual.
+ * multiplication of both together gives speed, or negative if
+ * trans_rate is reserved */
+int trans_rate[8] = {
+	10000, 100000, 1000000, 10000000, -1, -1 -1 -1
+};
+int trans_value[16] = {
+	-1, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80
+};
+#else
+
 static const unsigned short mmc_transspeed_val[15][4] = {
 	{CLKD(10, 1), CLKD(10, 10), CLKD(10, 100), CLKD(10, 1000)},
 	{CLKD(12, 1), CLKD(12, 10), CLKD(12, 100), CLKD(12, 1000)},
@@ -50,6 +80,7 @@ static const unsigned short mmc_transspeed_val[15][4] = {
 	{CLKD(70, 1), CLKD(70, 10), CLKD(70, 100), CLKD(70, 1000)},
 	{CLKD(80, 1), CLKD(80, 10), CLKD(80, 100), CLKD(80, 1000)}
 };
+#endif
 
 static mmc_card_data cur_card_data;
 static block_dev_desc_t mmc_blk_dev;
@@ -475,12 +506,13 @@ static unsigned long mmc_bread(int dev_num, unsigned long blknr,
 	return i;
 }
 
-static unsigned char configure_mmc(mmc_card_data *mmc_card_cur)
+/* static */ unsigned char configure_mmc(mmc_card_data *mmc_card_cur)
 {
 	unsigned char ret_val;
 	unsigned int argument;
-	unsigned int trans_clk, trans_fact, trans_unit, retries = 2;
-	unsigned char trans_speed;
+	unsigned int trans_clk, retries = 2;
+	unsigned int trans_fact, trans_unit;
+	int trans_speed;
 	mmc_resp_t mmc_resp;
 
 	ret_val = mmc_init_setup();
@@ -501,12 +533,40 @@ static unsigned char configure_mmc(mmc_card_data *mmc_card_cur)
 	if (mmc_card_cur->card_type == MMC_CARD)
 		mmc_card_cur->version = mmc_resp.Card_CSD.spec_vers;
 
+	MMC_PRINTF("%s: %08x %08x %08x %08x\n", __FUNCTION__, mmc_resp.resp[0],
+		mmc_resp.resp[1], mmc_resp.resp[2], mmc_resp.resp[3]);
+
 	trans_speed = mmc_resp.Card_CSD.tran_speed;
+
+	MMC_PRINTF("%s: tran_speed %#x\n", __FUNCTION__, trans_speed);
 
 	ret_val = mmc_send_cmd(MMC_CMD4, MMC_DSR_DEFAULT << 16, mmc_resp.resp);
 	if (ret_val != 1)
 		return ret_val;
 
+	if (mmc_card_cur->max_freq && trans_speed > mmc_card_cur->max_freq) {
+		trans_speed = mmc_card_cur->max_freq;
+	}
+
+#ifdef USE_NEW_TRANSPEED_ENCODING
+	trans_unit = trans_speed & MMC_CSD_TRAN_SPEED_UNIT_MASK;
+	trans_fact = trans_speed & MMC_CSD_TRAN_SPEED_FACTOR_MASK;
+	trans_unit >>= 0;
+	trans_fact >>= 3;
+
+	MMC_PRINTF("%s: trans_unit %u trans_fact %u\n", __FUNCTION__, trans_unit, trans_fact);
+	trans_speed = trans_rate[trans_unit] * trans_value[trans_fact];
+	MMC_PRINTF("%s: trans_speed %d\n", __FUNCTION__, trans_speed);
+	if (trans_speed < 0)
+		return 0;
+	MMC_PRINTF("%s: MMC_CLOCK %u\n", __FUNCTION__, (MMC_CLOCK_REFERENCE * 1000000));
+	trans_clk = (MMC_CLOCK_REFERENCE * 1000000) / trans_speed;
+	MMC_PRINTF("%s: trans_clk %u\n", __FUNCTION__, trans_clk);
+	if (trans_speed * trans_clk < (MMC_CLOCK_REFERENCE * 1000000))
+		trans_clk++;
+	if (trans_clk > 1023)
+		trans_clk = 1023;
+#else
 	trans_unit = trans_speed & MMC_CSD_TRAN_SPEED_UNIT_MASK;
 	trans_fact = trans_speed & MMC_CSD_TRAN_SPEED_FACTOR_MASK;
 
@@ -521,6 +581,8 @@ static unsigned char configure_mmc(mmc_card_data *mmc_card_cur)
 	trans_fact >>= 3;
 
 	trans_clk = mmc_transspeed_val[trans_fact - 1][trans_unit] * 2;
+#endif
+	MMC_PRINTF("%s:%d trans_clk %#x\n", __FUNCTION__, __LINE__, trans_clk);
 	ret_val = mmc_clock_config(CLK_MISC, trans_clk);
 
 	if (ret_val != 1)
@@ -547,8 +609,22 @@ static unsigned char configure_mmc(mmc_card_data *mmc_card_cur)
 
 int mmc_legacy_init(int dev)
 {
+	char *p, *q, buf[32];
+
 	if (mmc_set_dev(dev) != 0)
 		return 1;
+
+	sprintf(buf, "mmc%d_max_freq_mhz", dev);
+	p = getenv(buf);
+	if (p) {
+		cur_card_data.max_freq = (unsigned int)simple_strtoull(p, &q, 0);
+		if (q && *q)
+			cur_card_data.max_freq = 0;
+	} else
+		cur_card_data.max_freq = 0;
+
+	if (cur_card_data.max_freq)
+		printf("MMC%d: max frequency limited to %uMHz\n", dev, cur_card_data.max_freq);
 
 	if (configure_mmc(&cur_card_data) != 1)
 		return 1;

@@ -386,8 +386,8 @@
 			 "echo \"\"; " \
 			 "setenv bootm_arg1 ${loadaddr};" \
 		    "else if test $kernel_location = 'tftp'; then " \
-			 "echo \"== Loading kernel file $kernelimage to $loadaddr ==\"; " \
-			 "tftpboot $loadaddr $kernelimage; " \
+			 "echo \"== Loading kernel file $tftpdir$kernelimage to $loadaddr ==\"; " \
+			 "tftpboot $loadaddr $tftpdir$kernelimage; " \
 			 "echo \"\"; " \
 			 "setenv bootm_arg1 ${loadaddr};" \
 		    "else "\
@@ -403,8 +403,8 @@
 			 "echo \"\"; " \
 			 "setenv bootm_arg2 ${ramdiskaddr}; " \
 		    "else if test $rootfs_location = 'tftp'; then " \
-			 "echo \"== Loading rootfs file $ramdiskimage to $ramdiskaddr ==\"; " \
-			 "tftpboot $ramdiskaddr $ramdiskimage;" \
+			 "echo \"== Loading rootfs file $tftpdir$ramdiskimage to $ramdiskaddr ==\"; " \
+			 "tftpboot $ramdiskaddr $tftpdir$ramdiskimage;" \
 			 "echo \"\"; " \
 			 "setenv bootm_arg2 ${ramdiskaddr}; " \
 		    "else if test $rootfs_location = '/dev'; then " \
@@ -473,7 +473,25 @@
         "     run set_rootfs_type; " \
 	"     run dump_bootargs; " \
 	"     run dump_run_bootm; " \
+	"nfsboot=" \
+	"     setenv kernel_location tftp; " \
+	"     setenv rootfs_location nfs; " \
+	"     setenv rootfs_type nfs; " \
+	"     run defaultboot; " \
+	"\0" \
+	"mtdboot=" \
+	"     setenv kernel_location mmc; " \
+	"     setenv rootfs_location mmc; " \
+	"     setenv rootfs_type ramdisk; " \
+	"     run defaultboot; " \
+	"\0" \
+	"ramboot=" \
+	"     setenv kernel_location tftp; " \
+	"     setenv rootfs_location tftp; " \
+	"     setenv rootfs_type ramdisk; " \
+	"     run defaultboot; " \
 	"\0"
+
 
 
 #define CONFIG_AUTO_COMPLETE	1

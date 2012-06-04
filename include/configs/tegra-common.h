@@ -380,4 +380,6 @@
 
 #define CONFIG_BOOTCOMMAND "run non_verified_boot"
 
+#define CONFIG_CMD_ENTERRCM
+
 #endif

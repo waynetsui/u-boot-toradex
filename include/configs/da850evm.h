@@ -314,10 +314,12 @@
 #endif
 
 /* SD/MMC configuration */
+#ifndef CONFIG_USE_NOR
 #define CONFIG_MMC
 #define CONFIG_DAVINCI_MMC_SD1
 #define CONFIG_GENERIC_MMC
 #define CONFIG_DAVINCI_MMC
+#endif
 
 /*
  * Enable MMC commands only when

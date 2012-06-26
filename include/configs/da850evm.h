@@ -28,7 +28,7 @@
  */
 #define CONFIG_DRIVER_TI_EMAC
 /* check if direct NOR boot config is used */
-#ifndef CONFIG_DIRECT_NOR_BOOT
+#if !defined(CONFIG_DIRECT_NOR_BOOT) && !defined(CONFIG_USE_NAND)
 #define CONFIG_USE_SPIFLASH
 #endif
 

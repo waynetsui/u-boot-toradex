@@ -220,8 +220,8 @@ LIBS += lib/chromeos/libchromeos.a
 LIBS += lib/vbexport/libvbexport.a
 endif
 
-LIBS += board/$(VENDOR)/chromeos/libchromeos_board.a
-LIBS += board/$(VENDOR)/vbexport/libvbexport_board.a
+LIBS += board/nvidia/chromeos/libchromeos_board.a
+LIBS += board/nvidia/vbexport/libvbexport_board.a
 LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
 	"board/$(VENDOR)/common/lib$(VENDOR).o"; fi)
 LIBS += $(CPUDIR)/lib$(CPU).o

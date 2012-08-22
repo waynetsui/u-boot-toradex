@@ -30,8 +30,11 @@ void pwfm_setup(struct pwfm_ctlr *pwfm, int enable, int pulse_width,
 {
 	u32 reg;
 
-	reg = bf_pack(PWFM_ENABLE, enable) |
-		bf_pack(PWFM_WIDTH, pulse_width) |
-		bf_pack(PWFM_DIVIDER, freq_divider);
-	writel(reg, &pwfm->control);
+	if(pwfm != NULL)
+	{
+		reg = bf_pack(PWFM_ENABLE, enable) |
+			bf_pack(PWFM_WIDTH, pulse_width) |
+			bf_pack(PWFM_DIVIDER, freq_divider);
+		writel(reg, &pwfm->control);
+	}
 }

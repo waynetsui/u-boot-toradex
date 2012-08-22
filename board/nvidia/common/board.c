@@ -152,6 +152,37 @@ static void pin_mux_uart(int uart_ids)
 #endif	/* CONFIG_TEGRA2 */
 }
 
+#if defined(CONFIG_TEGRA3)
+static void enable_clock(enum periph_id pid, int src)
+{
+	/* Assert reset and enable clock */
+	reset_set_enable(pid, 1);
+	clock_enable(pid);
+
+	/* Use 'src' if provided, else use default */
+	if (src != -1)
+		clock_ll_set_source(pid, src);
+
+	/* wait for 2us */
+	udelay(2);
+
+	/* De-assert reset */
+	reset_set_enable(pid, 0);
+}
+
+/* Init misc clocks for kernel booting */
+static void clock_init_misc(void)
+{
+	/* 0 = PLLA_OUT0, -1 = CLK_M (default) */
+	enable_clock(PERIPH_ID_I2S0, -1);
+	enable_clock(PERIPH_ID_I2S1, 0);
+	enable_clock(PERIPH_ID_I2S2, 0);
+	enable_clock(PERIPH_ID_I2S3, 0);
+	enable_clock(PERIPH_ID_I2S4, -1);
+	enable_clock(PERIPH_ID_SPDIF, -1);
+}
+#endif
+
 /*
  * Routine: pin_mux_switches
  * Description: Disable internal pullups for the write protect, SDIO3 write
@@ -378,6 +409,11 @@ int board_early_init_f(void)
 	pinmux_init();
 #ifndef CONFIG_DELAY_CONSOLE
 	init_uarts(gd->blob);
+#endif
+
+#if defined(CONFIG_TEGRA3)
+	/* Initialize misc clocks for kernel booting */
+	clock_init_misc();
 #endif
 
 #ifdef CONFIG_VIDEO_TEGRA

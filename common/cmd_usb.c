@@ -1,6 +1,8 @@
 /*
  * (C) Copyright 2001
  * Denis Peter, MPL AG Switzerland
+ * (C) Copyright 2012
+ * Toradex, Inc.
  *
  * Most of this source has been derived from the Linux USB
  * project.
@@ -277,11 +279,12 @@ static inline char *portspeed(int speed)
 		return "12 Mb/s";
 }
 
-/* shows the device tree recursively */
-void usb_show_tree_graph(struct usb_device *dev, char *pre)
+/* shows the device tree recursively
+   returns device number of leaf node or zero otherwise (e.g. root hub only) */
+int usb_show_tree_graph(struct usb_device *dev, char *pre)
 {
 	int i, index;
-	int has_child, last_child;
+	int has_child, last_child, leaf = 0;
 
 	index = strlen(pre);
 	printf(" %s", pre);
@@ -311,8 +314,10 @@ void usb_show_tree_graph(struct usb_device *dev, char *pre)
 		} /* for all children of the parent */
 		printf("\b+-");
 		/* correct last child */
-		if (last_child)
+		if (last_child) {
+			leaf = dev->devnum;
 			pre[index-1] = ' ';
+		}
 	} /* if not root hub */
 	else
 		printf(" ");
@@ -330,20 +335,21 @@ void usb_show_tree_graph(struct usb_device *dev, char *pre)
 	if (dev->maxchild > 0) {
 		for (i = 0; i < dev->maxchild; i++) {
 			if (dev->children[i] != NULL) {
-				usb_show_tree_graph(dev->children[i], pre);
+				leaf = usb_show_tree_graph(dev->children[i], pre);
 				pre[index] = 0;
 			}
 		}
 	}
+	return leaf;
 }
 
 /* main routine for the tree command */
-void usb_show_tree(struct usb_device *dev)
+int usb_show_tree(struct usb_device *dev)
 {
 	char preamble[32];
 
 	memset(preamble, 0, 32);
-	usb_show_tree_graph(dev, &preamble[0]);
+	return usb_show_tree_graph(dev, &preamble[0]);
 }
 
 
@@ -563,8 +569,21 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 1;
 	}
 	if (strncmp(argv[1], "tree", 4) == 0) {
+		int dev_index = 0, previous_dev_index = 0;
+		struct usb_device *usb;
+
 		printf("\nDevice Tree:\n");
-		usb_show_tree(usb_get_dev_index(0));
+		do {
+			usb = usb_get_dev_index(dev_index);
+			if (usb) {
+				dev_index = usb_show_tree(usb);
+				if (!dev_index)
+					dev_index = previous_dev_index + 1;
+			}
+			else
+				dev_index = 0;
+			previous_dev_index = dev_index;
+		} while (dev_index);
 		return 0;
 	}
 	if (strncmp(argv[1], "inf", 3) == 0) {

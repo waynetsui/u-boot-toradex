@@ -107,7 +107,8 @@
 #define CONFIG_SYS_NO_FLASH
 
 #ifdef CONFIG_TEGRA2_WARMBOOT
-#define TEGRA_LP0_ADDR			0x1C406000
+//ToDo: determine LP0 address dynamically
+#define TEGRA_LP0_ADDR			0x0C406000
 #define TEGRA_LP0_SIZE			0x2000
 #define TEGRA_LP0_VEC \
 	"lp0_vec=" QUOTE(TEGRA_LP0_SIZE) "@" QUOTE(TEGRA_LP0_ADDR) " "
@@ -154,9 +155,9 @@
  */
 #define CONFIG_NR_DRAM_BANKS	1
 #define PHYS_SDRAM_1		TEGRA_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE	0x20000000	/* 512M */
+/* Size queried at runtime by board_query_sdram_size() */
 
-#define CONFIG_SYS_TEXT_BASE	0x00E08000
+#define CONFIG_SYS_TEXT_BASE	0x00108000
 #define CONFIG_SYS_SDRAM_BASE	PHYS_SDRAM_1
 
 #define BCT_SDRAM_PARAMS_OFFSET	(BCT_OFFSET + 0x88)

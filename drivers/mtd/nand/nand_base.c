@@ -11,6 +11,7 @@
  *
  *  Copyright (C) 2000 Steven J. Hill (sjhill@realitydiluted.com)
  *		  2002-2006 Thomas Gleixner (tglx@linutronix.de)
+ *		  2012 Toradex, Inc.
  *
  *  Credits:
  *	David Woodhouse for adding multichip support
@@ -2611,6 +2612,12 @@ static const struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	ret = nand_flash_detect_onfi(mtd, chip, &busw);
 	if (!ret)
 		nand_flash_detect_non_onfi(mtd, chip, type, &busw);
+
+	/* Work around wrong block size identified for our device
+	   Note: ONFI would really be the way to go but does not seem to be
+	   supported in U-Boot as of yet. */
+	if ((*maf_id == 0x2C) && (*dev_id == 0x38))
+		mtd->erasesize <<= 1;
 
 	/* Get chip options, preserve non chip based options */
 	chip->options &= ~NAND_CHIPOPTIONS_MSK;

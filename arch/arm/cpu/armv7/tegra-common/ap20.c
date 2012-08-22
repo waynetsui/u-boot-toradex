@@ -146,6 +146,7 @@ int ap20_get_num_cpus(void)
 	return ap20_get_family() == TEGRA_FAMILY_T3x ? 4 : 2;
 }
 
+/* Returns 1 if the current CPU executing is a Cortex-A9, else 0 */
 int ap20_cpu_is_cortexa9(void)
 {
 	u32 id = readb(NV_PA_PG_UP_BASE + PG_UP_TAG_0);
@@ -180,7 +181,7 @@ static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 	bf_update(PLL_DIVM, reg, divm);
 	bf_update(PLL_DIVN, reg, divn);
 	bf_update(PLL_DIVP, reg, divp);
-	bf_update(PLL_BYPASS, reg, 0);
+	bf_update(PLL_BYPASS, reg, 0);	/* Disable BYPASS */
 	writel(reg, &pll->pll_base);
 
 	/* Set cpcon to PLLX_MISC */
@@ -197,6 +198,9 @@ static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 	return 0;
 }
 
+/* U-Boot treats all errors as warnings,  &clkrst->crc_pll[CLOCK_ID_XCPU] uses
+   a subscript out of range. The pragma disables the warning */
+#pragma GCC diagnostic warning "-Warray-bounds"
 void ap20_init_pllx(int slow)
 {
 	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
@@ -332,10 +336,10 @@ static void enable_cpu_power_rail(enum tegra_family_t family)
 
 	if (family == TEGRA_FAMILY_T3x) {
 		/*
-		* TODO(sjg):
-		* Fow now we do this here. We need to find out what this is
+		 * TODO(sjg):
+		 * For now we do this here. We need to find out what this is
 		 * doing, tidy up the code and find a better place for it.
-		*/
+		 */
 		tegra_i2c_ll_write_addr(0x005a, 0x0002);
 		tegra_i2c_ll_write_data(0x2328, 0x0a02);
 		udelay(1000);
@@ -384,11 +388,11 @@ void t30_init_clocks(void)
 {
 #if defined(CONFIG_TEGRA3)
 	/*
-	* Sadly our clock functions don't support the V and W clocks of T30
-	* yet, as well as a few other functions, so use low-level register
-	* access for now. This eventual removable of low-level code from
-	* ap20.c is the same process we went through for T20.
-	*/
+	 * Sadly our clock functions don't support the V and W clocks of T30
+	 * yet, as well as a few other functions, so use low-level register
+	 * access for now. This eventual removable of low-level code from
+	 * ap20.c is the same process we went through for T20.
+	 */
 	struct clk_rst_ctlr *clkrst =
 			(struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
 	struct flow_ctlr *flow = (struct flow_ctlr *)NV_PA_FLOW_BASE;

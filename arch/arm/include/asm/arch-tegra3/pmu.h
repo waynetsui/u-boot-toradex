@@ -35,4 +35,6 @@
 #define PMU_LDO5_SEL(decivolts)	((decivolts - 10) * PMU_LDO5_SEL_0_1V_DELTA + \
 				 PMU_LDO5_SEL_1_0V)
 
+#define MAX_I2C_RETRY	3
+
 #endif	/* _ARCH_PMU_H_ */

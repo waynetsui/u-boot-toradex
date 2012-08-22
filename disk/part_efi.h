@@ -39,7 +39,11 @@
 #define GPT_BLOCK_SIZE 512
 #define GPT_HEADER_SIGNATURE 0x5452415020494645ULL
 #define GPT_HEADER_REVISION_V1 0x00010000
+#ifndef GPT_PRIMARY_PARTITION_TABLE_LBA
+/* might be defined in colibri_t20.h when the device uses the nvidia partitioning
+ * and the GPT doesn't start at its default sector */
 #define GPT_PRIMARY_PARTITION_TABLE_LBA 1ULL
+#endif
 #define GPT_ENTRY_NAME "gpt"
 
 #define EFI_GUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \

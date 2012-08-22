@@ -47,7 +47,6 @@
 
 #define stp(x, y) ((x < y) ? VDD_TRANSITION_STEP : -VDD_TRANSITION_STEP)
 
-#define MAX_I2C_RETRY	3
 int pmu_read(int reg)
 {
 	int	i;

@@ -54,4 +54,6 @@
 #define SM1_PWM_BIT		1
 #define SM2_PWM_BIT		2
 
+#define MAX_I2C_RETRY	3
+
 #endif	/* _ARCH_PMU_H_ */

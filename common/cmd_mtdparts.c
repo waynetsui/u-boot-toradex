@@ -838,7 +838,7 @@ static int device_parse(const char *const mtd_dev, const char **ret, struct mtd_
 	struct mtdids *id;
 	const char *mtd_id;
 	unsigned int mtd_id_len;
-	const char *p, *pend;
+	const char *p;
 	LIST_HEAD(tmp_list);
 	struct list_head *entry, *n;
 	u16 num_parts;
@@ -871,8 +871,7 @@ static int device_parse(const char *const mtd_dev, const char **ret, struct mtd_
 	debug("dev type = %d (%s), dev num = %d, mtd-id = %s\n",
 			id->type, MTD_DEV_TYPE(id->type),
 			id->num, id->mtd_id);
-	pend = strchr(p, ';');
-	debug("parsing partitions %.*s\n", (pend ? pend - p : strlen(p)), p);
+	debug("parsing partitions %.*s\n", (strchr(p, ';') ? strchr(p, ';') - p : strlen(p)), p);
 
 
 	/* parse partitions */

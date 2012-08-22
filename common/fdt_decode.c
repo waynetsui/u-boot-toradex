@@ -28,6 +28,10 @@
 /* we need a generic GPIO interface here */
 #include <asm/arch/gpio.h>
 
+#include <asm/sizes.h>
+#include <asm/global_data.h>
+DECLARE_GLOBAL_DATA_PTR;
+
 /*
  * Here are the type we know about. One day we might allow drivers to
  * register. For now we just put them here. The COMPAT macro allows us to
@@ -533,8 +537,14 @@ int fdt_decode_lcd(const void *blob, struct fdt_lcd *config)
 			config->width == -1 || config->height == -1 ||
 			!config->pwfm || !config->disp)
 		return -FDT_ERR_MISSING;
-	config->frame_buffer = get_addr(blob, node, "frame-buffer");
-
+	if(gd->ram_size == SZ_256M)
+	{
+		config->frame_buffer = get_addr(blob, node, "frame-buffer_256");
+	}
+	else
+	{
+		config->frame_buffer = get_addr(blob, node, "frame-buffer_512");
+	}
 	err |= fdt_decode_gpio(blob, node, "backlight-enable",
 			   &config->backlight_en);
 	err |= fdt_decode_gpio(blob, node, "lvds-shutdown",
@@ -705,6 +715,11 @@ int fdt_decode_nand(const void *blob, int node, struct fdt_nand *config)
 		return -FDT_ERR_MISSING;
 	err = get_int_array(blob, node, "timing", config->timing,
 			     FDT_NAND_TIMING_COUNT);
+	if (err < 0)
+		return err;
+
+	err = get_int_array(blob, node, "nv-partitions", config->nv_partitions,
+			FDT_NAND_PARTOFFSET_COUNT);
 	if (err < 0)
 		return err;
 

@@ -1,6 +1,8 @@
 /*
  *  (C) Copyright 2010,2011
  *  NVIDIA Corporation <www.nvidia.com>
+ *  (C) Copyright 2012
+ *  Toradex, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -37,6 +39,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 unsigned int board_query_sdram_size(void)
 {
+#ifndef CONFIG_COLIBRI_T20
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 	u32 reg;
 
@@ -60,6 +63,15 @@ unsigned int board_query_sdram_size(void)
 	default:
 		return 0x40000000;	/* 1GB */
 	}
+#else /* CONFIG_COLIBRI_T20 */
+	/* Colibri T20 does not use OdmData */
+	u32 *pa_emc_adr_cfg = (void *)NV_PA_EMC_ADR_CFG_BASE;
+
+	u32 reg = readl(pa_emc_adr_cfg);
+
+	/* 4 MB shifted by EMEM_DEVSIZE */
+	return (4 << 20) << ((reg & EMEM_DEVSIZE_MASK) >> EMEM_DEVSIZE_SHIFT);
+#endif /* CONFIG_COLIBRI_T20 */
 }
 
 #if defined(CONFIG_DISPLAY_BOARDINFO) || defined(CONFIG_DISPLAY_BOARDINFO_LATE)

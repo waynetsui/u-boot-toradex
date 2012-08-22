@@ -42,6 +42,10 @@
 #define CONFIG_SYS_XIMG_LEN	0x800000
 #endif
 
+/* Chromium U-Boot treats all errors as warnings, 'hdr' may be used
+   uninitialized in below function. The pragma disables this warning. */
+#pragma GCC diagnostic warning "-Wuninitialized"
+
 int
 do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
@@ -51,7 +55,7 @@ do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	int		verify;
 	int		part = 0;
 	char		pbuf[10];
-	image_header_t	*hdr;
+	image_header_t	*hdr = NULL;
 #if defined(CONFIG_FIT)
 	const char	*uname = NULL;
 	const void*	fit_hdr;
@@ -234,15 +238,21 @@ do_imgextract(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 				 * space, use slower decompression algorithm
 				 * which requires at most 2300 KB of memory.
 				 */
-				i = BZ2_bzBuffToBuffDecompress(
-					(char*)ntohl(hdr->ih_load),
-					&unc_len, (char *)data, len,
-					CONFIG_SYS_MALLOC_LEN < (4096 * 1024),
-					0);
-				if (i != BZ_OK) {
-					printf ("BUNZIP2 ERROR %d - "
-						"image not loaded\n", i);
+				if(hdr == NULL) {
+					printf ("hdr not set\n");
 					return 1;
+				}
+				else {
+					i = BZ2_bzBuffToBuffDecompress(
+						(char*)ntohl(hdr->ih_load),
+						&unc_len, (char *)data, len,
+						CONFIG_SYS_MALLOC_LEN < (4096 * 1024),
+						0);
+					if (i != BZ_OK) {
+						printf ("BUNZIP2 ERROR %d - "
+							"image not loaded\n", i);
+						return 1;
+					}
 				}
 			}
 			break;

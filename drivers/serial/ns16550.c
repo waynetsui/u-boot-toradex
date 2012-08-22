@@ -124,6 +124,7 @@ static char NS16550_raw_getc(NS16550_t regs)
 {
 	uart_enable(regs);
 	while ((serial_in(&regs->lsr) & UART_LSR_DR) == 0) {
+		WATCHDOG_RESET();
 #ifdef CONFIG_USB_TTY
 		extern void usbtty_poll(void);
 		usbtty_poll();
@@ -200,6 +201,8 @@ char NS16550_getc(NS16550_t regs, unsigned int port)
 
 int NS16550_tstc(NS16550_t regs, unsigned int port)
 {
+	WATCHDOG_RESET();
+
 	if (port >= NUM_PORTS || !(gd->flags & GD_FLG_RELOC))
 		return NS16550_raw_tstc(regs);
 

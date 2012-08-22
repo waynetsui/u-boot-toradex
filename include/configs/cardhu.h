@@ -32,12 +32,13 @@
 #define V_PROMPT		"Tegra3 # "
 
 #define CONFIG_TEGRA3_CARDHU
-#define CONFIG_SYS_SKIP_ARM_RELOCATION
+/* This currently fails environment memory allocation */
+#undef CONFIG_SYS_SKIP_ARM_RELOCATION
 
 #define CONFIG_EXTRA_BOOTARGS \
 	"panel=lvds " \
 	"tegraid=30.1.2.0.0 " \
-	"debug_uartport=lsport\0" \
+	"debug_uartport=lsport\0"
 
 #define CONFIG_TEGRA_LP0
 #define CONFIG_TEGRA3_WARMBOOT
@@ -98,5 +99,17 @@
 #define CONFIG_CMD_FAT
 
 #define CONFIG_ENV_IS_NOWHERE
+
+/* support USB ethernet adapters */
+#define CONFIG_USB_HOST_ETHER
+#define CONFIG_USB_ETHER_ASIX
+
+/*
+ * Ethernet support
+ */
+#define CONFIG_CMD_NET
+#define CONFIG_NET_MULTI
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
 
 #endif /* __CONFIG_H */

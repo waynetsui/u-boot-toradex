@@ -47,9 +47,9 @@ static struct fdt_lcd config;	/* Our LCD config, set up in handle_stage() */
 
 enum {
 	/* Maximum LCD size we support */
-	LCD_MAX_WIDTH		= 1366,
-	LCD_MAX_HEIGHT		= 800,
-	LCD_MAX_LOG2_BPP	= 4,		/* 16 bpp */
+	LCD_MAX_WIDTH		= 1920,
+	LCD_MAX_HEIGHT		= 1200,
+	LCD_MAX_LOG2_BPP	= 5,		/* 32 bpp */
 };
 
 int lcd_line_length;

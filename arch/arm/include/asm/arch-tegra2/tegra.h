@@ -36,6 +36,8 @@
 #define NV_PA_USB1_BASE		0xC5000000
 #define NV_PA_USB3_BASE		0xC5008000
 
+#define NV_APB_MISC_BASE    0x70000000
+
 #include <asm/arch-tegra/tegra.h>
 
 #endif

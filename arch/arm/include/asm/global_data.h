@@ -79,6 +79,14 @@ typedef	struct	global_data {
 	const void	*blob;		/* Our device tree, NULL if none */
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */
+#if defined(CONFIG_COLIBRI_T20) || defined(CONFIG_COLIBRI_T30)
+	unsigned env_offset; /* offset to the u-boot environment in mass storage */
+	unsigned conf_blk_offset; /* offset to the Toradex config block in mass storage */
+	unsigned conf_blk_offset2; /* offset to the Toradex config block (WinCE) in mass storage */
+	unsigned kernel_offset; /* offset to the kernel in mass storage */
+	unsigned rootfs_size; /* size of the rootfs in mass storage */
+	unsigned rootfs_offset; /* offset to the rootfs in mass storage */
+#endif
 } gd_t;
 
 /*

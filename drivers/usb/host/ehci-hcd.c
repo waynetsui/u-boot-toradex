@@ -935,7 +935,7 @@ void *usb_lowlevel_init(int index)
 
 	reg = ehci_readl(&hccr->cr_hcsparams);
 	descriptor.hub.bNbrPorts = HCS_N_PORTS(reg);
-	printf("Register %x NbrPorts %d\n", reg, descriptor.hub.bNbrPorts);
+//	printf("Register %x NbrPorts %d\n", reg, descriptor.hub.bNbrPorts);
 	/* Port Indicators */
 	if (HCS_INDICATOR(reg))
 		descriptor.hub.wHubCharacteristics |= 0x80;
@@ -961,7 +961,7 @@ void *usb_lowlevel_init(int index)
 	cmd = ehci_readl(&hcor->or_usbcmd);
 	wait_ms(5);
 	reg = HC_VERSION(ehci_readl(&hccr->cr_capbase));
-	printf("USB EHCI %x.%02x\n", reg >> 8, reg & 0xff);
+//	printf("USB EHCI %x.%02x\n", reg >> 8, reg & 0xff);
 
 	ehcic[index].rootdev = 0;
 

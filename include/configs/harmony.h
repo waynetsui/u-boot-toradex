@@ -126,6 +126,14 @@
 /* physical address to access nand at CS0 */
 #define CONFIG_SYS_NAND_BASE	TEGRA_NAND_BASE
 
+/* I2C */
+#define CONFIG_TEGRA_I2C
+#define CONFIG_SYS_I2C_INIT_BOARD
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_SYS_MAX_I2C_BUS		4
+#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_CMD_I2C
+
 /* Max number of NAND devices */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #endif /* __CONFIG_H */

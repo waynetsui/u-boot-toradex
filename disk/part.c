@@ -386,8 +386,9 @@ static void print_part_header (const char *type, block_dev_desc_t * dev_desc)
 
 void print_part (block_dev_desc_t * dev_desc)
 {
-
-		switch (dev_desc->part_type) {
+        /* Force EFI */
+        dev_desc->part_type = PART_TYPE_EFI;
+	switch (dev_desc->part_type) {
 #ifdef CONFIG_MAC_PARTITION
 	case PART_TYPE_MAC:
 		PRINTF ("## Testing for valid MAC partition ##\n");
@@ -418,7 +419,6 @@ void print_part (block_dev_desc_t * dev_desc)
 	    print_part_amiga (dev_desc);
 	    return;
 #endif
-
 #ifdef CONFIG_EFI_PARTITION
 	case PART_TYPE_EFI:
 		PRINTF ("## Testing for valid EFI partition ##\n");

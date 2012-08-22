@@ -1,5 +1,9 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
+ * Copyright (c) 2012 Toradex, Inc.
+ *
+ * Patched for AX88772B by Ant Micro <www.antmicro.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -79,9 +83,16 @@
 #define AX_RX_CTL_SO			0x0080
 #define AX_RX_CTL_AB			0x0008
 
+/* AX88772B RX_CTL values */
+#define AX_RX_CTL_START                  0x0080          /* Ethernet MAC start */
+#define AX_RX_CTL_AB                     0x0008          /* Accetp Brocadcast frames*/
+#define AX_RX_CTL_RH1M                   0x0100          /* Enable RX-Header mode 0 */
+#define AX_RX_CTL_RH2M                   0x0200          /* Enable IP header in receive buffer aligned on 32-bit aligment */
+#define AX_RX_HEADER_DEFAULT             (AX_RX_CTL_RH1M | AX_RX_CTL_RH2M)
+
+
 #define AX_DEFAULT_RX_CTL	\
 	(AX_RX_CTL_SO | AX_RX_CTL_AB)
-#define AX_DISABLE_RX_CTL	AX_RX_CTL_AB
 
 /* GPIO 2 toggles */
 #define AX_GPIO_GPO2EN		0x10	/* GPIO2 Output enable */
@@ -241,7 +252,6 @@ static int asix_write_medium_mode(struct ueth_data *dev, u16 mode)
 	return ret;
 }
 
-#ifdef DEBUG
 static u16 asix_read_rx_ctl(struct ueth_data *dev)
 {
 	__le16 v;
@@ -253,7 +263,6 @@ static u16 asix_read_rx_ctl(struct ueth_data *dev)
 		ret = le16_to_cpu(v);
 	return ret;
 }
-#endif
 
 static int asix_write_rx_ctl(struct ueth_data *dev, u16 mode)
 {
@@ -310,11 +319,22 @@ static int mii_nway_restart(struct ueth_data *dev)
 	return r;
 }
 
-static int full_init(struct eth_device *eth)
+/*
+ * Asix callbacks
+ */
+static int asix_init(struct eth_device *eth, bd_t *bd)
 {
-	struct ueth_data *dev = (struct ueth_data *)eth->priv;
 	int embd_phy;
 	unsigned char buf[ETH_ALEN];
+	struct ueth_data	*dev = (struct ueth_data *)eth->priv;
+	int timeout = 0;
+	char *addr_str, *end;
+	int i;
+	unsigned char env_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
+#define TIMEOUT_RESOLUTION 50	/* ms */
+	int link_detected;
+
+	debug("** %s()\n", __func__);
 
 	if (asix_write_gpio(dev,
 			AX_GPIO_RSE | AX_GPIO_GPO_2 | AX_GPIO_GPO2EN, 5) < 0)
@@ -342,11 +362,55 @@ static int full_init(struct eth_device *eth)
 			goto out_err;
 	}
 
-	debug("RX_CTL is 0x%04x after software reset\n", asix_read_rx_ctl(dev));
+	(void) asix_read_rx_ctl(dev);
 	if (asix_write_rx_ctl(dev, 0x0000) < 0)
 		goto out_err;
 
-	debug("RX_CTL is 0x%04x setting to 0x0000\n", asix_read_rx_ctl(dev));
+	(void) asix_read_rx_ctl(dev);
+
+	if ((dev->pusb_dev->descriptor.idVendor == 0x0b95) && (dev->pusb_dev->descriptor.idProduct == 0x772b)) {
+			#define AX_CMD_READ_EEPROM 0x0B
+			#define AX_CMD_WRITE_NODE_ID 0x14
+		   // read MAC from EEPROM
+			memset(buf, 0, ETH_ALEN);
+			int i,ret;
+		   for (i = 0; i < (ETH_ALEN >> 1); i++) {
+					if ((ret = asix_read_cmd (dev, AX_CMD_READ_EEPROM,
+											0x04 + i, 0, 2, (buf + i * 2))) < 0) {
+							debug("read SROM address 04h failed: %d", ret);
+							goto out_err;
+					}
+			}
+			memcpy(eth->enetaddr, buf, ETH_ALEN);
+			debug("Read MAC %02x:%02x:%02x:%02x:%02x:%02x\n",
+			 eth->enetaddr[0], eth->enetaddr[1],
+			 eth->enetaddr[2], eth->enetaddr[3],
+			 eth->enetaddr[4], eth->enetaddr[5]);
+
+			if ((ret = asix_write_cmd (dev, AX_CMD_WRITE_NODE_ID,
+					0, 0, ETH_ALEN, buf)) < 0) {
+			   debug("set MAC address failed: %d", ret);
+			   goto out_err;
+			}
+	}
+
+
+	/* Get MAC address from environment */
+	if ((addr_str = getenv("ethaddr")) != NULL) {
+	  for (i = 0; i < 6; i++) {
+		  env_enetaddr[i] = addr_str ? simple_strtoul(addr_str, &end, 16) : 0;
+	  if (addr_str) {
+		   addr_str = (*end) ? end + 1 : end;
+		  }
+	  }
+	}
+   	memcpy(eth->enetaddr, env_enetaddr, ETH_ALEN);
+    int ret;
+   	if ((ret = asix_write_cmd (dev, AX_CMD_WRITE_NODE_ID,
+   			0, 0, ETH_ALEN, env_enetaddr)) < 0) {
+   	   debug("set MAC address failed: %d", ret);
+   	   goto out_err;
+   	}
 
 	/* Get the MAC address */
 	if (asix_read_cmd(dev, AX_CMD_READ_NODE_ID,
@@ -384,28 +448,14 @@ static int full_init(struct eth_device *eth)
 		debug("Write IPG,IPG1,IPG2 failed\n");
 		goto out_err;
 	}
-	return 0;
-out_err:
-	return -1;
-}
 
-/*
- * Asix callbacks
- */
-static int asix_init(struct eth_device *eth, bd_t *bd)
-{
-	struct ueth_data *dev = (struct ueth_data *)eth->priv;
-	int timeout = 0;
-#define TIMEOUT_RESOLUTION 50	/* ms */
-	int link_detected;
 
-	debug("** %s()\n", __func__);
+       if ((dev->pusb_dev->descriptor.idVendor == 0x0b95) && (dev->pusb_dev->descriptor.idProduct == 0x772b)) {
+               if (asix_write_rx_ctl(dev, AX_DEFAULT_RX_CTL | AX_RX_HEADER_DEFAULT) < 0) goto out_err;
+       } else if (asix_write_rx_ctl(dev, AX_DEFAULT_RX_CTL) < 0)
+               goto out_err;
 
-	if (!dev->has_been_running && full_init(eth))
-		return -1;
 
-	if (asix_write_rx_ctl(dev, AX_DEFAULT_RX_CTL) < 0)
-		return -1;
 	do {
 		link_detected = asix_mdio_read(dev, dev->phy_id, MII_BMSR) &
 			BMSR_LSTATUS;
@@ -421,11 +471,16 @@ static int asix_init(struct eth_device *eth, bd_t *bd)
 			printf("done.\n");
 	} else {
 		printf("unable to connect.\n");
-		return -1;
+		goto out_err;
 	}
 
-	dev->has_been_running = 1;
+	/* Wait some more to avoid timeout on first transfer
+	   (e.g. EHCI timed out on TD - token=0x8008d80) */
+	udelay(25000);
+
 	return 0;
+out_err:
+	return -1;
 }
 
 static int asix_send(struct eth_device *eth, volatile void *packet, int length)
@@ -510,6 +565,8 @@ static int asix_recv(struct eth_device *eth)
 			return -1;
 		}
 
+                if ((dev->pusb_dev->descriptor.idVendor == 0x0b95) && (dev->pusb_dev->descriptor.idProduct == 0x772b)) buf_ptr += 2;
+
 		/* Notify net stack */
 		NetReceive(buf_ptr + sizeof(packet_len), packet_len);
 
@@ -525,11 +582,7 @@ static int asix_recv(struct eth_device *eth)
 
 static void asix_halt(struct eth_device *eth)
 {
-	struct ueth_data *dev = (struct ueth_data *)eth->priv;
-
-	/* Disable packet reception */
 	debug("** %s()\n", __func__);
-	(void)asix_write_rx_ctl(dev, AX_DISABLE_RX_CTL);
 }
 
 /*
@@ -555,6 +608,7 @@ static struct asix_dongle asix_dongles[] = {
 	{ 0x13b1, 0x0018 },	/* Linksys 200M v2.1 */
 	{ 0x1557, 0x7720 },	/* 0Q0 cable ethernet */
 	{ 0x2001, 0x3c05 },	/* DLink DUB-E100 H/W Ver B1 Alternate */
+        { 0x0b95, 0x772b },     /* ASIX 88772B */
 	{ 0x0000, 0x0000 }	/* END - Do not remove */
 };
 
@@ -596,17 +650,22 @@ int asix_eth_probe(struct usb_device *dev, unsigned int ifnum,
 	 * We are expecting a minimum of 3 endpoints - in, out (bulk), and
 	 * int. We will ignore any others.
 	 */
+        int ep_in_found = 0;
+        int ep_out_found = 0;
 	for (i = 0; i < iface_desc->bNumEndpoints; i++) {
 		/* is it an BULK endpoint? */
 		if ((iface->ep_desc[i].bmAttributes &
 		     USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK) {
-			if (iface->ep_desc[i].bEndpointAddress & USB_DIR_IN)
-				ss->ep_in = iface->ep_desc[i].bEndpointAddress &
+			if (iface->ep_desc[i].bEndpointAddress & USB_DIR_IN) {
+				if (ep_in_found == 0) ss->ep_in = iface->ep_desc[i].bEndpointAddress &
 					USB_ENDPOINT_NUMBER_MASK;
-			else
-				ss->ep_out =
+				ep_in_found = 1;
+			} else {
+				if (ep_out_found == 0) ss->ep_out =
 					iface->ep_desc[i].bEndpointAddress &
 					USB_ENDPOINT_NUMBER_MASK;
+				ep_out_found = 1;
+			}
 		}
 
 		/* is it an interrupt endpoint? */

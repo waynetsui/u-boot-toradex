@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
+ * Copyright (c) 2012 Toradex, Inc.
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -493,6 +494,7 @@ static enum clock_type_id clock_periph_type[PERIPHC_COUNT] = {
  *	SPDIF - which is both 0x08 and 0x0c
  *
  */
+//I believe above comment concerning SPDIF is bogus
 #define NONE(name) (-1)
 #define OFFSET(name, value) PERIPHC_ ## name
 static s8 periph_id_to_internal_id[PERIPH_ID_COUNT] = {
@@ -1361,11 +1363,14 @@ int clock_early_init(ulong pllp_base)
 		osc_freq_mhz = 12;
 		break;
 
+	case CLOCK_OSC_FREQ_13_0: /* OSC is 13Mhz */
+		osc_freq_mhz = 13;
+		break;
+
 	case CLOCK_OSC_FREQ_26_0: /* OSC is 26Mhz */
 		osc_freq_mhz = 26;
 		break;
 
-	case CLOCK_OSC_FREQ_13_0:
 	case CLOCK_OSC_FREQ_19_2:
 	default:
 		/*

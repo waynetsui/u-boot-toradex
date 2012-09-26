@@ -71,8 +71,16 @@
 		horiz_timing = <0 96 48 16>;
 		vert_timing = <1 2 31 11>;
 
+		/* 1024x768 timings
+		pixel_clock = <72000000>;
+		width = <1024>;
+		height = <768>;		 
+		horiz_timing = <0 136 160 24>;
+		vert_timing = <1 6 29 3>; 
+		*/
+
 		/* Parameter 3 bit 0:1=output, 0=input; bit 1:1=high, 0=low */
-		backlight-enable = <&gpio 255 1>;	/* use <&gpio 156 1> for PT4 - SODIMM 71: BL_ON */
+		backlight-enable = <&gpio 156 1>; /* PT4 - SODIMM 71: BL_ON */
 		lvds-shutdown = <&gpio 255 1>;
 		backlight-vdd = <&gpio 255 1>;
 		panel-vdd = <&gpio 255 1>;

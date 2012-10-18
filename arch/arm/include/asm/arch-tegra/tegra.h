@@ -78,6 +78,11 @@ struct timerus {
 	unsigned int cntr_1us;
 };
 
+#define NVBOOTINFOTABLE_BCTSIZE	0x38	/* BCT size in BIT in IRAM */
+#define NVBOOTINFOTABLE_BCTPTR	0x3C	/* BCT pointer in BIT in IRAM */
+#define BCT_PTINFO_OFFSET	3820
+
+/* These are the available SKUs (product types) for Tegra */
 enum {
 	SKU_ID_T20		= 0x8,
 	SKU_ID_T25SE		= 0x14,

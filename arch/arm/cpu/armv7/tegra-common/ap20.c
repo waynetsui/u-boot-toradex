@@ -340,9 +340,13 @@ static void enable_cpu_power_rail(enum tegra_family_t family)
 		 * For now we do this here. We need to find out what this is
 		 * doing, tidy up the code and find a better place for it.
 		 */
+		/* Write to i2c addr 2d, 2 byte data length, i.e. the PMIC */
 		tegra_i2c_ll_write_addr(0x005a, 0x0002);
+		/* Write 28 then 23, Register 0x28, 0x23: VDDCtrl Voltage to
+		   1000mV */
 		tegra_i2c_ll_write_data(0x2328, 0x0a02);
 		udelay(1000);
+		/* Write 27 then 1, Register 0x27, 1: VDDCtrl Voltage On */
 		tegra_i2c_ll_write_data(0x0127, 0x0a02);
 		udelay(10 * 1000);
 	}

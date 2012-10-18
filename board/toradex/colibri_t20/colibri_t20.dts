@@ -159,14 +159,6 @@
 		 *	TWHR, Max(tCS, tCH, tALS, tALH), TWH, TWP, TRH, TADL
 		 */
 		timing = <12 100 20 80 20 10 12 10 70>;
-		
-		/*
-		 * The offset of the start of
-		 * u-boot-environment   config-block   config-block (WinCE)   kernel   rootfs-size  rootfs-start
-		 * rootfs: the numbers are concatenated to mtdparts=tegra_nand:<rootfs-size>K@<rootfs-start>K(userspace)
-		 * take them from a download with NVFLASH
-		 */
-		/* unknown nv-partitions = <0xE00000 0x1000000 0x1000000 0x1200000 1018368 28160>; */
 	};
 
 	/* Colibri T20 256MB V1.2a new */
@@ -180,7 +172,6 @@
 		skipped-spare-bytes = <4>;
 		page-spare-bytes = <128>;
 		timing = <15 100 25 80 25 10 15 10 100>;
-		nv-partitions = <0x980000 0x11c0000 0x7380000 0xc80000 503552 19712>;
 	};
 
 	/* Colibri T20 before V1.1x aka old */
@@ -194,7 +185,6 @@
 		skipped-spare-bytes = <4>;
 		page-spare-bytes = <128>;
 		timing = <12 100 20 60 15 10 12 10 70>;
-		nv-partitions = <0xE00000 0x1880000 0x7900000 0x1200000 1018368 28160>;
 	};
 
 	/* Colibri T20 512MB V1.2a intermediate */
@@ -208,7 +198,6 @@
 		skipped-spare-bytes = <4>;
 		page-spare-bytes = <64>;
 		timing = <12 100 20 80 20 10 12 10 70>;
-		/* unknown nv-partitions = <0xE00000 0x1880000 0x1880000 0x1200000 1018368 28160>; */
 	};
 
 	/* Colibri T20 512MB V1.2a new */
@@ -222,7 +211,6 @@
 		skipped-spare-bytes = <4>;
 		page-spare-bytes = <128>;
 		timing = <15 100 25 80 25 10 15 10 100>;
-		nv-partitions = <0x980000 0x11c0000 0x7380000 0xc80000 1027840 19712>;
 	};
 
 	/* Colibri T20 512MB 3.3V TSOP test */
@@ -236,7 +224,6 @@
 		skipped-spare-bytes = <4>;
 		page-spare-bytes = <64>;
 		timing = <20 100 20 60 20 10 12 10 70>;
-		nv-partitions = <0x740000 0xE60000 0x1880000 0x9C0000 1032576 15488>;
 	};
 
 	nand-controller@0x70008000 {

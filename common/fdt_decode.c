@@ -718,11 +718,6 @@ int fdt_decode_nand(const void *blob, int node, struct fdt_nand *config)
 	if (err < 0)
 		return err;
 
-	err = get_int_array(blob, node, "nv-partitions", config->nv_partitions,
-			FDT_NAND_PARTOFFSET_COUNT);
-	if (err < 0)
-		return err;
-
 	/* Now look up the controller and decode that */
 	node = lookup_phandle(blob, node, "controller");
 	if (node < 0)

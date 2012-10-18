@@ -59,8 +59,7 @@
 #define CONFIG_REVISION_TAG		1
 #define CONFIG_SERIAL_TAG		1
 
-#define CONFIG_TRDX_CFG_BLOCK_OFFSET	(gd->conf_blk_offset)
-#define CONFIG_TRDX_CFG_BLOCK_OFFSET2	(gd->conf_blk_offset2)
+#define CONFIG_TRDX_CFG_BLOCK
 
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DIAG

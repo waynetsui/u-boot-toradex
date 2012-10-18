@@ -1048,15 +1048,6 @@ int board_nand_init(struct nand_chip *nand)
 		printf("Could not decode NAND flash device node\n");
 		return -1;
 	}
-
-	//copy partition information to global data
-	gd->env_offset = (unsigned)(config->nv_partitions[FDT_NAND_ENV_OFFSET]);
-	gd->conf_blk_offset = (unsigned)(config->nv_partitions[FDT_NAND_CONFIG_OFFSET]);
-	gd->conf_blk_offset2 = (unsigned)(config->nv_partitions[FDT_NAND_CONFIG_OFFSET2]);
-	gd->kernel_offset = (unsigned)(config->nv_partitions[FDT_NAND_KERNEL_OFFSET]);
-	gd->rootfs_size = (unsigned)(config->nv_partitions[FDT_NAND_ROOTFS_LENGTH]);
-	gd->rootfs_offset = (unsigned)(config->nv_partitions[FDT_NAND_ROOTFS_SIZE]);
-
 	if (!config->enabled)
 		return -1;
 	info->reg = config->reg;

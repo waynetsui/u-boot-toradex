@@ -65,6 +65,8 @@
 #include <fdt_decode.h>
 #include <libfdt.h>
 
+#include "tegra2_partitions.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
 
@@ -270,7 +272,7 @@ enum {
 	UART_ALL	= 0xf
 };
 
-#if defined(BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK_OFFSET) || \
+#if defined(BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
 		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
 static unsigned char *config_block = NULL;
 #endif
@@ -549,7 +551,7 @@ int board_late_init(void)
 {
 	char env_str[256 ];
 
-#ifdef CONFIG_TRDX_CFG_BLOCK_OFFSET
+#ifdef CONFIG_TRDX_CFG_BLOCK
 	char *addr_str, *end;
 	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
 	int i;
@@ -560,16 +562,15 @@ int board_late_init(void)
 	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
 	int valid			= 0;
         
-        unsigned int offset;
         int ret;
-#endif /* CONFIG_TRDX_CFG_BLOCK_OFFSET */
+#endif /* CONFIG_TRDX_CFG_BLOCK */
 
 #ifdef CONFIG_VIDEO_TEGRA
 	/* Make sure we finish initing the LCD */
 	tegra_lcd_check_next_stage(gd->blob, 1);
 #endif
 
-#ifdef CONFIG_TRDX_CFG_BLOCK_OFFSET
+#ifdef CONFIG_TRDX_CFG_BLOCK
 	/* Allocate RAM area for config block */
 	config_block = malloc(size);
 	if (!config_block) {
@@ -577,31 +578,19 @@ int board_late_init(void)
 		return -1;
 	}
 
-	for (i = 0; i < 2; i++) {
-		if (i == 0)
-			offset = CONFIG_TRDX_CFG_BLOCK_OFFSET;
-		else
-			offset = CONFIG_TRDX_CFG_BLOCK_OFFSET2;
+	/* Clear it */
+	memset((void *)config_block, 0, size);
 
-		/* Clear it */
-		memset((void *)config_block, 0, size);
-
-		/* Read production parameter config block */
+	/* Read production parameter config block */
 #ifdef CONFIG_CMD_NAND
-		ret = nand_read_skip_bad(&nand_info[0], offset, &size, (unsigned char *) config_block);
+	ret = nand_read_skip_bad(&nand_info[0], gd->conf_blk_offset, &size,
+			(unsigned char *) config_block);
 #endif
-		/* Check validity */
-		if ( (ret==0) && (size>0) ) {
-			mac_addr = config_block + 8;
-			if (!(memcmp(mac_addr, toradex_oui, 3))) {
-				valid = 1;
-				break;
-			}
-		}
-		else {
-			/* probably there is no flash,
-			 * give up reading the config block, the nand flash layer crashes on the second attempt */
-			break;
+	/* Check validity */
+	if ((ret == 0) && (size > 0)) {
+		mac_addr = config_block + 8;
+		if (!(memcmp(mac_addr, toradex_oui, 3))) {
+			valid = 1;
 		}
 	}
 
@@ -643,7 +632,7 @@ int board_late_init(void)
 		}
 	}
 
-#endif /* CONFIG_TRDX_CFG_BLOCK_OFFSET */
+#endif /* CONFIG_TRDX_CFG_BLOCK */
 
 	/* set the nand kernel offset */
 	if (!getenv("lnxoffset")) {
@@ -653,8 +642,10 @@ int board_late_init(void)
 
 	/* set the mtdparts string */
 	if (!getenv("mtdparts")) {
-		sprintf(env_str, "mtdparts=tegra_nand:%uK@%uK(userspace)",
-				(unsigned)(gd->rootfs_size), (unsigned)(gd->rootfs_offset) );
+		sprintf(env_str, "mtdparts=tegra_nand:");
+		i = strlen(env_str);
+		nvtegra_mtdparts_string(env_str + i, sizeof(env_str) - i);
+
 		setenv("mtdparts", env_str);
 	}
 

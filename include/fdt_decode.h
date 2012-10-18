@@ -244,17 +244,6 @@ enum {
 	FDT_NAND_TIMING_COUNT
 };
 
-enum {
-	FDT_NAND_ENV_OFFSET,
-	FDT_NAND_CONFIG_OFFSET,
-	FDT_NAND_CONFIG_OFFSET2,
-	FDT_NAND_KERNEL_OFFSET,
-	FDT_NAND_ROOTFS_LENGTH,
-	FDT_NAND_ROOTFS_SIZE,
-
-	FDT_NAND_PARTOFFSET_COUNT
-};
-
 /* Information about an attached NAND chip */
 struct fdt_nand {
 	struct nand_ctlr *reg;
@@ -273,13 +262,6 @@ struct fdt_nand {
 	int page_spare_bytes;
 	int page_data_bytes;	/* Bytes in data area */
 	int timing[FDT_NAND_TIMING_COUNT];
-	/*
-	 * The offset of the start of
-	 * u-boot-environment   config-block   kernel   rootfs-size  rootfs-start
-	 * rootfs: the numbers are concatenated to mtdparts=tegra_nand:<rootfs-size>K@<rootfs-start>K(userspace)
-	 * take them from a download with NVFLASH
-	 */
-	int nv_partitions[FDT_NAND_PARTOFFSET_COUNT];
 };
 
 /**

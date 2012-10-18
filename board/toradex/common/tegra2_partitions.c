@@ -103,7 +103,11 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt)
 	pt_logical = readw(bct_start + BCT_PTINFO_OFFSET);
 	/* In case we are running with a recovery BCT missing the partition
 	   table offset information */
+#ifdef CONFIG_ENV_IS_IN_MMC
+	if (1) {
+#else
 	if (pt_logical == 0) {
+#endif
 		/* BCT partition size is 3 M in our default layout */
 		pt_logical = 3 * 1024 * 1024 / nand_info->writesize;
 	}

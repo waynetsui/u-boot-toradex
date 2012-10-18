@@ -64,13 +64,30 @@ unsigned int board_query_sdram_size(void)
 		return 0x40000000;	/* 1GB */
 	}
 #else /* CONFIG_COLIBRI_T20 */
-	/* Colibri T20 does not use OdmData */
+	/* Colibri T20 does not use OdmData but rather relies on memory controller
+	   configuration done by boot ROM based on BCT information */
+
 	u32 *pa_emc_adr_cfg = (void *)NV_PA_EMC_ADR_CFG_BASE;
 
 	u32 reg = readl(pa_emc_adr_cfg);
 
 	/* 4 MB shifted by EMEM_DEVSIZE */
-	return (4 << 20) << ((reg & EMEM_DEVSIZE_MASK) >> EMEM_DEVSIZE_SHIFT);
+	u32 memsize = (4 << 20) << ((reg & EMEM_DEVSIZE_MASK) >> EMEM_DEVSIZE_SHIFT);
+
+	/* Unfortunately it is possible to at least boot a 256 MB module with
+	   a 512 MB BCT therefore double check whether we really do have that
+	   amount of physical memory */
+	if (memsize == 512*1024*1024) {
+		volatile u32 *pMem = 0;
+		u32 temp = pMem[0];
+		pMem[0] = 0xabadcafe;
+		asm volatile("" ::: "memory");
+		if (pMem[0] == pMem[128*1024*1024/4]) // Why we have to read at 128MB?
+			panic("512 MB BCT running on a 256 MB module!\n");
+		pMem[0] = temp;
+	}
+
+	return memsize;
 #endif /* CONFIG_COLIBRI_T20 */
 }
 

@@ -87,6 +87,10 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 #include <i2c.h>
 #endif
 
+#ifdef CONFIG_COLIBRI_T20
+extern void tegra_partition_init(void);
+#endif
+
 
 /************************************************************************
  * Coloured LED functionality
@@ -592,6 +596,10 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 #if defined(CONFIG_CMD_ONENAND)
 	onenand_init();
+#endif
+
+#ifdef CONFIG_COLIBRI_T20
+	tegra_partition_init();
 #endif
 
 #ifdef CONFIG_GENERIC_MMC

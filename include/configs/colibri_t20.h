@@ -155,9 +155,9 @@
 //moved from disk/part_efi.h to here, give the block where the GP1 partition starts
 //compare with sdargs below
 #ifdef __CONFIG_SDBOOT_H
-#define GPT_PRIMARY_PARTITION_TABLE_LBA 18945ULL
+#define GPT_PRIMARY_PARTITION_TABLE_LBA	18945ULL
 #else
-#define GPT_PRIMARY_PARTITION_TABLE_LBA 1ULL
+#define GPT_PRIMARY_PARTITION_TABLE_LBA	1ULL
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
@@ -168,7 +168,7 @@
 	"mmcboot=" MMC_BOOTCMD "\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
 	"ramargs=initrd=0xA1800000,32M ramdisk_size=32768 root=/dev/ram0 rw\0" \
-	"sdargs=root=/dev/mmcblk3p1 ip=:::::eth0:off rw,noatime rootfstype=ext3 rootwait gpt gpt_sector=18945\0" \
+	"sdargs=root=/dev/mmcblk0p1 ip=:::::eth0:off rw,noatime rootfstype=ext3 rootwait gpt gpt_sector=18945\0" \
 	"sdboot=" SD_BOOTCMD "\0" \
 	"setup=setenv setupargs asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 ${memargs}\0" \
 	"ubiargs=ubi.mtd=0 root=ubi0:rootfs rootfstype=ubifs\0" \
@@ -177,9 +177,9 @@
 	""
 
 /* Dynamic MTD partition support */
-#define CONFIG_CMD_MTDPARTS   /* Enable 'mtdparts' command line support */
-#define CONFIG_MTD_PARTITIONS /* ??? */
-#define CONFIG_MTD_DEVICE     /* needed for mtdparts commands */
+#define CONFIG_CMD_MTDPARTS	/* Enable 'mtdparts' command line support */
+#define CONFIG_MTD_PARTITIONS	/* ??? */
+#define CONFIG_MTD_DEVICE	/* needed for mtdparts commands */
 #define MTDIDS_DEFAULT		"nand0=tegra_nand"
 
 /* GPIO */
@@ -213,14 +213,13 @@
 //#define CONFIG_ENV_IS_NOWHERE
 #ifndef CONFIG_ENV_IS_NOWHERE
 /* Environment stored in NAND flash */
-#define CONFIG_ENV_IS_IN_NAND   1       /* use NAND for environment vars */
+#define CONFIG_ENV_IS_IN_NAND		1 /* use NAND for environment vars */
 #if defined(CONFIG_ENV_IS_IN_NAND)
 /* once the nand is detected the corresponding setting is taken */
-#define CONFIG_ENV_OFFSET (gd->env_offset)
-#define CONFIG_ENV_RANGE        0x80000
-#endif
-
-#endif
+#define CONFIG_ENV_OFFSET		(gd->env_offset)
+#define CONFIG_ENV_RANGE		0x80000
+#endif /* CONFIG_ENV_IS_IN_NAND */
+#endif /* !CONFIG_ENV_IS_NOWHERE */
 
 /*
  *  LCDC configuration
@@ -229,10 +228,10 @@
 #define CONFIG_VIDEO_TEGRA
 
 /* TODO: This needs to be configurable at run-time */
-#define LCD_BPP             LCD_COLOR16
-#define CONFIG_SYS_WHITE_ON_BLACK       /* Console colors */
+#define LCD_BPP				LCD_COLOR16
+#define CONFIG_SYS_WHITE_ON_BLACK	/* Console colors */
 
-#define CONFIG_DEFAULT_DEVICE_TREE "colibri_t20"
+#define CONFIG_DEFAULT_DEVICE_TREE	"colibri_t20"
 
 /* NAND support */
 #define CONFIG_CMD_NAND

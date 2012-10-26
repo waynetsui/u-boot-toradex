@@ -142,7 +142,7 @@
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${sdargs} ${mtdparts} ${setupargs}; " \
 	"echo Booting from MMC/SD card...; " \
-	"mmc read 0 ${loadaddr} 0x2a00 0x2000; " \
+	"mmc read 0 ${loadaddr} 0x2a00 0x4000; " \
 	"bootm"
 
 #undef CONFIG_BOOTARGS

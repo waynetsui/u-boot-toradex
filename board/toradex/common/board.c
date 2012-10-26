@@ -549,19 +549,24 @@ int board_early_init_f(void)
 #ifdef BOARD_LATE_INIT
 int board_late_init(void)
 {
+#ifdef CONFIG_CMD_NAND
 	char env_str[256 ];
+#endif
+
+#if defined(CONFIG_CMD_NAND) || defined(CONFIG_TRDX_CFG_BLOCK)
+	int i;
+#endif
 
 #ifdef CONFIG_TRDX_CFG_BLOCK
 	char *addr_str, *end;
 	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
-	int i;
 	unsigned char *mac_addr;
 	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
 
 	size_t size			= 4096;
 	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
 	int valid			= 0;
-        
+
         int ret;
 #endif /* CONFIG_TRDX_CFG_BLOCK */
 
@@ -634,6 +639,7 @@ int board_late_init(void)
 
 #endif /* CONFIG_TRDX_CFG_BLOCK */
 
+#ifdef CONFIG_CMD_NAND
 	/* set the nand kernel offset */
 	if (!getenv("lnxoffset")) {
 		sprintf(env_str, "0x%x", (unsigned)(gd->kernel_offset));
@@ -648,6 +654,7 @@ int board_late_init(void)
 
 		setenv("mtdparts", env_str);
 	}
+#endif /* CONFIG_CMD_NAND */
 
 	return 0;
 }

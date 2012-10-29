@@ -34,6 +34,7 @@ SOBJS-y	:= lowlevel_init.o
 COBJS-y	:= ap20.o board.o clock.o power.o timer.o
 COBJS-$(CONFIG_VIDEO_TEGRA) += display.o pwfm.o
 COBJS-$(CONFIG_TEGRA_LP0) += warmboot.o
+COBJS-$(CONFIG_CMD_ENTERRCM) += cmd_enterrcm.o
 
 SOBJS	:= $(SOBJS-y)
 COBJS	:= $(COBJS-y)

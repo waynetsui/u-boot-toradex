@@ -38,6 +38,9 @@
 
 #include "tegra2-common.h"
 
+/* So our flasher can verify that all is well */
+#define CONFIG_CRC32_VERIFY
+
 #ifndef CONFIG_OF_CONTROL
 /* Things in here are defined by the device tree now. Let it grow! */
 

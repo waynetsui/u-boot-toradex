@@ -81,7 +81,7 @@ void wb_start(void)
 
 	reg = SCLK_SWAKE_FIQ_SRC_CLKM | SCLK_SWAKE_IRQ_SRC_CLKM |
 		SCLK_SWAKE_RUN_SRC_CLKM | SCLK_SWAKE_IDLE_SRC_CLKM |
-		SCLK_SYS_CPU_STATE_RUN;
+		(SCLK_SYS_STATE_RUN << SCLK_SYS_STATE_SHIFT);
 	writel(reg, &clkrst->crc_sclk_brst_pol);
 
 	/* Update PLLP output dividers for 408 MHz operation */

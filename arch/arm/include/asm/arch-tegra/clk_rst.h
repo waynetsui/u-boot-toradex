@@ -275,7 +275,6 @@ enum {
 #define SUPER_CDIV_ENB				(1 << 31)
 
 /* CRC_SCLK_BURST_POLICY_0 28h */
-#define SCLK_SYS_CPU_STATE_RUN			(2 << 28)
 #define SCLK_SWAKE_FIQ_SRC_CLKM			(0 << 12)
 #define SCLK_SWAKE_IRQ_SRC_CLKM			(0 << 8)
 #define SCLK_SWAKE_RUN_SRC_CLKM			(0 << 4)

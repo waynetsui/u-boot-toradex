@@ -227,14 +227,20 @@ int nvtegra_mtdparts_string(char *output, int size)
 	p = &(pt->partinfo[0]);
 	for (i = 0; (p->id < 128) && (i < TEGRA_MAX_PARTITIONS); i++) {
 		if (p != usr) {
+			/* add coma separator after previous entries */
+			if (j > 0) {
+				sprintf(buffer + j, ",");
+				j++;
+			}
+
 			if (strlen(p->name))
-				sprintf(buffer + j, ",%uK@%uK(%s)",
+				sprintf(buffer + j, "%uK@%uK(%s)",
 					p->virtual_size *
 					nand_info->writesize / 1024,
 					p->start_sector *
 					nand_info->writesize / 1024, p->name);
 			else
-				sprintf(buffer + j, ",%uK@%uK",
+				sprintf(buffer + j, "%uK@%uK",
 					p->virtual_size *
 					nand_info->writesize / 1024,
 					p->start_sector *

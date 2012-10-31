@@ -27,15 +27,16 @@
 
 #include <asm/sizes.h>
 
-#define CONFIG_COLIBRI_T30	/* Toradex Colibri T30 module */
-
 /* High-level configuration options */
 #define TEGRA3_SYSMEM		"mem=1023M@2048M vmalloc=128M"
 #define V_PROMPT		"Tegra3 # "
 
+#define CONFIG_COLIBRI_T30	/* Toradex Colibri T30 module */
 #define CONFIG_TEGRA3_CARDHU
 /* This currently fails environment memory allocation */
 #undef CONFIG_SYS_SKIP_ARM_RELOCATION
+//#define CONFIG_SYS_SKIP_ARM_RELOCATION
+//#define CONFIG_SYS_PLLP_BASE_IS_408MHZ
 
 #include "tegra3-common.h"
 /* undef the enviroment settings in tegra3-common.h / tegra-common.h */
@@ -46,8 +47,9 @@
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_DIRECT_BOOTARGS
 
-
-#define CONFIG_DEFAULT_DEVICE_TREE "colibri_t30"
+//careful this might fail kernel booting
+#undef CONFIG_BOOTSTAGE			/* Record boot time */
+#undef CONFIG_BOOTSTAGE_REPORT		/* Print a boot time report */
 
 //#define USB_KBD_DEBUG
 #define CONFIG_USB_KEYBOARD
@@ -63,7 +65,12 @@
 /* PMU */
 /* disabled for now #define CONFIG_HW_WATCHDOG */
 
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	5
+#define CONFIG_NETMASK		255.255.255.0
+#undef CONFIG_IPADDR
+#define CONFIG_IPADDR		192.168.10.2
+#undef CONFIG_SERVERIP
+#define CONFIG_SERVERIP		192.168.10.1
 
 /* ENV */
 #define CONFIG_ENV_SIZE         SZ_4K /* env size is a maximum of 4k */
@@ -96,10 +103,10 @@
 	CONFIG_STD_DEVICES_SETTINGS \
 	"board=colibri_t30\0" \
 	"defargs=console=ttyS0,115200n8 debug_uartport=lsport lp0_vec=0x00002000@0x9C406000 video=tegrafb mem=1023M@2048M vmalloc=128M noinitrd usbcore.old_scheme_first=1 core_edp_mv=1300 panel=lvds tegraid=30.1.2.0.0 tegra_fbmem=3072K@0xBFE00000 \0" \
-	"mmcargs=root=/dev/mmcblk0p1 ip=:::::eth0:off rw rootwait rootfstype=ext2 gpt gpt_sector=32768 \0" \
-	"mmc_kernel_sec=0x5000 0x2000 \0" \
-	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
+	"mmcargs=root=/dev/mmcblk0p1 ip=:::::eth0:off rw rootwait rootfstype=ext2 gpt gpt_sector=32768 \0" \
+	"mmc_kernel_sec=0x5000 0x4000 \0" \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
 	"usbboot=" USB_BOOTCMD "\0"
 
 
@@ -129,25 +136,11 @@
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 
-/* NAND support */
-/*#define CONFIG_CMD_NAND
-#define CONFIG_TEGRA2_NAND */
-
-/* Max number of NAND devices */
-/*#define CONFIG_SYS_MAX_NAND_DEVICE	1 */
-
-/* Environment storage location, define only one of the alternatives */
-/*#define CONFIG_ENV_IS_NOWHERE*/   /* Environment not stored */
-/*#define CONFIG_ENV_IS_IN_NAND*/   /* use NAND for environment vars */
-#define CONFIG_ENV_IS_IN_MMC      /* use NAND for environment vars */
-
-/* Environment stored in NAND flash */
-#if defined(CONFIG_ENV_IS_IN_NAND)
-/* temporarily use space at end of LNX kernel partition for now */
-/*#define CONFIG_ENV_OFFSET       0x1680000
-#define CONFIG_ENV_RANGE        0x200000*/
+/* Environment not stored */
+//#define CONFIG_ENV_IS_NOWHERE
+#ifndef CONFIG_ENV_IS_NOWHERE
+#define CONFIG_ENV_IS_IN_MMC	1 /* use eMMC for environment vars */
 #endif
-
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV 0 /* use MMC0 */
 #define CONFIG_ENV_OFFSET       (16384 * 512) /* Byteaddress of the beginning of the ENV partition */
@@ -172,7 +165,9 @@
 #define CONFIG_VIDEO_TEGRA
 
 /* TODO: This needs to be configurable at run-time */
-#define LCD_BPP	LCD_COLOR16
-#define CONFIG_SYS_WHITE_ON_BLACK       /*Console colors*/
+#define LCD_BPP				LCD_COLOR16
+#define CONFIG_SYS_WHITE_ON_BLACK	/* Console colors */
+
+#define CONFIG_DEFAULT_DEVICE_TREE	"colibri_t30"
 
 #endif /* __CONFIG_H */

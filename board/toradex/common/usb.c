@@ -212,6 +212,15 @@ void usbf_reset_controller(enum periph_id id, struct usb_ctlr *usbctlr)
 		/* Enable ASIX AX88772B V_BUS */
 		gpio_direction_output(GPIO_PBB1, 1);
 		pinmux_tristate_disable(PINGRP_DTE);
+
+		/* Reset */
+		gpio_direction_output(GPIO_PV4, 0);
+		pinmux_tristate_disable(PINGRP_GPV);
+
+		udelay(5);
+
+		/* Unreset */
+		gpio_set_value(GPIO_PV4, 1);
 	}
 
 	/*

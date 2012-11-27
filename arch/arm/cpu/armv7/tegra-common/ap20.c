@@ -482,7 +482,7 @@ static void set_cpu_running(int run)
 {
 	struct flow_ctlr *flow = (struct flow_ctlr *)NV_PA_FLOW_BASE;
 
-	writel(run ? FLOW_MODE_NONE : FLOW_MODE_STOP, &flow->halt_cpu_events);
+	writel(run ? (FLOW_MODE_NONE << 29) : (FLOW_MODE_STOP << 29), &flow->halt_cpu_events);
 }
 
 void start_cpu(enum tegra_family_t family, u32 reset_vector)

@@ -171,7 +171,7 @@ static void adjust_pllp_out_freqs(void)
 	writel(reg, &pll->pll_out_b);
 }
 
-static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
+static int pllx_set_rate(struct clk_pll_simple *pll , u32 divn, u32 divm, u32 divp,
 			 u32 cpcon)
 {
 	u32 reg;
@@ -198,13 +198,10 @@ static int pllx_set_rate(struct clk_pll *pll , u32 divn, u32 divm, u32 divp,
 	return 0;
 }
 
-/* U-Boot treats all errors as warnings,  &clkrst->crc_pll[CLOCK_ID_XCPU] uses
-   a subscript out of range. The pragma disables the warning */
-#pragma GCC diagnostic warning "-Warray-bounds"
 void ap20_init_pllx(int slow)
 {
 	struct clk_rst_ctlr *clkrst = (struct clk_rst_ctlr *)NV_PA_CLK_RST_BASE;
-	struct clk_pll *pll = &clkrst->crc_pll[CLOCK_ID_XCPU];
+	struct clk_pll_simple *pll = &clkrst->crc_pll_simple[CLOCK_ID_XCPU - CLOCK_ID_FIRST_SIMPLE];
 	int chip_type;
 	enum clock_osc_freq osc;
 	struct clk_pll_table *sel;

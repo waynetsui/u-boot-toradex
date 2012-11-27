@@ -133,10 +133,17 @@ void reset_set_enable(enum periph_id periph_id, int enable);
 /* CLK_RST_CONTROLLER_RST_CPU_CMPLX_SET/CLR_0 */
 enum crc_reset_id {
 	/* Things we can hold in reset for each CPU */
-	crc_rst_cpu = 1,
-	crc_rst_de = 1 << 2,	/* What is de? */
-	crc_rst_watchdog = 1 << 3,
-	crc_rst_debug = 1 << 4,
+    /* Bitpositions for CPU 0 */
+    /* TRM T20 V08, 5.4.106 , for CPU 1 shift left by 1 */
+    /* TRM T30 V02, 6.5.103 , for CPU 1..3 shift left by 1..3 */
+	crc_rst_cpu = 1, /* nCPURESET */
+	crc_rst_de = 1 << 4,	/* What is de? */ /* nDERESET = renamed to nNEONRESET DDI0388E*/
+	crc_rst_watchdog = 1 << 8, /* nWDRESET */
+	crc_rst_debug = 1 << 12, /* nDBGRESET */
+	/* flags not specific to CPUs but to the CPU complex */
+	crc_rst_periph = 1 << 28, /* nPERIPHRESET to the CPU's interrupt/timer */
+	crc_rst_scu = 1 << 29, /*nSCURESET to the SCU */
+	crc_rst_presetdbg = 1 << 30, /* nPRESETDBG to the coresight */
 };
 
 /**

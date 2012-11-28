@@ -689,47 +689,41 @@ static void board_voltage_init(void)
 
 	i2c_set_bus_num(0);		/* PMU is on bus 0 */
 
-	//switch v-ddr ram to 1.35V
-	data_buffer[0] = 0x3f;
-	reg = 0x25;
-
-	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
-			udelay(100);
-	}
-
 	//switch v-core to 1.2V
-	data_buffer[0] = VDD_CORE_NOMINAL_T30; 
-	reg = PMU_CORE_VOLTAGE_START_REG;
-
-	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (i2c_write(PMU_CORE_I2C_ADDRESS, reg, 1, data_buffer, 1))
-			udelay(100);
-	}
 	data_buffer[0] = VDD_CORE_NOMINAL_T30; 
 	reg = PMU_CORE_VOLTAGE_DVFS_REG;
 	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (i2c_write(PMU_CORE_I2C_ADDRESS, reg, 1, data_buffer, 1))
-			udelay(100);
+		if (!i2c_write(PMU_CORE_I2C_ADDRESS, reg, 1, data_buffer, 1))
+			break;
+		udelay(100);
 	}
 
 #ifndef CONFIG_HW_WATCHDOG
-	//disable watchdog
-	data_buffer[0] = 0x10; /* kick the dog once before disabling it or disabling will fail */
-	reg = 0x54;
-	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
-			udelay(100);
-	}
-
-	data_buffer[0] = 0xf0; /* at least one of the reserved bits must be '1' or disabling will fail  */
+	//disable watchdog if enabled
 	reg = 0x69;
 	for (i = 0; i < MAX_I2C_RETRY; ++i) {
-		if (i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
-			udelay(100);
+		if (!i2c_read(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
+			break;
+		udelay(100);
 	}
-#endif
-#endif
+	if(data_buffer[0] & 0x7) {
+		data_buffer[0] = 0x10; /* kick the dog once before disabling it or disabling will fail */
+		reg = 0x54;
+		for (i = 0; i < MAX_I2C_RETRY; ++i) {
+			if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
+				break;
+			udelay(100);
+		}
+		data_buffer[0] = 0xf0; /* at least one of the reserved bits must be '1' or disabling will fail  */
+		reg = 0x69;
+		for (i = 0; i < MAX_I2C_RETRY; ++i) {
+			if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
+				break;
+			udelay(100);
+		}
+	}
+#endif // CONFIG_HW_WATCHDOG
+#endif // CONFIG_TEGRA3
 }
 
 #ifdef CONFIG_REVISION_TAG

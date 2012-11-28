@@ -628,6 +628,7 @@ int board_late_init(void)
 
 	/* Default memory arguments */
 	if (!getenv("memargs")) {
+#ifndef CONFIG_TEGRA3
 		if (gd->ram_size == 0x10000000) {
 			/* 256 MB */
 			setenv("memargs", "mem=148M@0M fbmem=12M@148M nvmem=96M@160M");
@@ -635,6 +636,7 @@ int board_late_init(void)
 			/* 512 MB */
 			setenv("memargs", "mem=372M@0M fbmem=12M@372M nvmem=128M@384M");
 		}
+#endif /* !CONFIG_TEGRA3 */
 	}
 
 #endif /* CONFIG_TRDX_CFG_BLOCK */

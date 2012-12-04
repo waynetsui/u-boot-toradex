@@ -5,7 +5,7 @@
 
 / {
 	model = "Toradex Colibri T20";
-	compatible = "toradex,t20", "nvidia,tegra250";
+	compatible = "toradex,colibri_t20", "nvidia,tegra20";
 
 	config {
 		machine-arch-id = <3323>;

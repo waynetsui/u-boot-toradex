@@ -5,7 +5,7 @@
 
 / {
 	model = "Toradex Colibri T30";
-	compatible = "toradex,t30", "nvidia,tegra30";
+	compatible = "toradex,colibri_t30", "nvidia,tegra30";
 
 	config {
 		silent_console = <0>;

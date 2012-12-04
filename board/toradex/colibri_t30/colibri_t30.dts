@@ -111,8 +111,6 @@
 		status = "ok";
 		utmi = <&usbphya>;
 		host-mode = <0>;
-		vbus-gpio = <&gpio 234 3>;		/* PDD2, LAN_V_BUS */
-		vbus_pullup-gpio = <&gpio 232 3>;	/* PDD0, LAN_RESET_N */
 	};
 
 	usbphyb: usbphy@0 {

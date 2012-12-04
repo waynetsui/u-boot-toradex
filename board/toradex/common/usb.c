@@ -39,6 +39,19 @@
 #define CLK_RST_CONTROLLER_CLK_OUT_ENB_U_0	0x18
 #define CLK_RST_CONTROLLER_PLLP_OUTB_0		0xA8
 
+/* ASIX AX88772B Ethernet LAN GPIOs */
+#if !defined(CONFIG_TEGRA3)
+#define LAN_V_BUS GPIO_PBB1
+#define LAN_RESET GPIO_PV4
+#define LAN_V_BUS_PINGRP PINGRP_DTE
+#define LAN_RESET_PINGRP PINGRP_GPV
+#else
+#define LAN_V_BUS GPIO_PDD2
+#define LAN_RESET GPIO_PDD0
+#define LAN_V_BUS_PINGRP PINGRP_PEX_L0_CLKREQ_N
+#define LAN_RESET_PINGRP PINGRP_PEX_L0_PRSNT_N
+#endif
+
 enum {
 	USB_PORTS_MAX	= 4,			/* Maximum ports we allow */
 };
@@ -205,22 +218,6 @@ void usbf_reset_controller(enum periph_id id, struct usb_ctlr *usbctlr)
 *((uint *) (NV_PA_CLK_RST_BASE + CLK_RST_CONTROLLER_PLLP_OUTB_0)) = reg;
 
 		ulpi_phy_power_on();
-
-		/* Fix Ethernet detection faults */
-		udelay(100 * 1000);
-
-		/* Enable ASIX AX88772B V_BUS */
-		gpio_direction_output(GPIO_PBB1, 1);
-		pinmux_tristate_disable(PINGRP_DTE);
-
-		/* Reset */
-		gpio_direction_output(GPIO_PV4, 0);
-		pinmux_tristate_disable(PINGRP_GPV);
-
-		udelay(5);
-
-		/* Unreset */
-		gpio_set_value(GPIO_PV4, 1);
 	}
 
 	/*
@@ -251,6 +248,24 @@ void usbf_reset_controller(enum periph_id id, struct usb_ctlr *usbctlr)
 	 * TODO: where do we take the USB1 out of reset? The old code would
 	 * take USB3 out of reset, but not USB1. This code doesn't do either.
 	 */
+
+	if (id == PERIPH_ID_USB2) {
+		/* Fix Ethernet detection faults */
+		udelay(100 * 1000);
+
+		/* Enable ASIX AX88772B V_BUS */
+		gpio_direction_output(LAN_V_BUS, 1);
+		pinmux_tristate_disable(LAN_V_BUS_PINGRP);
+
+		/* Reset */
+		gpio_direction_output(LAN_RESET, 0);
+		pinmux_tristate_disable(LAN_RESET_PINGRP);
+
+		udelay(5);
+
+		/* Unreset */
+		gpio_set_value(LAN_RESET, 1);
+	}
 }
 
 /* set up the USB controller with the parameters provided */

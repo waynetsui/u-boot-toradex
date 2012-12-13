@@ -66,10 +66,17 @@
 		frame-buffer_256 = <0x09400000>; /* 256M -  96M - 12M */
 
 		pixel_clock = <25175000>;
-
-		/* Timing: ref_to_sync, sync_width. back_porch, front_porch */
+		/* Timing: ref_to_sync, sync_width, back_porch, front_porch */
 		horiz_timing = <0 96 48 16>;
 		vert_timing = <1 2 31 11>;
+
+		/* 800x480@60 (e.g. EDT ET070080DH6)
+		pixel_clock = <32460000>;
+		width = <800>;
+		height = <480>;		 
+		horiz_timing = <1 64 128 64>;
+		vert_timing = <1 3 22 20>;
+		*/
 
 		/* 1024x768 timings
 		pixel_clock = <72000000>;

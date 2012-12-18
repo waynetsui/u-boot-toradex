@@ -167,7 +167,7 @@ ARFLAGS = crv
 endif
 RELFLAGS= $(PLATFORM_RELFLAGS)
 DBGFLAGS= -g # -DDEBUG
-OPTFLAGS= -Os #-fomit-frame-pointer
+OPTFLAGS= -O2 #-fomit-frame-pointer
 
 ifdef VBOOT_DEBUG
 DBGFLAGS += -DVBOOT_DEBUG

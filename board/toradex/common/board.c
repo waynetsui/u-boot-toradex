@@ -22,53 +22,60 @@
  */
 
 #include <common.h> /* do not change order of include file */
-#include <malloc.h>
-#include <nand.h>
-#include <ns16550.h>
-#include <watchdog.h>
-#include <asm/clocks.h>
-#include <asm/io.h>
 
+#include <asm/arch/clock.h>
+#ifdef CONFIG_TEGRA2
+#include <asm/arch/emc.h>
+#include <asm/arch/gpio.h>
+#endif /* CONFIG_TEGRA2 */
+#include <asm/arch/pinmux.h>
+#ifdef CONFIG_TEGRA3
+#include <asm/arch/pmu_core.h>
+#include <asm/arch/pmu.h>
+#endif /* CONFIG_TEGRA3 */
+#ifdef CONFIG_TEGRA_MMC
+#include <asm/arch/pmu.h>
+#endif
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/tegra.h>
+#ifdef CONFIG_USB_EHCI_TEGRA
+#include <asm/arch/usb.h>
+#endif
 #include <asm/arch-tegra/bitfield.h>
 #include <asm/arch-tegra/clk_rst.h>
 #include <asm/arch-tegra/pmc.h>
 #include <asm/arch-tegra/uart.h>
 #include <asm/arch-tegra/warmboot.h>
-#include <asm/arch/clock.h>
-#ifdef CONFIG_TEGRA2
-#include <asm/arch/emc.h>
-#include <asm/arch/gpio.h>
-#endif
-#include <asm/arch/pinmux.h>
-#ifdef CONFIG_TEGRA3
-#include <asm/arch/pmu.h>
-#include <asm/arch/pmu_core.h>
-#endif
-#include <asm/arch/sys_proto.h>
-#ifdef CONFIG_USB_EHCI_TEGRA
-#include <asm/arch/usb.h>
-#endif
-#include <asm/arch/tegra.h>
+#include <asm/clocks.h>
+#include <asm/io.h>
 
+#include <fdt_decode.h>
 #ifdef CONFIG_TEGRA_I2C
 #include <i2c.h>
 #endif
-
-#include "board.h"
-#include "../../nvidia/common/pmu.h"
-
+#include <libfdt.h>
+#include <malloc.h>
 #ifdef CONFIG_TEGRA_MMC
-#include <asm/arch/pmu.h>
 #include <mmc.h>
 #endif
+#include <nand.h>
+#include <ns16550.h>
+#include <watchdog.h>
 
-#include <fdt_decode.h>
-#include <libfdt.h>
-
+#ifdef CONFIG_TEGRA3
+#include "../colibri_t30/pinmux-config-common.h"
+#endif
+#include "../../nvidia/common/pmu.h"
+#include "board.h"
 #include "tegra2_partitions.h"
 
-DECLARE_GLOBAL_DATA_PTR;
+#if defined(CONFIG_TEGRA_CLOCK_SCALING) && !defined(CONFIG_TEGRA_I2C)
+#error "tegra: We need CONFIG_TEGRA_I2C to support CONFIG_TEGRA_CLOCK_SCALING"
+#endif
 
+#if defined(CONFIG_TEGRA_CLOCK_SCALING) && !defined(CONFIG_TEGRA_PMU)
+#error "tegra: We need CONFIG_TEGRA_PMU to support CONFIG_TEGRA_CLOCK_SCALING"
+#endif
 
 #define NV_ADDRESS_MAP_FUSE_BASE 0x7000f800
 // Register FUSE_BOOT_DEVICE_INFO_0
@@ -82,6 +89,14 @@ DECLARE_GLOBAL_DATA_PTR;
 
 // Register APB_MISC_PP_STRAPPING_OPT_A_0
 #define APB_MISC_PP_STRAPPING_OPT_A_0                   0x8
+
+enum {
+	/* UARTs which we can enable */
+	UARTA		= 1 << 0,
+	UARTB		= 1 << 1,
+	UARTD		= 1 << 3,
+	UART_ALL	= 0xf
+};
 
 typedef enum
 {
@@ -98,6 +113,7 @@ typedef enum
     NvBootFuseBootDevice_Max, /* Must appear after the last legal item */
     NvBootFuseBootDevice_Force32 = 0x7fffffff
 } NvBootFuseBootDevice;
+
 typedef enum
 {
     NvStrapDevSel_Emmc_Primary_x4 = 0, /* eMMC primary (x4)          */
@@ -121,6 +137,7 @@ typedef enum
     NvStrapDevSel_Num, /* Must appear after the last legal item */
     NvStrapDevSel_Force32 = 0x7fffffff
 } NvStrapDevSel;
+
 typedef enum
 {
     Trdx_BootDevice_NandFlash,
@@ -130,6 +147,7 @@ typedef enum
     Trdx_BootDevice_Max, /* Must appear after the last legal item */
     Trdx_BootDevice_Force32 = 0x7fffffff
 } TrdxBootDevice;
+
 const char* sTrdxBootDeviceStr[] =
 {
 	"Trdx_BootDevice_NandFlash",
@@ -138,15 +156,75 @@ const char* sTrdxBootDeviceStr[] =
 	"Trdx_BootDevice_Unknown"
 };
 
+DECLARE_GLOBAL_DATA_PTR;
 
-
-#if defined(CONFIG_TEGRA_CLOCK_SCALING) && !defined(CONFIG_TEGRA_I2C)
-#error "tegra: We need CONFIG_TEGRA_I2C to support CONFIG_TEGRA_CLOCK_SCALING"
+#if defined(BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
+		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
+static unsigned char *config_block = NULL;
 #endif
 
-#if defined(CONFIG_TEGRA_CLOCK_SCALING) && !defined(CONFIG_TEGRA_PMU)
-#error "tegra: We need CONFIG_TEGRA_PMU to support CONFIG_TEGRA_CLOCK_SCALING"
+#ifdef CONFIG_HW_WATCHDOG
+static int i2c_is_initialized = 0;
 #endif
+
+/*
+ * Possible UART locations: we ignore UARTC at 0x70006200 and UARTE at
+ * 0x70006400, since we don't have code to init them
+ */
+static u32 uart_reg_addr[] = {
+	NV_PA_APB_UARTA_BASE,
+	NV_PA_APB_UARTB_BASE,
+	NV_PA_APB_UARTD_BASE,
+	0
+};
+
+static void board_voltage_init(void);
+#ifdef CONFIG_TEGRA3
+static void clock_init_misc(void);
+static void enable_clock(enum periph_id pid, int src);
+#endif /* CONFIG_TEGRA3 */
+static void enable_uart(enum periph_id pid);
+static void init_uarts(const void *blob);
+#ifdef CONFIG_TEGRA_MMC
+static void pin_mux_mmc(void);
+#endif
+static void pin_mux_uart(int uart_ids);
+#ifdef CONFIG_TEGRA3
+static void pinmux_init(void);
+#endif
+static void power_det_init(void);
+static void send_output_with_pllp(ulong pllp_rate, const char *str);
+
+#ifdef CONFIG_BOARD_EARLY_INIT_F
+int board_early_init_f(void)
+{
+	ulong pllp_rate = 216000000;	/* default PLLP clock rate */
+
+	/* Initialize essential common plls */
+	pllp_rate = fdt_decode_clock_rate(gd->blob, "pllp", pllp_rate);
+	clock_early_init(pllp_rate);
+
+#ifdef CONFIG_TEGRA3
+	pinmux_init();
+#endif
+
+#ifndef CONFIG_DELAY_CONSOLE
+	init_uarts(gd->blob);
+#endif
+
+#ifdef CONFIG_TEGRA3
+	/* Initialize misc clocks for kernel booting */
+	clock_init_misc();
+#endif
+
+#ifdef CONFIG_VIDEO_TEGRA
+	/* Get LCD panel size */
+	lcd_early_init(gd->blob);
+#endif
+
+	return 0;
+}
+#endif /* CONFIG_BOARD_EARLY_INIT_F */
 
 #define GENERATE_FUSE_DEV_INFO 0
 static TrdxBootDevice board_get_current_bootdev(void)
@@ -155,14 +233,14 @@ static TrdxBootDevice board_get_current_bootdev(void)
 #if GENERATE_FUSE_DEV_INFO	
 	unsigned reg1 = 0;
 	unsigned reg2;
-#endif
+#endif /* GENERATE_FUSE_DEV_INFO */
 	unsigned strap_select;
 	unsigned skip_strap;
 	unsigned fuse_select;
 #if GENERATE_FUSE_DEV_INFO
 	unsigned fuse_device_info;
 	unsigned sdmmc_instance;
-#endif
+#endif /* GENERATE_FUSE_DEV_INFO */
 	TrdxBootDevice boot_device;
 
 	//get the latched strap pins, bit [26:29]
@@ -175,7 +253,6 @@ static TrdxBootDevice board_get_current_bootdev(void)
 
 #if 0 //Max: this does not work, there is more to read fuses than that
 	//check if we can access BIT /tegra/core/include/nvbit.h et.al.
-
 
 	clock_enable(PERIPH_ID_FUSE);
 	//make fuses visible
@@ -199,10 +276,10 @@ static TrdxBootDevice board_get_current_bootdev(void)
 #ifdef CONFIG_TEGRA3
 	//simulate a T30 fuse setting
 	reg = NvBootFuseBootDevice_Sdmmc;
-#else
+#else /* CONFIG_TEGRA3 */
 	//simulate a T20 fuse setting
 	reg = NvBootFuseBootDevice_NandFlash;
-#endif
+#endif /* CONFIG_TEGRA3 */
 #endif
 	//get the fuse 'SKIP_DEV_SEL_STRAPS', bit 3
 	skip_strap = (reg & 8)>>3;
@@ -216,7 +293,7 @@ static TrdxBootDevice board_get_current_bootdev(void)
 #if GENERATE_FUSE_DEV_INFO
 		fuse_device_info = reg1 & 0x3fff;
 		sdmmc_instance = ((reg1 & 0x80)==0x80) ? 2 : 3;
-#endif
+#endif /* GENERATE_FUSE_DEV_INFO */
 		switch(fuse_select)
 		{
 		case NvBootFuseBootDevice_Sdmmc:
@@ -262,195 +339,6 @@ static TrdxBootDevice board_get_current_bootdev(void)
 	return boot_device;
 }
 
-static void board_voltage_init(void);
-
-enum {
-	/* UARTs which we can enable */
-	UARTA	= 1 << 0,
-	UARTB	= 1 << 1,
-	UARTD	= 1 << 3,
-	UART_ALL	= 0xf
-};
-
-#if defined(BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
-		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
-static unsigned char *config_block = NULL;
-#endif
-
-#ifdef CONFIG_HW_WATCHDOG
-static int i2c_is_initialized = 0;
-#endif
-
-/*
- * Routine: timer_init
- * Description: init the timestamp and lastinc value
- */
-int timer_init(void)
-{
-	reset_timer();
-	return 0;
-}
-
-static void enable_uart(enum periph_id pid)
-{
-	/* Assert UART reset and enable clock */
-	reset_set_enable(pid, 1);
-	clock_enable(pid);
-	clock_ll_set_source(pid, 0);	/* UARTx_CLK_SRC = 00, PLLP_OUT0 */
-
-	/* wait for 2us */
-	udelay(2);
-
-	/* De-assert reset to UART */
-	reset_set_enable(pid, 0);
-}
-
-/*
- * Routine: clock_init_uart
- * Description: init clock for the UART(s)
- */
-static void clock_init_uart(int uart_ids)
-{
-	if (uart_ids & UARTA)
-		enable_uart(PERIPH_ID_UART1);
-	if (uart_ids & UARTB)
-		enable_uart(PERIPH_ID_UART2);
-	if (uart_ids & UARTD)
-		enable_uart(PERIPH_ID_UART4);
-}
-
-/*
- * Routine: pin_mux_uart
- * Description: setup the pin muxes/tristate values for the UART(s)
- */
-static void pin_mux_uart(int uart_ids)
-{
-#if defined(CONFIG_TEGRA2)
-	if (uart_ids & UARTA) {
-		/* Disable UART1 where primary function */
-		pinmux_tristate_enable(PINGRP_IRRX);
-		pinmux_tristate_enable(PINGRP_IRTX);
-		pinmux_set_func(PINGRP_IRRX, PMUX_FUNC_GMI);
-		pinmux_set_func(PINGRP_IRTX, PMUX_FUNC_GMI);
-		pinmux_tristate_enable(PINGRP_SDB);
-		pinmux_tristate_enable(PINGRP_SDD);
-		pinmux_set_func(PINGRP_SDB, PMUX_FUNC_PWM);
-		pinmux_set_func(PINGRP_SDD, PMUX_FUNC_PWM);
-
-		pinmux_set_func(PINGRP_SDMMC1, PMUX_FUNC_UARTA);
-		pinmux_tristate_disable(PINGRP_SDMMC1);
-	}
-	if (uart_ids & UARTB) {
-		pinmux_set_func(PINGRP_UAD, PMUX_FUNC_IRDA);
-		pinmux_tristate_disable(PINGRP_UAD);
-	}
-	if (uart_ids & UARTD) {
-		pinmux_set_func(PINGRP_GMC, PMUX_FUNC_UARTD);
-		pinmux_tristate_disable(PINGRP_GMC);
-	}
-#endif	/* CONFIG_TEGRA2 */
-}
-
-#ifdef CONFIG_TEGRA_MMC
-/*
- * Routine: pin_mux_mmc
- * Description: setup the pin muxes/tristate values for the SDMMC(s)
- */
-static void pin_mux_mmc(void)
-{
-#ifdef CONFIG_TEGRA2
-	/* SDMMC4: config 3, x4 on 2nd set of pins */
-	pinmux_set_func(PINGRP_ATB, PMUX_FUNC_SDIO4);
-	pinmux_set_func(PINGRP_GMA, PMUX_FUNC_SDIO4);
-
-	pinmux_tristate_disable(PINGRP_ATB);
-	pinmux_tristate_disable(PINGRP_GMA);
-#endif
-}
-#endif
-
-#ifdef CONFIG_TEGRA3
-#include "../colibri_t30/pinmux-config-common.h"
-#endif
-
-/*
- * Routine: pinmux_init
- * Description: Do individual peripheral pinmux configs
- */
-#if defined(CONFIG_TEGRA3)
-static void pinmux_init(void)
-{
-	pinmux_config_table(tegra3_pinmux_common,
-				ARRAY_SIZE(tegra3_pinmux_common));
-
-	pinmux_config_table(unused_pins_lowpower,
-				ARRAY_SIZE(unused_pins_lowpower));
-}
-#endif
-
-static void init_uarts(const void *blob)
-{
-	int uart_ids = 0;	/* bit mask of which UART ids to enable */
-	struct fdt_uart uart;
-
-	if (!fdt_decode_uart_console(blob, &uart, gd->baudrate))
-		uart_ids = 1 << uart.id;
-
-	/* Initialize UART clocks */
-	clock_init_uart(uart_ids);
-
-	/* Initialize periph pinmuxes */
-#if defined(CONFIG_TEGRA2)
-	pin_mux_uart(uart_ids);
-#endif
-}
-
-/*
- * Routine: power_det_init
- * Description: turn off power detects
- */
-static void power_det_init(void)
-{
-#if defined(CONFIG_TEGRA2)
-	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
-
-	/* turn off power detects */
-	writel(0, &pmc->pmc_pwr_det_latch);
-	writel(0, &pmc->pmc_pwr_det);
-#endif
-}
-
-#if defined(CONFIG_TEGRA3)
-static void enable_clock(enum periph_id pid, int src)
-{
-	/* Assert reset and enable clock */
-	reset_set_enable(pid, 1);
-	clock_enable(pid);
-
-	/* Use 'src' if provided, else use default */
-	if (src != -1)
-		clock_ll_set_source(pid, src);
-
-	/* wait for 2us */
-	udelay(2);
-
-	/* De-assert reset */
-	reset_set_enable(pid, 0);
-}
-
-/* Init misc clocks for kernel booting */
-static void clock_init_misc(void)
-{
-	/* 0 = PLLA_OUT0, -1 = CLK_M (default) */
-	enable_clock(PERIPH_ID_I2S0, -1);
-	enable_clock(PERIPH_ID_I2S1, 0);
-	enable_clock(PERIPH_ID_I2S2, 0);
-	enable_clock(PERIPH_ID_I2S3, 0);
-	enable_clock(PERIPH_ID_I2S4, -1);
-	enable_clock(PERIPH_ID_SPDIF, -1);
-}
-#endif
-
 /*
  * Routine: board_init
  * Description: Early hardware init.
@@ -486,7 +374,7 @@ int board_init(void)
 #ifdef CONFIG_TEGRA_CLOCK_SCALING
 	pmu_set_nominal();
 	arch_full_speed();
-#endif
+#endif /* CONFIG_TEGRA_CLOCK_SCALING */
 
 	/* board id for Linux */
 	gd->bd->bi_arch_number = fdt_decode_get_machine_arch_id(gd->blob);
@@ -507,44 +395,13 @@ int board_init(void)
 	/* prepare the WB code to LP0 location */
 //ToDo: determine LP0 address dynamically
 	warmboot_prepare_code(TEGRA_LP0_ADDR, TEGRA_LP0_SIZE);
-#endif
+#endif /* CONFIG_TEGRA_LP0 */
 
 	/* boot param addr */
 	gd->bd->bi_boot_params = (NV_PA_SDRAM_BASE + 0x100);
 
 	return 0;
 }
-
-#ifdef CONFIG_BOARD_EARLY_INIT_F
-int board_early_init_f(void)
-{
-	ulong pllp_rate = 216000000;	/* default PLLP clock rate */
-
-	/* Initialize essential common plls */
-	pllp_rate = fdt_decode_clock_rate(gd->blob, "pllp", pllp_rate);
-	clock_early_init(pllp_rate);
-
-#ifdef CONFIG_TEGRA3
-	pinmux_init();
-#endif
-
-#ifndef CONFIG_DELAY_CONSOLE
-	init_uarts(gd->blob);
-#endif
-
-#if defined(CONFIG_TEGRA3)
-	/* Initialize misc clocks for kernel booting */
-	clock_init_misc();
-#endif
-
-#ifdef CONFIG_VIDEO_TEGRA
-	/* Get LCD panel size */
-	lcd_early_init(gd->blob);
-#endif
-
-	return 0;
-}
-#endif	/* EARLY_INIT */
 
 #ifdef BOARD_LATE_INIT
 int board_late_init(void)
@@ -675,7 +532,20 @@ int board_mmc_init(bd_t *bd)
 
 	return 0;
 }
-#endif
+#endif /* CONFIG_TEGRA_MMC */
+
+/*
+ * This is called when we have no console. About the only reason that this
+ * happen is if we don't have a valid fdt. So we don't know what kind of
+ * Tegra board we are. We blindly try to print a message every which way we
+ * know.
+ */
+void board_panic_no_console(const char *str)
+{
+	/* We don't know what PLLP to use, so try both */
+	send_output_with_pllp(216000000, str);
+	send_output_with_pllp(408000000, str);
+}
 
 /*
  * MK: Do I2C/PMU writes to set nominal voltages for Colibri_T30
@@ -683,7 +553,7 @@ int board_mmc_init(bd_t *bd)
  */
 static void board_voltage_init(void)
 {
-#if defined(CONFIG_TEGRA3)
+#ifdef CONFIG_TEGRA3
 	uchar reg, data_buffer[1];
 	int i;
 
@@ -722,8 +592,69 @@ static void board_voltage_init(void)
 			udelay(100);
 		}
 	}
-#endif // CONFIG_HW_WATCHDOG
-#endif // CONFIG_TEGRA3
+#endif /* CONFIG_HW_WATCHDOG */
+#endif /* CONFIG_TEGRA3 */
+}
+
+#ifdef CONFIG_TEGRA3
+/* Init misc clocks for kernel booting */
+static void clock_init_misc(void)
+{
+	/* 0 = PLLA_OUT0, -1 = CLK_M (default) */
+	enable_clock(PERIPH_ID_I2S0, -1);
+	enable_clock(PERIPH_ID_I2S1, 0);
+	enable_clock(PERIPH_ID_I2S2, 0);
+	enable_clock(PERIPH_ID_I2S3, 0);
+	enable_clock(PERIPH_ID_I2S4, -1);
+	enable_clock(PERIPH_ID_SPDIF, -1);
+}
+#endif /* CONFIG_TEGRA3 */
+
+/*
+ * Routine: clock_init_uart
+ * Description: init clock for the UART(s)
+ */
+static void clock_init_uart(int uart_ids)
+{
+	if (uart_ids & UARTA)
+		enable_uart(PERIPH_ID_UART1);
+	if (uart_ids & UARTB)
+		enable_uart(PERIPH_ID_UART2);
+	if (uart_ids & UARTD)
+		enable_uart(PERIPH_ID_UART4);
+}
+
+#ifdef CONFIG_TEGRA3
+static void enable_clock(enum periph_id pid, int src)
+{
+	/* Assert reset and enable clock */
+	reset_set_enable(pid, 1);
+	clock_enable(pid);
+
+	/* Use 'src' if provided, else use default */
+	if (src != -1)
+		clock_ll_set_source(pid, src);
+
+	/* wait for 2us */
+	udelay(2);
+
+	/* De-assert reset */
+	reset_set_enable(pid, 0);
+}
+#endif /* CONFIG_TEGRA3 */
+
+static void enable_uart(enum periph_id pid)
+{
+	/* Assert UART reset and enable clock */
+	reset_set_enable(pid, 1);
+	clock_enable(pid);
+	clock_ll_set_source(pid, 0);	/* UARTx_CLK_SRC = 00, PLLP_OUT0 */
+
+	/* wait for 2us */
+	udelay(2);
+
+	/* De-assert reset to UART */
+	reset_set_enable(pid, 0);
 }
 
 #ifdef CONFIG_REVISION_TAG
@@ -805,17 +736,6 @@ void get_board_serial(struct tag_serialnr *serialnr)
 }
 #endif /* CONFIG_SERIAL_TAG */
 
-/*
- * Possible UART locations: we ignore UARTC at 0x70006200 and UARTE at
- * 0x70006400, since we don't have code to init them
- */
-static u32 uart_reg_addr[] = {
-	NV_PA_APB_UARTA_BASE,
-	NV_PA_APB_UARTB_BASE,
-	NV_PA_APB_UARTD_BASE,
-	0
-};
-
 #ifdef CONFIG_HW_WATCHDOG
 /*
  * kick watchdog in PMU 
@@ -823,7 +743,7 @@ static u32 uart_reg_addr[] = {
  */
 extern void hw_watchdog_reset(void)
 {
-#if defined(CONFIG_TEGRA3)
+#ifdef CONFIG_TEGRA3
 	uchar reg, data_buffer[1];
 	static unsigned long last_kick = 0;
 	unsigned long now;
@@ -839,9 +759,106 @@ extern void hw_watchdog_reset(void)
 		reg = 0x54;
 		i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1);
 	}
+#endif /* CONFIG_TEGRA3 */
+}
+#endif /* CONFIG_HW_WATCHDOG */
+
+static void init_uarts(const void *blob)
+{
+	int uart_ids = 0;	/* bit mask of which UART ids to enable */
+	struct fdt_uart uart;
+
+	if (!fdt_decode_uart_console(blob, &uart, gd->baudrate))
+		uart_ids = 1 << uart.id;
+
+	/* Initialize UART clocks */
+	clock_init_uart(uart_ids);
+
+	/* Initialize periph pinmuxes */
+#ifdef CONFIG_TEGRA2
+	pin_mux_uart(uart_ids);
 #endif
 }
-#endif
+
+#ifdef CONFIG_TEGRA_MMC
+/*
+ * Routine: pin_mux_mmc
+ * Description: setup the pin muxes/tristate values for the SDMMC(s)
+ */
+static void pin_mux_mmc(void)
+{
+#ifdef CONFIG_TEGRA2
+	/* SDMMC4: config 3, x4 on 2nd set of pins */
+	pinmux_set_func(PINGRP_ATB, PMUX_FUNC_SDIO4);
+	pinmux_set_func(PINGRP_GMA, PMUX_FUNC_SDIO4);
+
+	pinmux_tristate_disable(PINGRP_ATB);
+	pinmux_tristate_disable(PINGRP_GMA);
+#endif /* CONFIG_TEGRA2 */
+}
+#endif /* CONFIG_TEGRA_MMC */
+
+/*
+ * Routine: pin_mux_uart
+ * Description: setup the pin muxes/tristate values for the UART(s)
+ */
+static void pin_mux_uart(int uart_ids)
+{
+#ifdef CONFIG_TEGRA2
+	if (uart_ids & UARTA) {
+		/* Disable UART1 where primary function */
+		pinmux_tristate_enable(PINGRP_IRRX);
+		pinmux_tristate_enable(PINGRP_IRTX);
+		pinmux_set_func(PINGRP_IRRX, PMUX_FUNC_GMI);
+		pinmux_set_func(PINGRP_IRTX, PMUX_FUNC_GMI);
+		pinmux_tristate_enable(PINGRP_SDB);
+		pinmux_tristate_enable(PINGRP_SDD);
+		pinmux_set_func(PINGRP_SDB, PMUX_FUNC_PWM);
+		pinmux_set_func(PINGRP_SDD, PMUX_FUNC_PWM);
+
+		pinmux_set_func(PINGRP_SDMMC1, PMUX_FUNC_UARTA);
+		pinmux_tristate_disable(PINGRP_SDMMC1);
+	}
+	if (uart_ids & UARTB) {
+		pinmux_set_func(PINGRP_UAD, PMUX_FUNC_IRDA);
+		pinmux_tristate_disable(PINGRP_UAD);
+	}
+	if (uart_ids & UARTD) {
+		pinmux_set_func(PINGRP_GMC, PMUX_FUNC_UARTD);
+		pinmux_tristate_disable(PINGRP_GMC);
+	}
+#endif	/* CONFIG_TEGRA2 */
+}
+
+/*
+ * Routine: pinmux_init
+ * Description: Do individual peripheral pinmux configs
+ */
+#ifdef CONFIG_TEGRA3
+static void pinmux_init(void)
+{
+	pinmux_config_table(tegra3_pinmux_common,
+				ARRAY_SIZE(tegra3_pinmux_common));
+
+	pinmux_config_table(unused_pins_lowpower,
+				ARRAY_SIZE(unused_pins_lowpower));
+}
+#endif /* CONFIG_TEGRA3 */
+
+/*
+ * Routine: power_det_init
+ * Description: turn off power detects
+ */
+static void power_det_init(void)
+{
+#ifdef CONFIG_TEGRA2
+	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
+
+	/* turn off power detects */
+	writel(0, &pmc->pmc_pwr_det_latch);
+	writel(0, &pmc->pmc_pwr_det);
+#endif /* CONFIG_TEGRA2 */
+}
 
 /**
  * Send out serial output wherever we can.
@@ -892,14 +909,11 @@ static void send_output_with_pllp(ulong pllp_rate, const char *str)
 }
 
 /*
- * This is called when we have no console. About the only reason that this
- * happen is if we don't have a valid fdt. So we don't know what kind of
- * Tegra board we are. We blindly try to print a message every which way we
- * know.
+ * Routine: timer_init
+ * Description: init the timestamp and lastinc value
  */
-void board_panic_no_console(const char *str)
+int timer_init(void)
 {
-	/* We don't know what PLLP to use, so try both */
-	send_output_with_pllp(216000000, str);
-	send_output_with_pllp(408000000, str);
+	reset_timer();
+	return 0;
 }

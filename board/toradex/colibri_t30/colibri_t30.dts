@@ -46,7 +46,7 @@
 		width = <4>;	/* width of SDIO port */
 		removable = <1>;
 		/* Parameter 3 bit 0:1=output, 0=input; bit 1:1=high, 0=low */
-		cd-gpio = <&gpio 166 0>; /* card detect, gpio PU6 */
+		cd-gpio = <&gpio 23 0>; /* card detect, gpio PC7 */
 	};
 
 	/* Internal eMMC - SDMMC4 */

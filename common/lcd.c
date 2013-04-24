@@ -887,6 +887,9 @@ void bitmap_plot (int x, int y)
 
 int lcd_display_bitmap(ulong bmp_image, int x, int y)
 {
+#if defined(CONFIG_OMAP)
+	static ushort cmap_actual[256];
+#endif
 #if !defined(CONFIG_MCC200)
 	ushort *cmap = NULL;
 #endif
@@ -949,6 +952,8 @@ int lcd_display_bitmap(ulong bmp_image, int x, int y)
 		cmap = (ushort *)fbi->palette;
 #elif defined(CONFIG_MPC823)
 		cmap = (ushort *)&(cp->lcd_cmap[255*sizeof(ushort)]);
+#elif defined(CONFIG_OMAP)
+		cmap = cmap_actual;
 #elif !defined(CONFIG_ATMEL_LCD)
 		cmap = panel_info.cmap;
 #endif

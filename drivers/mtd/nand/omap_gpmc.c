@@ -202,7 +202,7 @@ static int omap_correct_data(struct mtd_info *mtd, uint8_t *dat,
 			 */
 			if ((orig_ecc == 0x0FFF0FFF) && (new_ecc == 0x00000000))
 				return 0;
-			printf("Error: Bad compare! failed\n");
+			MTDDEBUG(MTD_DEBUG_LEVEL0, "Error: Bad compare! failed\n");
 			/* detected 2 bit error */
 			return -1;
 		}

@@ -78,12 +78,12 @@ static int switch_ecc_bypart(const char *id)
 		{
 			if(!nand->has_chip_ecc)
 			{
-				printf("NAND Chip doesn't support in-chip ECC\n");
-				return -1;
+				printf("NAND Chip doesn't support in-chip ECC; defauting to HW\n");
+				omap_nand_switch_ecc(OMAP_ECC_HW);
+			} else {
+				if(nand->ecc.mode != NAND_ECC_CHIP)
+					omap_nand_switch_ecc(OMAP_ECC_CHIP);
 			}
-			if(nand->ecc.mode != NAND_ECC_CHIP)
-				omap_nand_switch_ecc(OMAP_ECC_CHIP);
-			printf("Here\n");
 		} else if(flags & (1 << MTDFLAGS_ECC_BCH))
 		{
 			if(nand->ecc.mode != NAND_ECC_SOFT_BCH)

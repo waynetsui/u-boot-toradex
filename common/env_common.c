@@ -217,7 +217,7 @@ int env_import(const char *buf, int check)
 
 	if (check) {
 		if (!env_check_valid(buf)) {
-			set_default_env("!bad CRC");
+			set_default_env("!bad CRC or ECC error");
 			return 0;
 		}
 	}
@@ -249,7 +249,7 @@ void env_relocate (void)
 		set_default_env(NULL);
 #else
 		show_boot_progress (-60);
-		set_default_env("!bad CRC");
+		set_default_env("!bad CRC or ECC error");
 #endif
 	} else {
 		env_relocate_spec ();

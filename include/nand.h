@@ -131,6 +131,11 @@ int nand_get_lock_status(nand_info_t *meminfo, loff_t offset);
 int nand_get_features( nand_info_t *meminfo, uint8_t faddr, uint8_t *features);
 int nand_set_features( nand_info_t *meminfo, uint8_t faddr, uint8_t *features);
 
+#if CONFIG_OMAP3_LOGIC
+/* Function to disable the NAND in-chip ECC (if applicable) */
+void nand_disable_in_chip_ecc(void);
+#endif
+
 #ifdef CONFIG_SYS_NAND_SELECT_DEVICE
 void board_nand_select_device(struct nand_chip *nand, int chip);
 #endif

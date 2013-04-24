@@ -248,7 +248,7 @@ void abort(void)
 /******************************************************************************
  * OMAP3 specific command to switch between NAND HW and SW ecc
  *****************************************************************************/
-static int do_switch_ecc(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+int do_switch_ecc(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	struct mtd_info *mtd;
 	struct nand_chip *nand;
@@ -308,6 +308,42 @@ U_BOOT_CMD(
 	"[hw/sw/chip] - Switch between NAND hardware (hw), software (sw),\n in-chip (chip) ecc algorithm, or BCH (bch) ecc algorithm"
 );
 
+#ifdef CONFIG_CMD_NAND_CHIP_ECC
+int do_switch_chip_ecc(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
+{
+	int set, get, enable;
+
+	if (argc == 1) {
+		get = 1;
+	} else if (argc == 2) {
+		get = 0;
+		if (!strcmp(argv[1], "on"))
+			enable = 1;
+		else if (!strcmp(argv[1], "off"))
+			enable = 0;
+		else
+			goto usage;
+	}
+	set = omap_nand_switch_chip_ecc(get, enable);
+	if (set < 0) {
+		printf("NAND chip does not have internal ECC engine\n");
+		return 1;
+	}
+	if (get)
+		printf("in-chip ECC: %s\n", set?"on":"off");
+	return 0;
+
+	usage:
+	printf ("Usage: nandchip_ecc %s\n", cmdtp->usage);
+	return 1;
+}
+
+U_BOOT_CMD(
+	nandchip_ecc, 2, 1,	do_switch_chip_ecc,
+	"enable/disable Micron in-chip ECC engine",
+	"[on/off] - Enable/disable in-chip ECC engine"
+);
+#endif
 #endif /* CONFIG_NAND_OMAP_GPMC */
 
 #ifdef CONFIG_DISPLAY_BOARDINFO

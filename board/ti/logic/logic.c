@@ -196,6 +196,38 @@ char *get_mtdids_default(void)
 	return omap3logic_mtdids_default;
 }
 
+char *get_mtdflags_default(void)
+{
+#if defined(MTDFLAGS_NAND_DEFAULT) || defined(MTDFLAGS_NOR_DEFAULT)
+	static char str[
+# ifdef MTDFLAGS_NOR_DEFAULT
+	  ARRAY_SIZE(MTDFLAGS_NOR_DEFAULT) +
+# endif
+# ifdef MTDFLAGS_NAND_DEFAULT
+	  ARRAY_SIZE(MTDFLAGS_NAND_DEFAULT) +
+# endif
+	  10] = "";
+
+	if (str[0] == '\0') {
+		str[0] = '\0';
+#ifdef MTDFLAGS_NAND_DEFAULT
+		if (nand_size())
+			strcpy(str, MTDFLAGS_NAND_DEFAULT);
+#endif
+#ifdef MTDFLAGS_NOR_DEFAULT
+		if (omap3logic_nor_exists) {
+			if (strlen(str))
+				strcat(str, ";");
+			strcat(str, MTDFLAGS_NOR_DEFAULT);
+		}
+#endif
+	}
+	return str;
+#else
+	return NULL;
+#endif
+}
+
 /*
  * Touchup the environment, specificaly "defaultecc", the display,
  * and mtdids/mtdparts on default environment
@@ -218,6 +250,7 @@ void touchup_env(int initial_env)
 		/* Need to set mdtids/mtdparts to computed defaults */
 		setenv("mtdparts", get_mtdparts_default());
 		setenv("mtdids", get_mtdids_default());
+		setenv("mtdflags", get_mtdflags_default());
 	}
 }
 
@@ -331,35 +364,6 @@ int board_late_init(void)
 	return 0;
 }
 
-/* Turn on VAUX1 voltage to 3.0 volts to drive level shifters and
- * power 3.0v parts (tsc2004 and Product ID chip) */
-#define I2C_TRITON2 0x4b /* Address of Triton power group */
-
-void init_vaux1_voltage(void)
-{
-#ifdef CONFIG_DRIVER_OMAP34XX_I2C
-	unsigned char data;
-	unsigned short msg;
-
-	/* Select the output voltage */
-	data = 0x04;
-	i2c_write(I2C_TRITON2, 0x72, 1, &data, 1);
-	/* Select the Processor resource group */
-	data = 0x20;
-	i2c_write(I2C_TRITON2, 0x72, 1, &data, 1);
-	/* Enable I2C access to the Power bus */
-	data = 0x02;
-	i2c_write(I2C_TRITON2, 0x4a, 1, &data, 1);
-	/* Send message MSB */
-	msg = (1<<13) | (1<<4) | (0xd<<0); /* group(process_grp1):resource(vaux1):res_active; */
-	data = msg >> 8;
-	i2c_write(I2C_TRITON2, 0x4b, 1, &data, 1);
-	/* Send message LSB */
-	data = msg & 0xff;
-	i2c_write(I2C_TRITON2, 0x4c, 1, &data, 1);
-#endif
-}
-
 /* Mux I2C bus pins appropriately for this board */
 int i2c_mux_bux_pins(int bus)
 {
@@ -410,10 +414,15 @@ static void check_sysconfig_regs(void)
  */
 int misc_init_r(void)
 {
-	/* Turn on vaux1 to make sure voltage is to the product ID chip.
-	 * Extract production data from ID chip, used to selectively
+	/* Turn on VAUX1 voltage to 3.0 volts to drive level shifters and
+	 * power 3.0v parts (tsc2004 and Product ID chip) */
+	twl4030_pmrecv_vsel_cfg(TWL4030_PM_RECEIVER_VAUX1_DEDICATED,
+				TWL4030_PM_RECEIVER_VAUX1_VSEL_30,
+				TWL4030_PM_RECEIVER_VAUX1_DEV_GRP,
+				TWL4030_PM_RECEIVER_DEV_GRP_P1);
+
+	/** Extract production data from ID chip, used to selectively
 	 * initialize portions of the system */
-	init_vaux1_voltage();
 	fetch_production_data();
 
 #if defined(CONFIG_CMD_NET)
@@ -1173,6 +1182,7 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(UART3_RTS_SD),	(IEN  | PTD | EN  | M7)); /*UART3_RTS_SD */
 	MUX_VAL(CP(UART3_RX_IRRX),	(IEN  | PTD | EN  | M7)); /*UART3_RX_IRRX*/
 	MUX_VAL(CP(UART3_TX_IRTX),	(IEN  | PTD | EN  | M7)); /*UART3_TX_IRTX*/
+#if 0
 	MUX_VAL(CP(HSUSB0_CLK),		(IEN  | PTD | EN  | M7)); /*HSUSB0_CLK*/
 	MUX_VAL(CP(HSUSB0_STP),		(IEN  | PTD | EN  | M7)); /*HSUSB0_STP*/
 	MUX_VAL(CP(HSUSB0_DIR),		(IEN  | PTD | EN  | M7)); /*HSUSB0_DIR*/
@@ -1185,6 +1195,7 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(HSUSB0_DATA5),	(IEN  | PTD | EN  | M7)); /*HSUSB0_DATA5*/
 	MUX_VAL(CP(HSUSB0_DATA6),	(IEN  | PTD | EN  | M7)); /*HSUSB0_DATA6*/
 	MUX_VAL(CP(HSUSB0_DATA7),	(IEN  | PTD | EN  | M7)); /*HSUSB0_DATA7*/
+#endif
 #else
 	MUX_VAL(CP(MCBSP4_CLKX),	(IDIS | PTD | DIS | M4)); /*GPIO_152*/
 								 /* - LCD_INI*/
@@ -1207,6 +1218,7 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(UART3_RTS_SD),	(IDIS | PTD | DIS | M0)); /*UART3_RTS_SD */
 	MUX_VAL(CP(UART3_RX_IRRX),	(IEN  | PTD | DIS | M0)); /*UART3_RX_IRRX*/
 	MUX_VAL(CP(UART3_TX_IRTX),	(IDIS | PTD | DIS | M0)); /*UART3_TX_IRTX*/
+#endif
 	MUX_VAL(CP(HSUSB0_CLK),		(IEN  | PTD | DIS | M0)); /*HSUSB0_CLK*/
 	MUX_VAL(CP(HSUSB0_STP),		(IDIS | PTU | EN  | M0)); /*HSUSB0_STP*/
 	MUX_VAL(CP(HSUSB0_DIR),		(IEN  | PTD | DIS | M0)); /*HSUSB0_DIR*/
@@ -1219,7 +1231,7 @@ void set_muxconf_regs(void)
 	MUX_VAL(CP(HSUSB0_DATA5),	(IEN  | PTD | DIS | M0)); /*HSUSB0_DATA5*/
 	MUX_VAL(CP(HSUSB0_DATA6),	(IEN  | PTD | DIS | M0)); /*HSUSB0_DATA6*/
 	MUX_VAL(CP(HSUSB0_DATA7),	(IEN  | PTD | DIS | M0)); /*HSUSB0_DATA7*/
-#endif
+
 	MUX_VAL(CP(I2C1_SCL),		(IEN  | PTU | EN  | M0)); /*I2C1_SCL*/
 	MUX_VAL(CP(I2C1_SDA),		(IEN  | PTU | EN  | M0)); /*I2C1_SDA*/
 #ifdef SAFE_MODE_PINS_5

@@ -390,6 +390,35 @@ static void micron_set_chip_ecc(struct mtd_info *mtd, int enable)
 #endif
 }
 
+void nand_disable_in_chip_ecc(void)
+{
+	struct nand_chip *nand;
+	struct mtd_info *mtd;
+
+	if (nand_curr_device < 0 ||
+	    nand_curr_device >= CONFIG_SYS_MAX_NAND_DEVICE ||
+	    !nand_info[nand_curr_device].name)
+		return;
+
+	mtd = &nand_info[nand_curr_device];
+	nand = mtd->priv;
+
+	/* If the NAND has in-chip ECC, disable it! */
+	if (nand->has_chip_ecc)
+		micron_set_chip_ecc(mtd, 0);
+}
+
+#ifdef CONFIG_CMD_NAND_CHIP_ECC
+static int micron_get_chip_ecc(struct mtd_info *mtd)
+{
+	uint8_t params[4];
+
+	nand_get_features(mtd, 0x90, params);
+
+	return ((params[0] & 0x08) != 0);
+}
+#endif
+
 /**
  * nand_read_oob_chipecc - read; get status to seeif chip ECC error
  * @mtd:	mtd info structure
@@ -610,6 +639,7 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 {
 	struct nand_chip *nand;
 	struct mtd_info *mtd;
+	int in_chip_ecc = 0;
 
 	if (nand_curr_device < 0 ||
 	    nand_curr_device >= CONFIG_SYS_MAX_NAND_DEVICE ||
@@ -618,6 +648,12 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 
 	mtd = &nand_info[nand_curr_device];
 	nand = mtd->priv;
+
+	if (mode == OMAP_ECC_CHIP && !nand->has_chip_ecc)
+	{
+		printf("NAND: Chip does not have internal ECC!\n");
+		return;
+	}
 
 	nand->options |= NAND_OWN_BUFFERS;
 
@@ -683,20 +719,12 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 		nand->ecc.calculate = omap_calculate_ecc;
 		omap_hwecc_init(nand);
 		printf("NAND: HW ECC selected\n");
-		if (nand->has_chip_ecc)
-			micron_set_chip_ecc(mtd, 0);
 	} else if (mode == OMAP_ECC_SOFT) {
 		nand->ecc.mode = NAND_ECC_SOFT;
 		/* Use mtd default settings */
 		nand->ecc.layout = NULL;
 		printf("NAND: SW ECC selected\n");
-		if (nand->has_chip_ecc)
-			micron_set_chip_ecc(mtd, 0);
 	} else if (mode == OMAP_ECC_CHIP) {
-		if (!nand->has_chip_ecc) {
-			printf("NAND: Chip does not have internal ECC!\n");
-			return;
-		}
 		nand->ecc.bytes = 0;
 		nand->ecc.size = 2048;
 		nand->ecc.calculate = omap_calculate_chip_hwecc;
@@ -716,12 +744,16 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 			nand->cmdfunc = omap_nand_command_lp;
 		else
 			printf("%s: Huh? not 16-bit wide\n", __FUNCTION__);
-		micron_set_chip_ecc(mtd, 1);
 		printf("NAND: Internal to NAND ECC selected\n");
+		in_chip_ecc = 1;
 	} else {
 		printf("NAND: unknown ECC mode %d\n", mode);
 		return;
  	}
+
+	/* Enable/disable the in-chip ECC engine appropriately */
+	if (nand->has_chip_ecc)
+		micron_set_chip_ecc(mtd, in_chip_ecc);
 
 	current_ecc_method = mode;
 
@@ -730,6 +762,32 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 
 	nand->options &= ~NAND_OWN_BUFFERS;
 }
+
+#ifdef CONFIG_CMD_NAND_CHIP_ECC
+int omap_nand_switch_chip_ecc(int get, int enable)
+{
+	struct nand_chip *nand;
+	struct mtd_info *mtd;
+
+	if (nand_curr_device < 0 ||
+	    nand_curr_device >= CONFIG_SYS_MAX_NAND_DEVICE ||
+	    !nand_info[nand_curr_device].name)
+		return -1;
+
+	mtd = &nand_info[nand_curr_device];
+	nand = mtd->priv;
+
+	/* If no in-chip ECC, punt! */
+	if (!nand->has_chip_ecc)
+		return -1;
+
+	if (get)
+		return micron_get_chip_ecc(mtd);
+
+	micron_set_chip_ecc(mtd, enable);
+	return 0;
+}
+#endif
 
 /*
  * Board-specific NAND initialization. The following members of the

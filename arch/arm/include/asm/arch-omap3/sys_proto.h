@@ -70,6 +70,9 @@ enum omap_nand_ecc_mode {
 	OMAP_ECC_SOFT_BCH,
 };
 extern void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode);
+#ifdef CONFIG_CMD_NAND_CHIP_ECC
+extern int omap_nand_switch_chip_ecc(int get, int enable);
+#endif
 extern enum omap_nand_ecc_mode omap_nand_current_ecc_method(void);
 int omap_nand_chip_has_ecc(void);
 

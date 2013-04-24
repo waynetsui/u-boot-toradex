@@ -38,10 +38,16 @@
  */
 
 #include <common.h>
-
+#include <nand.h>
 int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	puts ("resetting ...\n");
+
+#ifdef CONFIG_OMAP3_LOGIC
+	/* Disable the in-chip ECC since reset doesn't cause the PoP NAND
+	 * to internally reset */
+	nand_disable_in_chip_ecc();
+#endif
 
 	udelay (50000);				/* wait 50 ms */
 

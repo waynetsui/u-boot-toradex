@@ -47,6 +47,7 @@ struct id_key {
  * set *oor to non-zero.  If mem_ptr is non-NULL use it as a pointer to
  * a cached copy of the ID data */
 extern unsigned char id_fetch_byte(unsigned char *mem_ptr, int offset, int *oor);
+extern void id_fetch_bytes(unsigned char *mem_ptr, int offset, int size, int *oor);
 
 struct id_data {
 	/* mem_ptr is a pointer to read the initial ID data into, then if not
@@ -58,7 +59,10 @@ struct id_data {
 
 /* Function to do the intial startup (i.e. figure out how much data, offset of
  * key table, etc */
-extern int id_startup(struct id_data *data);
+extern int id_startup(struct id_data *data,
+		int (*setup_id_chip)(void),
+		int (*shutdown_id_chip)(void));
+
 /*
  * Functions provided back to callers for use in accessing data
  */
@@ -82,12 +86,21 @@ extern int id_whatis(struct id_cookie *cookie, idenum_t *type);
 /* Given a string, return the key code (or -1 if not found) */
 extern int id_data_get_key(char *key_name);
 
+/* Define to get id_dbg_printf() output... */
+#undef DEBUG_NEW_ID_CODE
 
 /* ID error routine to handle malformed data */
 extern void id_error(const char *fmt, ...);
 
 /* Ouptut routine */
 extern int id_printf(const char *format, ...);
+
+/* Ouptut debug routine; define DEBUG_NEW_ID_CODE to enable it */
+#ifdef DEBUG_NEW_ID_CODE
+extern int id_dbg_printf(const char *format, ...);
+#else
+#define id_dbg_printf(fmt, ...)
+#endif
 
 
 /* User interface functions */

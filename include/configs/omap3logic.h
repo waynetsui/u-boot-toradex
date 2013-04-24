@@ -41,6 +41,10 @@
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_OMAP3430		1	/* which is in a 3430 */
 #define CONFIG_OMAP3_LOGIC	1	/* working with Logic OMAP boards */
+#define CONFIG_OMAP_DMA		1
+
+#define CONFIG_USE_ARCH_MEMSET	1
+#define CONFIG_USE_ARCH_MEMCPY	1
 
 /* Define following to enable new product ID code. */
 #define CONFIG_OMAP3_LOGIC_USE_NEW_PRODUCT_ID	1
@@ -97,6 +101,7 @@
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	(-4)
 #define CONFIG_SYS_NS16550_CLK		V_NS16550_CLK
+#define CONFIG_SERIAL_OUTPUT_FIFO	/* Use full serial tx fifo */
 
 /*
  * select serial console configuration
@@ -120,12 +125,14 @@
 /* DDR - I use Micron DDR */
 #define CONFIG_OMAP3_MICRON_DDR		1
 
+#if 0
 /* USB
  * Enable CONFIG_MUSB_HCD for Host functionalities MSC, keyboard
  * Enable CONFIG_MUSB_UDD for Device functionalities.
  */
 #define CONFIG_USB_OMAP3		1
 #define CONFIG_MUSB_HCD			1
+#endif
 /* #define CONFIG_MUSB_UDC		1 */
 
 #ifdef CONFIG_USB_OMAP3
@@ -173,10 +180,18 @@
 #define CONFIG_CMD_NAND		/* NAND support			*/
 #define CONFIG_MTD_DEVICE	/* needed for MTD mtdparts support	*/
 #define CONFIG_CMD_MTDPARTS	/* MTD partition support	*/
-#define MTDIDS_DEFAULT			"nand0=omap2-nand.0"
-#define MTDPARTS_DEFAULT		"mtdparts=omap2-nand.0:512k(x-loader),"\
+#define MTDIDS_NAND_DEFAULT		"nand0=omap2-nand.0"
+#define MTDIDS_NOR_DEFAULT		"nor0=physmap-flash.0"
+#define MTDPARTS_NAND_DEFAULT		"mtdparts=omap2-nand.0:512k(x-loader),"\
 					"1664k(u-boot),384k(u-boot-env),"\
 					"5m(kernel),20m(ramdisk),-(fs)"
+
+#define MTDPARTS_NOR_DEFAULT		"physmap-flash.0:-(nor)"
+
+/* mtdparts/id default values are dynamic since some modules may
+ * not have NOR flash */
+#define CONFIG_MTDPARTS_DYNAMIC_DEFAULT
+
 #define CONFIG_NAND_SET_DEFAULT	/* Set default NAND access method */
 #define CONFIG_NAND_MULTIPLE_ECC	/* NAND has multiple ECC methods */
 #define CONFIG_TOUCHUP_ENV	/* Set board-specific environment vars */
@@ -186,7 +201,11 @@
 #define CONFIG_CMD_CACHE	/* Cache control		*/
 #define CONFIG_CMD_TIME		/* time command			*/
 
+#if 0
+/* L2 was disabled since observed that large displays (720p) weren't working
+ * Verify can boot kernel using either XGA or 720p HDMI displays settings */
 #define CONFIG_L2_OFF			1 /* Keep L2 Cache Disabled */
+#endif
 
 #define BOARD_LATE_INIT
 
@@ -198,9 +217,10 @@
 #define CONFIG_CMD_GPMC_CONFIG	/* gpmc_config */
 #define CONFIG_CMD_MUX_CONFIG	/* mux_config */
 #define CONFIG_CMD_SDRC_CONFIG	/* sdrc_config */
+#define CONFIG_CMD_SETEXPR	/* setexpr command */
 
 #define CONFIG_HARD_I2C			1
-#define CONFIG_SYS_I2C_SPEED		100000
+#define CONFIG_SYS_I2C_SPEED		400000
 #define CONFIG_SYS_I2C_SLAVE		1
 #define CONFIG_SYS_I2C_BUS		0
 #define CONFIG_SYS_I2C_BUS_SELECT	1
@@ -294,10 +314,11 @@
 /* variables as indicated below for a successful boot.                       */
 /*                                                                           */
 /* - $kernel_location                                                        */
-/*   Must always be set.  Values can be ram, nand, mmc, or tftp.             */
+/*   Must always be set.  Values can be ram, nand, nand-part, mmc, or tftp.  */
 /*                                                                           */
 /* - $rootfs_location                                                        */
-/*   Must always be set.  Values can be ram, tftp, /dev, nfs, mmc, or nand.  */
+/*   Must always be set.  Values can be:                                     */
+/*           ram, tftp, /dev, nfs, mmc, nand, nand-part.                     */
 /*                                                                           */
 /* - $rootfs_type                                                            */
 /*   Must always be set.  Values can be ramdisk, jffs, yaffs, ext3, or nfs.  */
@@ -307,25 +328,54 @@
 /*                                                                           */
 /* - If booting from /dev based file system, then $rootfs_device must be     */
 /*   set.                                                                    */
+/* - If booting kernel from nand-part location, $kernel_partition            */
+/*   must be set.                                                            */
+/* - If rootfs is coming from nand-part (i.e. ramdisk in NAND), then         */
+/*   $ramdisk_partition must be set.                                         */
+/*   must be set.                                                            */
 /* - If booting from a ramdisk image, then $ramdisksize, and $ramdiskaddr    */
 /*   must be set.                                                            */
 /* - If booting from an nfs location, then $serverip, $nfsrootpath, and      */
 /*   $nfsoptions must be set.                                                */
-/* - If booting from nand, $ramdisk_nand_offset, $ramdisk_nand_size,         */
-/*   $kernel_nand_offset, and $kernel_nand_size must be set.                 */
+/* - If booting from nand, $ramdisk_partition,                               */
+/*   $kernel_partition must be set.                                          */
 /* - If booting from a file system, $ramdiskimage, and $kernelimage must be  */
 /*   set.                                                                    */
 /* - Optionally, a boot script named "boot.scr" can be placed in SD to       */
 /*   override any other boot scripts.                                        */
 /*****************************************************************************/
+
+/*****************************************************************************/
+/* When using the makenandboot script, be sure to set:                       */
+/*                                                                           */
+/* - xloadimage         File name of x-loader on the SD card                 */
+/* - ubootimage         File name of u-boot on the SD card                   */
+/* - kernelimage        File name of the kernel image on the SD card         */
+/* - ramdiskimage       File name of the ramdisk image on the SD card        */
+/* - xloader_partition  Name of the x-loader partition in mtdparts           */
+/* - uboot_partition    Name of the u-boot partition in mtdparts             */
+/* - kernel_partition   Name of the kernel partition in mtdparts             */
+/* - ramdisk_partition  Name of the ramdisk partition in mtdparts            */
+/*                                                                           */
+/* When using makeyaffsboot script, be sure to set:                          */
+/*                                                                           */
+/* - xloadimage         File name of x-loader on the SD card                 */
+/* - ubootimage         File name of u-boot on the SD card                   */
+/* - kernelimage        File name of the kernel image on the SD card         */
+/* - yaffsimage         File name of the YAFFS root FS on the SD card        */
+/* - xloader_partition  Name of the x-loader partition in mtdparts           */
+/* - uboot_partition    Name of the u-boot partition in mtdparts             */
+/* - kernel_partition   Name of the kernel partition in mtdparts             */
+/* - yaffs_partition    Name of the YAFFS root FS in mtdparts                */
+/*****************************************************************************/
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	OMAP3LOGIC_USBTTY \
 	"bootargs=\0" \
 	"otherbootargs=ignore_loglevel early_printk no_console_suspend \0" \
 	"consoledevice=ttyO0\0" \
+	"autoload=no\0" \
 	"setconsole=setenv console ${consoledevice},${baudrate}n8\0" \
-	"mtdids=" MTDIDS_DEFAULT "\0"	\
-	"mtdparts=" MTDPARTS_DEFAULT "\0"	\
 	"disablecharging=no\0" \
 	"mmc_bootscript_addr=0x80FF0000\0" \
 	"disablecharging no\0" \
@@ -334,132 +384,163 @@
 	"kernel_location=mmc \0" \
 	"rootfs_location=mmc \0" \
 	"rootfs_type=ramdisk \0" \
-	"rootfs_device=/dev/mtdblock4 \0" \
+	"rootfs_device=/dev/mtdblock5 \0" \
+	"xloadimage=mlo\0" \
+	"ubootimage=u-boot.bin.ift\0" \
+	"kernelimage=uImage\0" \
+	"ramdiskimage=rootfs.ext2.gz.uboot\0" \
+	"yaffsimage=rootfs.yaffs2\0" \
+	"xloader_partition=x-loader\0" \
+	"uboot_partition=u-boot\0" \
+	"kernel_partition=kernel\0" \
+	"ramdisk_partition=ramdisk\0" \
+	"yaffs_partition=fs\0" \
+	"arg_loadcmd=fatload mmc 1\0" \
 	"ramdisksize=64000\0" \
 	"ramdiskaddr=0x82000000\0" \
-	"ramdiskimage=rootfs.ext2.gz.uboot\0" \
-        "ramdisk_nand_offset=0x00680000\0" \
-        "ramdisk_nand_size=0x00d40000\0" \
-	"kernel_nand_offset=0x00280000 \0" \
-	"kernel_nand_size=0x00400000 \0" \
-	"kernelimage=uImage \0" \
-	"serverip=192.168.3.5\0" \
+	"tftpdir=\0" \
+	"serverip=192.168.3.10\0" \
 	"nfsrootpath=/opt/nfs-exports/ltib-omap\0" \
 	"nfsoptions=,wsize=1500,rsize=1500\0"				\
 	"rotation=0\0" \
-        "autoboot=echo \"\n== Checking mmc1 for alternate boot script " CONFIG_MMC_BOOTSCRIPT_NAME " ==\"; " \
-	        "if mmc init; then " \
-			"if run loadbootscript; then " \
-			        "echo \"\"; " \
-			        "echo \"== Found script on mmc 1, starting ==\"; " \
-				"run bootscript; " \
-			"else " \
-			        "echo \"\"; " \
-			        "echo \"== Script not found on mmc 1, proceeding with defaultboot ==\"; " \
-				"run defaultboot;" \
-			"fi; " \
-		"else run defaultboot; fi\0" \
+	"autoboot=echo \"\n== Checking mmc1 for alternate boot script " CONFIG_MMC_BOOTSCRIPT_NAME " ==\";" \
+	"         if mmc init; then \n" \
+	"             if run loadbootscript; then \n" \
+	"                 echo \"\"; \n" \
+	"                 echo \"== Found script on mmc 1, starting ==\"; \n" \
+	"                 run bootscript; \n" \
+	"             else \n" \
+	"                 echo \"\"; \n" \
+	"                 echo \"== Script not found on mmc 1, proceeding with defaultboot ==\"; \n" \
+	"                 run defaultboot;\n" \
+	"             fi; \n" \
+	"         else run defaultboot; fi\0" \
 	"loadbootscript=fatload mmc 1 $mmc_bootscript_addr " CONFIG_MMC_BOOTSCRIPT_NAME "\0" \
 	"bootscript=source ${mmc_bootscript_addr}\0" \
-	"vrfb_arg=if itest ${rotation} -ne 0; then " \
-			"setenv bootargs ${bootargs} omapfb.vrfb=y omapfb.rotate=${rotation}; " \
+	"vrfb_arg=if itest ${rotation} -ne 0; then \n" \
+			"setenv bootargs ${bootargs} omapfb.vrfb=y omapfb.rotate=${rotation}; \n" \
 		"fi\0" \
 	"dump_bootargs=echo \"\"; echo \"== Kernel bootargs ==\"; echo $bootargs; echo \"\"; \0" \
 	"dump_boot_sources=echo \"kernel_location: $kernel_location, " \
 			  "rootfs_location: $rootfs_location, " \
-			  "rootfs_type:     $rootfs_type\"; " \
+			  "rootfs_type: $rootfs_type\"; " \
 			  "echo \"\"; " \
-			  "\0" \
-	"load_kernel=if test $kernel_location = 'ram'; then " \
-		         "echo \"== kernel located at $loadaddr ==\"; " \
-			 "echo \"\"; " \
-			 "setenv bootm_arg1 ${loadaddr};" \
-		    "else if test $kernel_location = 'nand'; then " \
-			 "echo \"== Loading kernel from nand to $loadaddr ==\"; " \
-			 "nand read.i $loadaddr $kernel_nand_offset $kernel_nand_size; " \
-			 "echo \"\"; " \
-			 "setenv bootm_arg1 ${loadaddr};" \
-		    "else if test $kernel_location = 'mmc'; then " \
-			 "echo \"== Loading kernel file $kernelimage to $loadaddr ==\"; " \
-			 "mmc init; " \
-			 "fatload mmc 1 $loadaddr $kernelimage; " \
-			 "echo \"\"; " \
-			 "setenv bootm_arg1 ${loadaddr};" \
-		    "else if test $kernel_location = 'tftp'; then " \
-			 "echo \"== Loading kernel file $tftpdir$kernelimage to $loadaddr ==\"; " \
-			 "tftpboot $loadaddr $tftpdir$kernelimage; " \
-			 "echo \"\"; " \
-			 "setenv bootm_arg1 ${loadaddr};" \
-		    "else "\
-			 "echo \"== kernel_location must be set to ram, nand, mmc, or tftp!! ==\"; " \
-			 "echo \"\"; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi " \
-		    "\0" \
-	"load_rootfs=if test $rootfs_location = 'ram'; then " \
-		         "echo \"== rootfs located at $ramdiskaddr ==\"; " \
-			 "echo \"\"; " \
-			 "setenv bootm_arg2 ${ramdiskaddr}; " \
-		    "else if test $rootfs_location = 'tftp'; then " \
-			 "echo \"== Loading rootfs file $tftpdir$ramdiskimage to $ramdiskaddr ==\"; " \
-			 "tftpboot $ramdiskaddr $tftpdir$ramdiskimage;" \
-			 "echo \"\"; " \
-			 "setenv bootm_arg2 ${ramdiskaddr}; " \
-		    "else if test $rootfs_location = '/dev'; then " \
-			 "echo \"== rootfs located in $rootfs_device ==\"; " \
-			 "echo \"\"; " \
-			 "setenv bootargs ${bootargs} root=${rootfs_device}; " \
-			 "setenv bootm_arg2; " \
-		    "else if test $rootfs_location = 'nfs'; then " \
-			 "echo \"== rootfs located at $nfs_root_path on server $serverip ==\"; " \
-			 "echo \"\"; " \
-			 "setenv bootargs ${bootargs} root=/dev/nfs; " \
-			 "setenv bootm_arg2; " \
-		    "else if test $rootfs_location = 'mmc'; then " \
-			 "echo \"== Loading rootfs file $ramdiskimage to $ramdiskaddr ==\"; " \
-		         "fatload mmc 1 ${ramdiskaddr} ${ramdiskimage}; "\
-			 "setenv bootm_arg2 ${ramdiskaddr}; " \
-		    "else if test $rootfs_location = 'nand'; then " \
-			 "echo \"== Loading rootfs from nand to $ramdiskaddr ==\"; " \
-			 "nand read.i $ramdiskaddr $ramdisk_nand_offset $ramdisk_nand_size; " \
-			 "setenv bootm_arg2 ${ramdiskaddr}; " \
-		    "else "\
-			 "echo \"== rootfs_location must be set to ram, tftp, /dev, nfs, mmc, or nand!! == \"; " \
-			 "echo \"\"; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi " \
-		    "\0" \
-	"set_rootfs_type=if test $rootfs_type = 'ramdisk'; then " \
-			 "setenv bootargs ${bootargs} root=/dev/ram rw ramdisk_size=${ramdisksize}; " \
-		    "else if test $rootfs_type = 'jffs'; then " \
-			 "setenv bootargs ${bootargs} rw rootfstype=jffs2;" \
-		    "else if test $rootfs_type = 'yaffs'; then " \
-			 "setenv bootargs ${bootargs} rw rootfstype=yaffs2;" \
-		    "else if test $rootfs_type = 'ext3'; then " \
-			 "setenv bootargs ${bootargs} rw rootfstype=ext3 rootwait; " \
-		    "else if test $rootfs_type = 'nfs'; then " \
-			 "setenv bootargs ${bootargs} rw nfsroot=${serverip}:${nfsrootpath}${nfsoptions} ip=dhcp; " \
-		    "else "\
-			 "echo \"$rootfs_type must be set to ramdisk, jffs, yaffs, ext3, or nfs\"; " \
-			 "echo \"\"; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi; " \
-		    "fi " \
-		    "\0" \
+	"\0" \
+	"load_kernel=if test $kernel_location = 'ram'; then \n" \
+	"              echo \"== kernel located at $loadaddr ==\"; \n" \
+	"              echo \"\"; \n" \
+	"              setenv bootm_arg1 ${loadaddr};\n" \
+	"            else \n" \
+	"              if test $kernel_location = 'nand'; then \n" \
+	"                echo \"== Loading kernel from nand to $loadaddr ==\"; \n" \
+	"                nand read.i $loadaddr $kernel_partition; \n" \
+	"                echo \"\"; \n" \
+	"                setenv bootm_arg1 ${loadaddr};\n" \
+	"              else \n" \
+	"                if test $kernel_location = 'nand-part'; then \n" \
+	"                  echo \"== Loading kernel from nand partition $kernel_partition to $loadaddr ==\"; \n" \
+	"                  nboot $loadaddr $kernel_partition; \n" \
+	"                  echo \"\"; \n" \
+	"                  setenv bootm_arg1 ${loadaddr};\n" \
+	"                else \n" \
+	"                  if test $kernel_location = 'mmc'; then \n" \
+	"                    echo \"== Loading kernel file $kernelimage to $loadaddr ==\"; \n" \
+	"                    mmc init; \n" \
+	"                    fatload mmc 1 $loadaddr $kernelimage; \n" \
+	"                    echo \"\"; \n" \
+	"                    setenv bootm_arg1 ${loadaddr};\n" \
+	"                  else \n" \
+	"                    if test $kernel_location = 'tftp'; then \n" \
+	"                      echo \"== Loading kernel file $tftpdir$kernelimage to $loadaddr ==\"; \n" \
+	"                      tftpboot $loadaddr $tftpdir$kernelimage; \n" \
+	"                      echo \"\"; \n" \
+	"                      setenv bootm_arg1 ${loadaddr};\n" \
+	"                    else \n"						\
+	"                      echo \"== kernel_location must be set to ram, nand, mmc, or tftp!! ==\"; \n" \
+	"                      echo \"\"; \n" \
+	"                    fi; \n" \
+	"                  fi; \n" \
+	"                fi; \n" \
+	"              fi; \n" \
+	"            fi\n " \
+	"\0" \
+	"load_rootfs=if test $rootfs_location = 'ram'; then \n" \
+	"              echo \"== rootfs located at $ramdiskaddr ==\"; \n" \
+	"              echo \"\"; \n" \
+	"              setenv bootm_arg2 ${ramdiskaddr}; \n" \
+	"            else \n" \
+	"              if test $rootfs_location = 'tftp'; then \n" \
+	"                echo \"== Loading rootfs file $tftpdir$ramdiskimage to $ramdiskaddr ==\"; \n" \
+	"                tftpboot $ramdiskaddr $tftpdir$ramdiskimage;\n" \
+	"                echo \"\"; \n" \
+	"                setenv bootm_arg2 ${ramdiskaddr}; \n" \
+	"              else \n" \
+	"                if test $rootfs_location = '/dev'; then \n" \
+	"                  echo \"== rootfs located in $rootfs_device ==\"; \n" \
+	"                  echo \"\"; \n" \
+	"                  setenv bootargs ${bootargs} root=${rootfs_device}; \n" \
+	"                  setenv bootm_arg2; \n" \
+	"                else \n" \
+	"                  if test $rootfs_location = 'nfs'; then \n" \
+	"                    echo \"== rootfs located at $nfsrootpath on server $serverip ==\"; \n" \
+	"                    echo \"\"; \n" \
+	"                    setenv bootargs ${bootargs} root=/dev/nfs; \n" \
+	"                    setenv bootm_arg2; \n" \
+	"                  else \n" \
+	"                    if test $rootfs_location = 'mmc'; then\n " \
+	"                      echo \"== Loading rootfs file $ramdiskimage to $ramdiskaddr ==\"; \n" \
+	"                      fatload mmc 1 ${ramdiskaddr} ${ramdiskimage}; \n"\
+	"                      setenv bootm_arg2 ${ramdiskaddr}; \n" \
+	"                    else \n" \
+	"                      if test $rootfs_location = 'nand'; then \n" \
+	"                        echo \"== Loading rootfs from nand to $ramdiskaddr ==\"; \n" \
+	"                        nand read.i $ramdiskaddr $ramdisk_partition; \n" \
+	"                        setenv bootm_arg2 ${ramdiskaddr}; \n" \
+	"                      else \n"\
+	"                        if test $rootfs_location = 'nand-part'; then \n" \
+	"                          echo \"== Loading rootfs from nand partition $ramdisk_partition to $ramdiskaddr ==\"; \n" \
+	"                          nand read.i $ramdiskaddr $ramdisk_partition; \n" \
+	"                          setenv bootm_arg2 ${ramdiskaddr}; \n" \
+	"                        else \n"\
+	"                          echo \"== rootfs_location must be set to ram, tftp, /dev, nfs, mmc, nand-part or nand!! == \"; \n" \
+	"                          echo \"\"; \n" \
+	"                        fi; \n" \
+	"                      fi; \n" \
+	"                    fi; \n" \
+	"                  fi; \n" \
+	"                fi; \n" \
+	"              fi; \n" \
+	"            fi" \
+	"\0" \
+	"set_rootfs_type=if test $rootfs_type = 'ramdisk'; then \n" \
+	"                  setenv bootargs ${bootargs} root=/dev/ram rw ramdisk_size=${ramdisksize}; \n" \
+	"                else \n" \
+	"                  if test $rootfs_type = 'jffs'; then \n" \
+	"                    setenv bootargs ${bootargs} rw rootfstype=jffs2;\n" \
+	"                  else \n" \
+	"                    if test $rootfs_type = 'yaffs'; then \n" \
+	"                      setenv bootargs ${bootargs} rw rootfstype=yaffs2;\n" \
+	"                    else \n" \
+	"                      if test $rootfs_type = 'ext3'; then \n" \
+	"                        setenv bootargs ${bootargs} rw rootfstype=ext3 rootwait; \n" \
+	"                      else \n" \
+	"                        if test $rootfs_type = 'nfs'; then \n" \
+	"                          setenv bootargs ${bootargs} rw nfsroot=${serverip}:${nfsrootpath}${nfsoptions} ip=dhcp; \n" \
+	"                        else \n"\
+	"                          echo \"$rootfs_type must be set to ramdisk, jffs, yaffs, ext3, or nfs\"; \n" \
+	"                          echo \"\"; \n" \
+	"                        fi; \n" \
+	"                      fi; \n" \
+	"                    fi; \n" \
+	"                  fi; \n" \
+	"                fi" \
+	"\0" \
 	"addmtdparts=setenv bootargs ${bootargs} ${mtdparts} \0" \
 	"common_bootargs=" \
 	"                 setenv bootargs ${bootargs} display=${display} ${otherbootargs}; " \
 	"                 run addmtdparts; " \
 	"                 run vrfb_arg; " \
-        "                 \0" \
+	"\0" \
 	"dump_run_bootm=" \
 	"     echo \"bootm $bootm_arg1 $bootm_arg2\"; " \
 	"     echo \"\"; " \
@@ -470,19 +551,14 @@
 	"     run common_bootargs; " \
 	"     run load_kernel; " \
 	"     run load_rootfs; " \
-        "     run set_rootfs_type; " \
+	"     run set_rootfs_type; " \
 	"     run dump_bootargs; " \
 	"     run dump_run_bootm; " \
+	"\0" \
 	"nfsboot=" \
 	"     setenv kernel_location tftp; " \
 	"     setenv rootfs_location nfs; " \
 	"     setenv rootfs_type nfs; " \
-	"     run defaultboot; " \
-	"\0" \
-	"mtdboot=" \
-	"     setenv kernel_location mmc; " \
-	"     setenv rootfs_location mmc; " \
-	"     setenv rootfs_type ramdisk; " \
 	"     run defaultboot; " \
 	"\0" \
 	"ramboot=" \
@@ -490,9 +566,102 @@
 	"     setenv rootfs_location tftp; " \
 	"     setenv rootfs_type ramdisk; " \
 	"     run defaultboot; " \
+	"\0" \
+	"checkerror=if test $error = '';\n" \
+	"           then\n" \
+	"               echo \033[31m${error}\033[0m\n" \
+	"               echo_lcd /pAA/k${error}\n" \
+	"           else\n" \
+	"               echo \033[1mDone!\033[m\n" \
+	"               echo_lcd /pAA/kCompleted burning sucessfully./n\n" \
+	"               echo_lcd /kIt is safe to remove the SD card/n\n" \
+	"               echo_lcd /kand restart the devkit./n\n" \
+	"           fi" \
+	"\0" \
+	"initmmc=if test $error = '';then;else\n" \
+	"            if mmc init;then;else;\n" \
+	"                setenv error \"Failed to initialize MMC\"\n" \
+	"            fi\n" \
+	"        fi" \
+	"\0" \
+	"checkmmcfile=if test $error = '';then;else\n" \
+	"                 if fatload mmc 1 ${loadaddr} ${arg_filename} 1;then;else;\n" \
+	"                     setenv error \"Unable to load ${arg_filename}\";\n" \
+	"                 fi\n" \
+	"             fi" \
+	"\0" \
+	"burnfile=if test $error = '';then;else\n" \
+	"                echo \"\033[1m== Loading ${arg_filename} ==\033[0m\"\n" \
+	"                echo_lcd /pAA/kPartition ${arg_partition}:\n" \
+	"                echo_lcd /pBA/kLoading ${arg_filename}/aC;lcd_percent \"/gC/k /P%...\"\n" \
+	"                if ${arg_loadcmd} ${loadaddr} ${arg_filename};then;\n" \
+	"                     echo \"\033[1m== Burning ${arg_partition} ==\033[0m\"\n" \
+	"                     lcd_percent \"/pBA/kErasing Partition /P%...\"\n" \
+	"                     nand erase.part ${arg_partition}\n" \
+	"                     echo_lcd /pBA/kWriting ${arg_filename} to Partition/aC;lcd_percent \"/gC/k /P%...\"\n" \
+	"                     nand ${arg_writecmd} ${loadaddr} ${arg_partition} ${filesize}\n" \
+	"                     lcd_percent \"\"\n" \
+	"                     echo_lcd /pAA/k/pAB/k\n" \
+	"                else\n" \
+	"                     setenv error \"Unable to load ${arg_filename}\"\n" \
+	"                fi\n" \
+	"            fi" \
+	"\0" \
+	"burnmmcxloader=if test $error = '';then;else\n" \
+	"                   nandecc hw;\n" \
+	"                   arg_filename=${xloadimage};arg_partition=${xloader_partition};arg_writecmd=write.i;\n" \
+	"                   run burnfile\n" \
+	"                   if test $error = '';then;else\n" \
+	"                       nand write.i ${loadaddr} 0x00020000 ${filesize}\n" \
+	"                       nand write.i ${loadaddr} 0x00040000 ${filesize}\n" \
+	"                       nand write.i ${loadaddr} 0x00060000 ${filesize}\n" \
+	"                  fi\n" \
+	"              fi" \
+	"\0" \
+	"burncommon=if test $error = '';then;else\n" \
+	"                   arg_filename=${xloadimage};run checkmmcfile;\n" \
+	"                   arg_filename=${ubootimage};run checkmmcfile;\n" \
+	"                   arg_filename=${kernelimage};run checkmmcfile;\n" \
+	"                   run burnmmcxloader;\n" \
+	"                   nandecc ${defaultecc};\n" \
+	"                   arg_writecmd=write.i;\n" \
+	"                   arg_filename=${ubootimage};arg_partition=${uboot_partition};run burnfile;\n" \
+	"                   arg_filename=${kernelimage};arg_partition=${kernel_partition};run burnfile;\n" \
+	"            fi" \
+	"\0" \
+	"makenandboot=if true;then;\n" \
+	"                 setenv error;\n" \
+	"                 run initmmc;\n" \
+	"                 arg_filename=${ramdiskimage};run checkmmcfile;\n" \
+	"                 run burncommon;\n" \
+	"                 arg_filename=${ramdiskimage};arg_partition=${ramdisk_partition};arg_writecmd=write.i;\n" \
+	"                 run burnfile;\n" \
+	"                 if test $error = '';then;else\n" \
+	"                     setenv kernel_location nand-part\n" \
+	"                     setenv rootfs_location nand-part\n" \
+	"                     setenv rootfs_type ramdisk\n" \
+	"                     saveenv\n" \
+	"                 fi\n" \
+	"                 run checkerror;\n" \
+	"             fi" \
+	"\0" \
+	"makeyaffsboot=if true;then;\n" \
+	"                 setenv error;\n" \
+	"                 run initmmc;\n" \
+	"                 arg_filename=${yaffsimage};run checkmmcfile;\n" \
+	"                 run burncommon;\n" \
+	"                 arg_filename=${yaffsimage};arg_partition=${yaffs_partition};arg_writecmd=write.yaffs;\n" \
+	"                 run burnfile;\n" \
+	"                 if test $error = '';then;else\n" \
+	"                     setenv kernel_location nand-part\n" \
+	"                     setenv rootfs_location /dev\n" \
+	"                     setenv rootfs_type yaffs\n" \
+	"                     setenv rootfs_device /dev/mtdblock5\n" \
+	"                     saveenv\n" \
+	"                 fi\n" \
+	"                 run checkerror;\n" \
+	"             fi" \
 	"\0"
-
-
 
 #define CONFIG_AUTO_COMPLETE	1
 /*
@@ -554,9 +723,9 @@
  */
 
 /* variable that's non-zero if flash exists */
-#define CONFIG_SYS_FLASH_PRESENCE omap3logic_flash_exists
+#define CONFIG_SYS_FLASH_PRESENCE omap3logic_nor_exists
 #ifndef __ASSEMBLY__
-extern int omap3logic_flash_exists;
+extern int omap3logic_nor_exists;
 #endif
 #define CONFIG_SYS_FLASH_BASE		0x10000000 /* FLASH base address */
 #define CONFIG_SYS_FLASH_SIZE			8 /* 8MB */
@@ -566,6 +735,7 @@ extern int omap3logic_flash_exists;
 #undef	CONFIG_SYS_FLASH_CHECKSUM
 #define CONFIG_SYS_FLASH_CFI		/* use the Common Flash Interface */
 #define CONFIG_FLASH_CFI_DRIVER	/* use the CFI driver */
+#define CONFIG_FLASH_CFI_MTD	/* use the CFI MTD interface */
 
 
 /* **** PISMO SUPPORT *** */
@@ -581,6 +751,7 @@ extern int omap3logic_flash_exists;
 #define SMNAND_ENV_OFFSET		0x220000 /* environment starts here */
 
 #if defined(CONFIG_CMD_NAND)
+#define CONFIG_SYS_NAND_QUIET_TEST	1
 #define CONFIG_NAND_OMAP_GPMC
 #define CONFIG_MTD_NAND_BCH
 #define CONFIG_MTD_NAND_ECC_BCH

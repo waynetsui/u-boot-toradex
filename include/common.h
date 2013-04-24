@@ -312,7 +312,7 @@ extern void nand_setup_default_ecc_method(void);
 extern void nand_switch_ecc_default(int *ecc_method);
 extern void nand_switch_ecc_method(int ecc_method);
 extern int setenv_reserved_name(const char *name);
-extern void touchup_env(void);
+extern void touchup_env(int is_initial_env);
 
 /* common/exports.c */
 void	jumptable_init(void);
@@ -494,6 +494,7 @@ void	_serial_setbrg (const int);
 void	_serial_putc   (const char, const int);
 void	_serial_putc_raw(const char, const int);
 void	_serial_puts   (const char *, const int);
+void	_serial_flush_output(const int);
 int	_serial_getc   (const int);
 int	_serial_tstc   (const int);
 
@@ -662,6 +663,21 @@ void	panic(const char *fmt, ...)
 int	sprintf(char * buf, const char *fmt, ...)
 		__attribute__ ((format (__printf__, 2, 3)));
 int	vsprintf(char *buf, const char *fmt, va_list args);
+int	vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
+
+struct vsprintf_out {
+	/* Function to call to output char to string/function */
+	void (*out)(struct vsprintf_out *p, char ch);
+	struct {
+		char *buf;
+		int len;  /* Length of characters output */
+		int limit; /* limit of string to output characters in */
+		int file; /* file number for output (in fprintf) */
+		void (*outchar) (char ch); /* Function to putc() */
+	} dat;
+};
+
+int	vsfprintf(struct vsprintf_out *p, const char *fmt, va_list args);
 
 /* lib/strmhz.c */
 char *	strmhz(char *buf, unsigned long hz);
@@ -748,6 +764,11 @@ int cpu_disable(int nr);
 int cpu_release(int nr, int argc, char * const argv[]);
 #endif
 
+/* Dynmaic mtdpart/id defaults */
+#ifdef CONFIG_MTDPARTS_DYNAMIC_DEFAULT
+extern char *get_mtdids_default(void);
+extern char *get_mtdparts_default(void);
+#endif /* CONFIG_MTDPARTS_DYNAMIC_DEFAULT */
 #endif /* __ASSEMBLY__ */
 
 /* Put only stuff here that the assembler can digest */

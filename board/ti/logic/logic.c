@@ -31,6 +31,7 @@
 #include <netdev.h>
 #include <flash.h>
 #include <nand.h>
+#include <malloc.h>
 #include <i2c.h>
 #include <twl4030.h>
 #include <asm/io.h>
@@ -147,10 +148,59 @@ void nand_switch_ecc_method(int method)
 		omap_nand_switch_ecc(new_mode);
 }
 
+/* Non-zero if NOR flash exists on SOM */
+int omap3logic_nor_exists;
+
+/* Dynamic MTD id/parts default value functions */
+static char *omap3logic_mtdparts_default;
+static char *omap3logic_mtdids_default;
+
+char *get_mtdparts_default(void)
+{
+	char str[strlen(MTDPARTS_NAND_DEFAULT) + strlen(MTDPARTS_NOR_DEFAULT) + 10];
+
+	if (!omap3logic_mtdparts_default) {
+		str[0] = '\0';
+		if (nand_size())
+			strcpy(str, MTDPARTS_NAND_DEFAULT);
+		if (omap3logic_nor_exists) {
+			if (strlen(str))
+				strcat(str, ";");
+
+			strcat(str, MTDPARTS_NOR_DEFAULT);
+		}
+		omap3logic_mtdparts_default = malloc(strlen(str) + 1);
+		if (omap3logic_mtdparts_default)
+			strcpy(omap3logic_mtdparts_default, str);
+	}
+	return omap3logic_mtdparts_default;
+}
+
+char *get_mtdids_default(void)
+{
+	char str[strlen(MTDIDS_NAND_DEFAULT) + strlen(MTDIDS_NOR_DEFAULT) + 10];
+
+	if (!omap3logic_mtdids_default) {
+		str[0] = '\0';
+		if (nand_size())
+			strcpy(str, MTDIDS_NAND_DEFAULT);
+		if (omap3logic_nor_exists) {
+			if (strlen(str))
+				strcat(str, ",");
+			strcat(str, MTDIDS_NOR_DEFAULT);
+		}
+		omap3logic_mtdids_default = malloc(strlen(str) + 1);
+		if (omap3logic_mtdids_default)
+			strcpy(omap3logic_mtdids_default, str);
+	}
+	return omap3logic_mtdids_default;
+}
+
 /*
- * Touchup the environment, specificaly to setenv "defaultecc"
+ * Touchup the environment, specificaly "defaultecc", the display,
+ * and mtdids/mtdparts on default environment
  */
-void touchup_env(void)
+void touchup_env(int initial_env)
 {
 	/* Set the defaultecc environment variable to the "natural"
 	 * ECC method supported by the NAND chip */
@@ -163,6 +213,12 @@ void touchup_env(void)
 
 	/* touchup the display environment variable(s) */
 	touchup_display_env();
+
+	if (initial_env) {
+		/* Need to set mdtids/mtdparts to computed defaults */
+		setenv("mtdparts", get_mtdparts_default());
+		setenv("mtdids", get_mtdids_default());
+	}
 }
 
 /*
@@ -226,6 +282,14 @@ int board_init(void)
 	/* Probe for NOR and if found put into sync mode */
 	fix_flash_sync();
 
+	/* Initialize twl4030 voltages */
+	twl4030_power_init();
+
+	/* If we're a Torpedo, enable BBCHEN charge the backup battery */
+	if (gd->bd->bi_arch_number == MACH_TYPE_DM3730_TORPEDO
+		|| gd->bd->bi_arch_number == MACH_TYPE_OMAP3_TORPEDO) {
+		twl4030_enable_bb_charging(3200, 25); /* 3.2V @ 25uA */
+	}
 	return 0;
 }
 
@@ -243,7 +307,8 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_CMD_NAND_LOCK_UNLOCK
-	nand_unlock(&nand_info[0], 0x0, nand_info[0].size);
+	if (nand_size())
+		nand_unlock(&nand_info[0], 0x0, nand_info[0].size);
 #endif
 
 #ifdef CONFIG_ENABLE_TWL4030_CHARGING
@@ -276,8 +341,6 @@ void init_vaux1_voltage(void)
 	unsigned char data;
 	unsigned short msg;
 
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-
 	/* Select the output voltage */
 	data = 0x04;
 	i2c_write(I2C_TRITON2, 0x72, 1, &data, 1);
@@ -295,6 +358,27 @@ void init_vaux1_voltage(void)
 	data = msg & 0xff;
 	i2c_write(I2C_TRITON2, 0x4c, 1, &data, 1);
 #endif
+}
+
+/* Mux I2C bus pins appropriately for this board */
+int i2c_mux_bux_pins(int bus)
+{
+	switch(bus) {
+	case 0:
+		/* I2C1_SCA/I2C1_SDL are *always* mixed for I2C */
+		break;
+	case 1:
+		MUX_VAL(CP(I2C2_SCL),		(IEN  | PTU | EN  | M0));
+		MUX_VAL(CP(I2C2_SDA),		(IEN  | PTU | EN  | M0));
+		break;
+	case 2:
+		MUX_VAL(CP(I2C3_SCL),		(IEN  | PTU | EN  | M0));
+		MUX_VAL(CP(I2C3_SDA),		(IEN  | PTU | EN  | M0));
+		break;
+	default:
+		return -1;
+	}
+	return 0;
 }
 
 /*
@@ -326,11 +410,6 @@ static void check_sysconfig_regs(void)
  */
 int misc_init_r(void)
 {
-
-#ifdef CONFIG_DRIVER_OMAP34XX_I2C
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-#endif
-
 	/* Turn on vaux1 to make sure voltage is to the product ID chip.
 	 * Extract production data from ID chip, used to selectively
 	 * initialize portions of the system */
@@ -387,6 +466,9 @@ static void setup_net_chip(void)
 }
 
 /* GPMC CS0 settings for Logic SOM LV/Torpedo NAND settings */
+#if 0
+/* Following are from current DVT (2012-03-13), but don't work on T+W;
+ * nand-small-stress-test2.sh shows differences between copied files */
 #define LOGIC_NAND_GPMC_CONFIG1	0x00001800
 #define LOGIC_NAND_GPMC_CONFIG2	0x00090900
 #define LOGIC_NAND_GPMC_CONFIG3	0x00090900
@@ -394,6 +476,17 @@ static void setup_net_chip(void)
 #define LOGIC_NAND_GPMC_CONFIG5	0x0007080A
 #define LOGIC_NAND_GPMC_CONFIG6	0x000002CF
 #define LOGIC_NAND_GPMC_CONFIG7	0x00000C70
+#else
+/* Timings that look to work on SOM LV/Torpedo after NAND testing;
+ * not sure if optimal */
+#define LOGIC_NAND_GPMC_CONFIG1	0x00001800
+#define LOGIC_NAND_GPMC_CONFIG2	0x00090900
+#define LOGIC_NAND_GPMC_CONFIG3	0x00090902
+#define LOGIC_NAND_GPMC_CONFIG4	0x07020702
+#define LOGIC_NAND_GPMC_CONFIG5	0x0008080A
+#define LOGIC_NAND_GPMC_CONFIG6	0x000002CF
+#define LOGIC_NAND_GPMC_CONFIG7	0x00000C70
+#endif
 
 static void setup_nand_settings(void)
 {
@@ -509,7 +602,6 @@ static void setup_isp176x_settings(void)
  * Description: Setting up the configuration GPMC registers specific to the
  *		NOR flash (and place in sync mode if not done).
  */
-int omap3logic_flash_exists;
 static void fix_flash_sync(void)
 {
 	int arch_number;
@@ -591,7 +683,7 @@ static void fix_flash_sync(void)
 	} else
 		puts ("NOR: Already initialized in sync mode\n");
 
-	omap3logic_flash_exists = 1;
+	omap3logic_nor_exists = 1;
 }
 
 int board_eth_init(bd_t *bis)

@@ -40,6 +40,20 @@
 
 struct id_data id_data;
 
+void id_fetch_bytes(unsigned char *mem_ptr, int offset, int size, int *oor)
+{
+	id_printf("%s mem_ptr %p offset %d size %d\n", __FUNCTION__, mem_ptr, offset, size);
+	if (id_data.root_size && ((offset + size) >= (id_data.root_offset + id_data.root_size))) {
+		id_error("Attempt to read past end of buffer (offset %u >= (%u + %u))", offset, id_data.root_offset, id_data.root_size);
+		*oor = -ID_ERANGE;
+		return;
+	}
+	if (at24_read(offset, mem_ptr, size) != 0) {
+		*oor = -ID_ENODEV;
+	}
+	return;
+}
+
 /* Fetch a byte of data from the ID data on the i2c bus */
 unsigned char id_fetch_byte(unsigned char *mem_ptr, int offset, int *oor)
 {
@@ -47,7 +61,7 @@ unsigned char id_fetch_byte(unsigned char *mem_ptr, int offset, int *oor)
 
 	/* If data is off end of known size then complain */
 	if (id_data.root_size && (offset >= (id_data.root_offset + id_data.root_size))) {
-		id_printf("Attempt to read past end of buffer (offset %u >= size %u)\n", offset, sizeof(id_data_buf));
+		id_error("Attempt to read past end of buffer (offset %u >= (%u + %u))", offset, id_data.root_offset, id_data.root_size);
 		*oor = -ID_ERANGE;
 		return 0;  /* Force upper layer to recover */
 	}
@@ -84,6 +98,25 @@ int id_printf(const char *fmt, ...)
 	return 0;
 }
 
+#ifdef DEBUG_NEW_ID_CODE
+int id_dbg_printf(const char *fmt, ...)
+{
+	va_list args;
+	char printbuffer[256];
+
+	va_start (args, fmt);
+	/* For this to work, printbuffer must be larger than
+	 * anything we ever want to print.
+	 */
+	vsprintf (printbuffer, fmt, args);
+	va_end (args);
+	/* Print the string */
+	serial_puts (printbuffer);
+
+	return 0;
+}
+#endif
+
 void id_error(const char *fmt, ...)
 {
 	va_list args;
@@ -100,6 +133,22 @@ void id_error(const char *fmt, ...)
 
 }
 
+static int _at24_setup(void)
+{
+	int ret;
+
+	ret=at24_wakeup();
+	if(ret)
+		printf("wakeup_err=%d\n", ret);
+	return ret;
+}
+
+static int _at24_shutdown(void)
+{
+	at24_shutdown();
+	return 0;
+}
+
 static int found_id_data;
 /* Initialize the product ID data and return 0 if found */
 static int product_id_init(void)
@@ -114,15 +163,8 @@ static int product_id_init(void)
 	 * going back to the AT24 to read the data. */
 	id_data.mem_ptr = (void *)SRAM_BASE;
 
-	ret=at24_wakeup();
-	if(ret) {
-		printf("wakeup_err=%d\n", ret);
-	}
 
-	ret = id_startup(&id_data);
-
-
-	at24_shutdown();
+	ret = id_startup(&id_data, _at24_setup, _at24_shutdown);
 
 	if (ret != ID_EOK) {
 		return -1;
@@ -273,13 +315,25 @@ int logic_extract_gpmc_timing(int cs, int *config_regs)
 
 int do_dump_id_data(cmd_tbl_t * cmdtp, int flag, int argc, char *const argv[])
 {
+	int i;
 	printf("id_data: mem_ptr %p root_offset %u root_size %u\n",
 		id_data.mem_ptr, id_data.root_offset, id_data.root_size);
+	
+	for (i=0; i<(id_data.root_offset + id_data.root_size); ++i) {
+		if (!(i & 0xf)) {
+			if (i)
+				printf("\n");
+			printf("%04x:", i);
+		}
+		printf(" %02x", id_data.mem_ptr[i]);
+	}
+	printf("\n");
+	
 	return 1;
 }
 
 U_BOOT_CMD(
 	dump_id_data, 1, 1, do_dump_id_data,
 	"dump_id_data - dump product ID data",
-	"dump product ID data in human-readable form"
+	"dump raw new product ID data as hex"
 );

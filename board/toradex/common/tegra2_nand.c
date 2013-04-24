@@ -920,7 +920,7 @@ int board_nand_init(struct nand_chip *nand)
 	struct fdt_nand *config = &info->config;
 	struct mtd_info tmp_mtd;
 	int tmp_manf, tmp_id, tmp_4th;
-	char compat[8];
+	char compat[9];
 	int node;
 
 #ifndef CONFIG_COLIBRI_T30

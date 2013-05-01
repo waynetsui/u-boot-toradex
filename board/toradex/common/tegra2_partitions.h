@@ -1,6 +1,9 @@
 #ifndef _TEGRA2_PARTITIONS_H_
 #define _TEGRA2_PARTITIONS_H_
 
+#define EMMC_DEV		0
+#define EMMC_BLOCK_SIZE		512
+
 #define TEGRA_MAX_PARTITIONS	24
 
 typedef struct {
@@ -27,12 +30,12 @@ typedef struct {
 	nvtegra_partinfo_t partinfo[TEGRA_MAX_PARTITIONS];
 } __attribute__ ((packed)) nvtegra_parttable_t;
 
+ulong nvtegra_mmc_read(ulong startAddress, ulong dataCount, void *dst);
 void nvtegra_print_partition_table(nvtegra_parttable_t * pt);
-int nvtegra_read_partition_table(nvtegra_parttable_t * pt);
+int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media);
 int nvtegra_find_partition(nvtegra_parttable_t * pt, const char *name,
 			   nvtegra_partinfo_t ** partinfo);
 int nvtegra_mtdparts_string(char *output, int size);
-void tegra_partition_init(void);
+void tegra_partition_init(int boot_type);
 
 #endif /* _TEGRA2_PARTITIONS_H_ */
-

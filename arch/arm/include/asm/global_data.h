@@ -80,10 +80,13 @@ typedef	struct	global_data {
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */
 #if defined(CONFIG_COLIBRI_T20) || defined(CONFIG_COLIBRI_T30)
-	unsigned env_offset;		/* offset to U-Boot environment */
 	unsigned conf_blk_offset;	/* offset to Toradex config block */
-	unsigned kernel_offset;		/* offset to kernel in mass storage */
+	unsigned env_offset;		/* offset to U-Boot environment */
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || defined(CONFIG_COLIBRI_T30)
+	unsigned gpt_offset;		/* offset to GPT in mass storage */
 #endif
+	unsigned kernel_offset;		/* offset to kernel in mass storage */
+#endif /* CONFIG_COLIBRI_T20 | CONFIG_COLIBRI_T30 */
 } gd_t;
 
 /*

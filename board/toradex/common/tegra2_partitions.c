@@ -1,18 +1,92 @@
 #include <common.h>
-#include <asm/io.h>
-#include <nand.h>
-#include <malloc.h>
-#include <asm/arch/pinmux.h>
-#include <asm/arch/gpio.h>
+
 #include <asm/arch-tegra/ap20.h>
+#include <asm/arch/gpio.h>
+#include <asm/arch/pinmux.h>
 #include <asm/errno.h>
+#include <asm/io.h>
+
 #include <fdt_decode.h>
+#include <malloc.h>
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30)
+#include <mmc.h>
+#endif
+#ifdef CONFIG_COLIBRI_T20
+#include <nand.h>
+
 #include "tegra2_nand.h"
+#endif /* CONFIG_COLIBRI_T20 */
 #include "tegra2_partitions.h"
 
 #define DEBUG 0
 
+#if DEBUG > 1
+#define DEBUG_PARTITION(partinfo) \
+	printf("Part:\tID=%u\tNAME=%s\tNAME2=%s\n\t\tTYPE=%u\tALLOC_POLICY=%u" \
+	       "\tFS_TYPE=%u\n\t\tVIRTUAL START SEC=%u\tVIRTUAL SIZE=%u\n", \
+	     partinfo->id, partinfo->name, partinfo->name2, \
+	     partinfo->type, partinfo->allocation_policy, \
+	     partinfo->filesystem_type, partinfo->virtual_start_sector, \
+	     partinfo->virtual_size); \
+	printf("\t\tSTART SEC=%u\tEND SEC=%u\tTOTAL=%u\n", \
+	       partinfo->start_sector, partinfo->end_sector, \
+	       partinfo->end_sector + 1 - partinfo->start_sector);
+#else
+#define DEBUG_PARTITION(...)
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
+
+/* physical NAND block size, virtual block size in eMMC/SD card case */
+static int block_size;
+
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30)
+/**
+ * nvtegra_mmc_read - read data from mmc (unaligned)
+ * @param startAddress:	data offset in bytes
+ * @param dataCount:	data count in bytes
+ * @param dst:			destination buffer
+ * @return:				number of read bytes or 0 for error
+ */
+ulong nvtegra_mmc_read(ulong startAddress, ulong dataCount, void *dst)
+{
+	ulong readBlocks, startBlock, i;
+	void *buffer;
+
+	if (dataCount == 0 || dst == NULL)
+		return 0;
+
+	struct mmc *mmc = find_mmc_device(EMMC_DEV);
+	if (!mmc)
+		return 0;
+
+	mmc_init(mmc); // init if not inited
+
+	// align read size to blocks
+	startBlock = startAddress / EMMC_BLOCK_SIZE;
+	readBlocks = (startAddress + dataCount + EMMC_BLOCK_SIZE - 1) /
+		     EMMC_BLOCK_SIZE - startBlock; // ceil
+
+	buffer = malloc(readBlocks * EMMC_BLOCK_SIZE);
+	if (!buffer)
+		return 0;
+
+	i = mmc->block_dev.block_read(EMMC_DEV, startBlock, readBlocks,
+				      buffer);
+
+	if (i != readBlocks) {
+		free(buffer);
+		return 0;
+	}
+	memcpy(dst, buffer + (startAddress - startBlock * EMMC_BLOCK_SIZE),
+	       dataCount);
+	free(buffer);
+
+	return dataCount;
+}
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
 
 /**
  * nvtegra_print_partition_table - prints partition table info
@@ -46,14 +120,8 @@ void nvtegra_print_partition_table(nvtegra_parttable_t * pt)
 #endif
 
 	for (i = 0; (p->id < 128) && (i < TEGRA_MAX_PARTITIONS); i++) {
-		printf
-		    ("\n[%u]\tPart:\tID=%u\tNAME=%s\tNAME2=%s\n\t\tTYPE=%u\tALLOC_POLICY=%u\tFS_TYPE=%u\n\t\tVIRTUAL START SEC=%u\tVIRTUAL SIZE=%u\n",
-		     i, p->id, p->name, p->name2, p->type, p->allocation_policy,
-		     p->filesystem_type, p->virtual_start_sector,
-		     p->virtual_size);
-		printf("\t\tSTART SEC=%u\tEND SEC=%u\tTOTAL=%u\n",
-		       p->start_sector, p->end_sector,
-		       p->end_sector + 1 - p->start_sector);
+		printf("\n[%u]\t", i);
+		DEBUG_PARTITION(p);
 
 #if DEBUG > 1
 		printf("\t\tUNK1=%u\t%u\n", p->_unknown1[0], p->_unknown1[1]);
@@ -72,16 +140,17 @@ void nvtegra_print_partition_table(nvtegra_parttable_t * pt)
 
 /**
  * nvtegra_read_partition_table - reads nvidia's partition table
+ * @param boot_media: 0: NAND, 1: eMMC or SD card
  * @return:
  *  1 - Success
  *  0 - Error
  */
-int nvtegra_read_partition_table(nvtegra_parttable_t * pt)
+int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 {
 	size_t size;
 	int i;
 	nvtegra_partinfo_t *p;
-	u32 bct_start, pt_logical, pt_offset;
+	u32 bct_start, pt_logical = 0, pt_offset;
 
 	// sanity check
 	if (!pt) {
@@ -100,41 +169,105 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt)
 #if DEBUG > 1
 	printf("bct_start=0x%08x\n", bct_start);
 #endif
-	pt_logical = readw(bct_start + BCT_PTINFO_OFFSET);
+
+	/* Search PT logical offset
+	   Note: 0x326 for T30 Fastboot, 0xB48 for Eboot resp. Android
+		 Fastboot and 0xEEC for Vibrante Fastboot */
+	for (i = 0; i < 0x800; i++) {
+		if (readw(bct_start) == 0x40) {
+			/* Either previous or 3rd next word */
+			pt_logical = readw(bct_start - 2);
+			if (pt_logical < 0x100)
+				pt_logical = readw(bct_start + 6);
+			break;
+		}
+		bct_start += 2;
+	}
+#if DEBUG > 1
+#ifdef CONFIG_COLIBRI_T20
+	if (boot_media == 0)
+		printf("logical=0x%08x writesize=0x%08x erasesize=0x%08x\n",
+		       pt_logical, block_size, nand_info->erasesize);
+	else
+#endif /* CONFIG_COLIBRI_T20 */
+		printf("logical=0x%08x divisor=0x%08x\n", pt_logical,
+		       block_size);
+#endif
+
 	/* In case we are running with a recovery BCT missing the partition
 	   table offset information */
-#ifdef CONFIG_ENV_IS_IN_MMC
+#if defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)
 	if (1) {
 #else
 	if (pt_logical == 0) {
 #endif
-		/* BCT partition size is 3 M in our default layout */
-		pt_logical = 3 * 1024 * 1024 / nand_info->writesize;
-	}
-	/* StartLogicalSector * PageSize + 4 * BlockSize */
-	pt_offset = pt_logical * nand_info->writesize + 4 * nand_info->erasesize;
+		if (boot_media == 0) {
+			/* On NAND BCT partition size is 3 M in our default
+			   layout */
+			pt_logical = 3 * 1024 * 1024 / block_size;
+		} else {
+// 3 M - BootPartitions
+#ifdef CONFIG_COLIBRI_T30
+			pt_logical = 0x8000;
+#else
+			pt_logical = 0x4000;
+#endif
+		}
 #if DEBUG > 1
-	printf("logical=0x%08x writesize=0x%08x erasesize=0x%08x\n", readw(bct_start + BCT_PTINFO_OFFSET), nand_info->writesize, nand_info->erasesize);
-	printf("pt_offset=0x%08x\n", pt_offset);
+		printf("forced logical=0x%08x\n", pt_logical);
+#endif
+	}
+
+#ifdef CONFIG_COLIBRI_T20
+	if (boot_media == 0) {
+		/* StartLogicalSector * PageSize + 4 * BlockSize */
+		pt_offset = pt_logical * nand_info->writesize +
+			    4 * nand_info->erasesize;
+	} else
+#endif /* CONFIG_COLIBRI_T20 */
+	{
+		/* StartLogicalSector / LogicalBlockSize * PhysicalBlockSize +
+		   BootPartitions */
+		pt_offset = pt_logical / block_size * 512 + 1024 * 1024;
+	}
+#if DEBUG > 1
+	printf("physical=0x%08x\n", pt_offset);
 #endif
 
 	size = sizeof(nvtegra_parttable_t);
-	i = nand_read_skip_bad(&nand_info[0], pt_offset, &size,
-			       (unsigned char *)pt);
-	if ((i != 0) || (size != sizeof(nvtegra_parttable_t))) {
-		printf
-		    ("%s: Error! nand_read_skip_bad failed. nand_info->writesize=%d ret=%d\n",
-		     __FUNCTION__, nand_info->writesize, i);
-		return 0;
+#ifdef CONFIG_COLIBRI_T20
+	if (boot_media == 0) {
+		i = nand_read_skip_bad(&nand_info[0], pt_offset, &size,
+				       (unsigned char *)pt);
+		if ((i != 0) || (size != sizeof(nvtegra_parttable_t))) {
+			printf("%s: Error! nand_read_skip_bad failed. "
+			       "block_size=%d ret=%d\n",
+			       __FUNCTION__, block_size, i);
+			return 0;
+		}
 	}
+#endif /* CONFIG_COLIBRI_T20 */
+#if defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)
+	else
+#endif
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30)
+	{
+		size = nvtegra_mmc_read(pt_offset, size, (void *)pt);
+		if (!size || size != sizeof(nvtegra_parttable_t)) {
+			printf("%s: Error! mmc block read failed. Read=%d\n",
+			       __FUNCTION__, size);
+			return 0;
+		}
+	}
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
 
 	/* some heuristics */
 	p = &(pt->partinfo[0]);
 	if ((p->id != 2) || memcmp(p->name, "BCT\0", 4)
 	    || memcmp(p->name2, "BCT\0", 4) || (p->virtual_start_sector != 0)) {
-		printf
-		    ("%s: Error! Partition table offset is probably incorrect. name='%s'\n",
-		     __FUNCTION__, p->name);
+		printf("%s: Error! Partition table offset is probably "
+		       "incorrect. name='%s'\n", __FUNCTION__, p->name);
 		return 0;
 	}
 
@@ -185,6 +318,7 @@ int nvtegra_find_partition(nvtegra_parttable_t * pt, const char *name,
 	return 0;
 }
 
+#ifdef CONFIG_COLIBRI_T20
 int nvtegra_mtdparts_string(char *output, int size)
 {
 	int i, j = 0;
@@ -198,9 +332,8 @@ int nvtegra_mtdparts_string(char *output, int size)
 		return 0;
 	}
 	if (size > 256) {
-		printf
-		    ("%s: Error! size is too large. Increase buffer size here.\n",
-		     __FUNCTION__);
+		printf("%s: Error! size is too large. Increase buffer size "
+		       "here.\n", __FUNCTION__);
 		return 0;
 	}
 	// parse nvidia partition table
@@ -211,7 +344,8 @@ int nvtegra_mtdparts_string(char *output, int size)
 		return 0;
 	}
 
-	if (!nvtegra_read_partition_table(pt)) {
+	block_size = nand_info->writesize;
+	if (!nvtegra_read_partition_table(pt, 0)) {
 		free(pt);
 		return 0;
 	}
@@ -257,9 +391,15 @@ int nvtegra_mtdparts_string(char *output, int size)
 	free(pt);
 	return 1;
 }
+#endif /* CONFIG_COLIBRI_T20 */
 
-void tegra_partition_init(void)
+//3 boot types: 0: Colibri T20 NAND only, 1: Colibri T20 mixed SD-boot but
+//config block in NAND or 2: Colibri T30 eMMC only
+//mixed case requires two itterations, first pass on NAND and second one on SD
+//card
+void tegra_partition_init(int boot_type)
 {
+	int itterations, pass;
 	nvtegra_parttable_t *pt;
 	nvtegra_partinfo_t *partinfo;
 
@@ -270,83 +410,79 @@ void tegra_partition_init(void)
 		       sizeof(nvtegra_parttable_t));
 		return;
 	}
-	//copy partition information to global data
-	if (!nvtegra_read_partition_table(pt)) {
-		free(pt);
-		return;
-	}
 
-	if (nvtegra_find_partition(pt, "ENV", &partinfo)) {
-		gd->env_offset =
-		    partinfo->start_sector * nand_info->writesize;
-#if DEBUG > 1
-		printf
-		    ("\nPart:\tID=%u\tNAME=%s\tNAME2=%s\n\t\tTYPE=%u\tALLOC_POLICY=%u\tFS_TYPE=%u\n\t\tVIRTUAL START SEC=%u\tVIRTUAL SIZE=%u\n",
-		     partinfo->id, partinfo->name, partinfo->name2,
-		     partinfo->type, partinfo->allocation_policy,
-		     partinfo->filesystem_type, partinfo->virtual_start_sector,
-		     partinfo->virtual_size);
-		printf("\t\tSTART SEC=%u\tEND SEC=%u\tTOTAL=%u\n",
-		       partinfo->start_sector, partinfo->end_sector,
-		       partinfo->end_sector + 1 - partinfo->start_sector);
-#endif
-	}
+	if (boot_type == 0)
+		itterations = 1;
+	else
+		itterations = 2;
 
-	if (nvtegra_find_partition(pt, "ARG", &partinfo)) {
-		gd->conf_blk_offset =
-		    partinfo->start_sector * nand_info->writesize;
-#if DEBUG > 1
-		printf
-		    ("\nPart:\tID=%u\tNAME=%s\tNAME2=%s\n\t\tTYPE=%u\tALLOC_POLICY=%u\tFS_TYPE=%u\n\t\tVIRTUAL START SEC=%u\tVIRTUAL SIZE=%u\n",
-		     partinfo->id, partinfo->name, partinfo->name2,
-		     partinfo->type, partinfo->allocation_policy,
-		     partinfo->filesystem_type, partinfo->virtual_start_sector,
-		     partinfo->virtual_size);
-		printf("\t\tSTART SEC=%u\tEND SEC=%u\tTOTAL=%u\n",
-		       partinfo->start_sector, partinfo->end_sector,
-		       partinfo->end_sector + 1 - partinfo->start_sector);
-#endif
-	}
+	if (boot_type == 2)
+		pass = 1;
+	else
+		pass = 0;
 
-	if (nvtegra_find_partition(pt, "LNX", &partinfo)) {
-		gd->kernel_offset =
-		    partinfo->start_sector * nand_info->writesize;
-#if DEBUG > 1
-		printf
-		    ("\nPart:\tID=%u\tNAME=%s\tNAME2=%s\n\t\tTYPE=%u\tALLOC_POLICY=%u\tFS_TYPE=%u\n\t\tVIRTUAL START SEC=%u\tVIRTUAL SIZE=%u\n",
-		     partinfo->id, partinfo->name, partinfo->name2,
-		     partinfo->type, partinfo->allocation_policy,
-		     partinfo->filesystem_type, partinfo->virtual_start_sector,
-		     partinfo->virtual_size);
-		printf("\t\tSTART SEC=%u\tEND SEC=%u\tTOTAL=%u\n",
-		       partinfo->start_sector, partinfo->end_sector,
-		       partinfo->end_sector + 1 - partinfo->start_sector);
-#endif
-	}
+	for (; pass < itterations; pass++) {
+#ifdef CONFIG_COLIBRI_T20
+		if (pass == 0)
+			block_size = nand_info->writesize;
+		else
+			block_size = 4;
+#else /* CONFIG_COLIBRI_T20 */
+			block_size = 8;
+#endif /* CONFIG_COLIBRI_T20 */
 
-	if (nvtegra_find_partition(pt, "USR", &partinfo)) {
-#if DEBUG > 1
-		printf
-		    ("\nPart:\tID=%u\tNAME=%s\tNAME2=%s\n\t\tTYPE=%u\tALLOC_POLICY=%u\tFS_TYPE=%u\n\t\tVIRTUAL START SEC=%u\tVIRTUAL SIZE=%u\n",
-		     partinfo->id, partinfo->name, partinfo->name2,
-		     partinfo->type, partinfo->allocation_policy,
-		     partinfo->filesystem_type, partinfo->virtual_start_sector,
-		     partinfo->virtual_size);
-		printf("\t\tSTART SEC=%u\tEND SEC=%u\tTOTAL=%u\n",
-		       partinfo->start_sector, partinfo->end_sector,
-		       partinfo->end_sector + 1 - partinfo->start_sector);
-#endif
-	}
-#if DEBUG > 1
-	printf("gd->env_offset=%u\n", gd->env_offset);
-	printf("gd->conf_blk_offset=%u\n", gd->conf_blk_offset);
-	printf("gd->kernel_offset=%u\n", gd->kernel_offset);
-#endif
+		//copy partition information to global data
+		if (!nvtegra_read_partition_table(pt, pass)) {
+			free(pt);
+			return;
+		}
+
+		/* ConfigBlock */
+		if ((pass == 0 || (boot_type == 2 && pass == 1)) &&
+		    nvtegra_find_partition(pt, "ARG", &partinfo)) {
+			gd->conf_blk_offset =
+			    partinfo->start_sector * block_size;
+			DEBUG_PARTITION(partinfo);
+		}
+
+		if ((boot_type == 0 && pass == 0) || pass == 1) {
+			if (nvtegra_find_partition(pt, "ENV", &partinfo)) {
+				gd->env_offset =
+				    partinfo->start_sector * block_size;
+				DEBUG_PARTITION(partinfo);
+			}
+
+			if (nvtegra_find_partition(pt, "LNX", &partinfo)) {
+				gd->kernel_offset =
+				    partinfo->start_sector * block_size;
+				DEBUG_PARTITION(partinfo);
+			}
+		}
+
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30)
+		if ((pass == 1) && nvtegra_find_partition(pt, "GP1", &partinfo))
+		{
+			gd->gpt_offset =
+			    partinfo->start_sector * block_size + 1;
+			DEBUG_PARTITION(partinfo);
+		}
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
 
 #if DEBUG > 0
-	nvtegra_print_partition_table(pt);
+		nvtegra_print_partition_table(pt);
+#endif
+	}
+
+#if DEBUG > 0
+	printf("gd->conf_blk_offset=%u\n", gd->conf_blk_offset);
+	printf("gd->env_offset=%u\n", gd->env_offset);
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30)
+	printf("gd->gpt_offset=%u\n", gd->gpt_offset);
+#endif
+	printf("gd->kernel_offset=%u\n", gd->kernel_offset);
 #endif
 
 	free(pt);
 }
-

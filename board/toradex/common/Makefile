@@ -27,7 +27,7 @@ LIB	= $(obj)lib$(VENDOR).o
 
 COBJS-y += board.o
 COBJS-$(CONFIG_TEGRA2_NAND) += tegra2_nand.o
-COBJS-$(CONFIG_TEGRA2_NAND) += tegra2_partitions.o
+COBJS-y += tegra2_partitions.o
 COBJS-$(CONFIG_USB_EHCI_TEGRA) += ulpi_linux.o
 COBJS-$(CONFIG_USB_EHCI_TEGRA) += usb.o
 

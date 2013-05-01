@@ -40,6 +40,8 @@
 #define CACHE_LINE_SIZE __BIGGEST_ALIGNMENT__
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
+
 #if defined(CONFIG_CMD_IDE) || \
     defined(CONFIG_CMD_MG_DISK) || \
     defined(CONFIG_CMD_SATA) || \

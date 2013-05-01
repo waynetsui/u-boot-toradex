@@ -406,33 +406,30 @@ int board_init(void)
 #ifdef BOARD_LATE_INIT
 int board_late_init(void)
 {
-#ifdef CONFIG_CMD_NAND
-	char env_str[256 ];
-#endif
+	char env_str[256];
 
-#if defined(CONFIG_CMD_NAND) || defined(CONFIG_TRDX_CFG_BLOCK)
 	int i;
-#endif
 
-#ifdef CONFIG_TRDX_CFG_BLOCK
 	char *addr_str, *end;
 	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
 	unsigned char *mac_addr;
 	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
+
+#ifdef CONFIG_COLIBRI_T30
+	struct mmc *mmc;
+#endif
 
 	size_t size			= 4096;
 	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
 	int valid			= 0;
 
         int ret;
-#endif /* CONFIG_TRDX_CFG_BLOCK */
 
 #ifdef CONFIG_VIDEO_TEGRA
 	/* Make sure we finish initing the LCD */
 	tegra_lcd_check_next_stage(gd->blob, 1);
 #endif
 
-#ifdef CONFIG_TRDX_CFG_BLOCK
 	/* Allocate RAM area for config block */
 	config_block = malloc(size);
 	if (!config_block) {
@@ -443,11 +440,22 @@ int board_late_init(void)
 	/* Clear it */
 	memset((void *)config_block, 0, size);
 
-	/* Read production parameter config block */
-#ifdef CONFIG_CMD_NAND
+	/* Read production parameter config block from eMMC (Colibri T30) or
+	   NAND (Colibri T20) */
+#ifdef CONFIG_COLIBRI_T20
 	ret = nand_read_skip_bad(&nand_info[0], gd->conf_blk_offset, &size,
-			(unsigned char *) config_block);
-#endif
+			(unsigned char *)config_block);
+#endif /* CONFIG_COLIBRI_T20 */
+#ifdef CONFIG_COLIBRI_T30
+	mmc = find_mmc_device(0);
+	/* Just reading one 512 byte block */
+	ret = mmc->block_dev.block_read(0, gd->conf_blk_offset, 1, (unsigned char *)config_block);
+	if (ret == 1) {
+		ret = 0;
+		size = 512;
+	}
+#endif /* CONFIG_COLIBRI_T30 */
+
 	/* Check validity */
 	if ((ret == 0) && (size > 0)) {
 		mac_addr = config_block + 8;
@@ -456,7 +464,6 @@ int board_late_init(void)
 		}
 	}
 
-	/* Check validity */
 	if (!valid) {
 		printf("Missing Colibri config block\n");
 		memset((void *)config_block, 0, size);
@@ -485,7 +492,7 @@ int board_late_init(void)
 
 	/* Default memory arguments */
 	if (!getenv("memargs")) {
-#ifndef CONFIG_TEGRA3
+#ifndef CONFIG_COLIBRI_T30
 		if (gd->ram_size == 0x10000000) {
 			/* 256 MB */
 			setenv("memargs", "mem=148M@0M fbmem=12M@148M nvmem=96M@160M");
@@ -493,19 +500,17 @@ int board_late_init(void)
 			/* 512 MB */
 			setenv("memargs", "mem=372M@0M fbmem=12M@372M nvmem=128M@384M");
 		}
-#endif /* !CONFIG_TEGRA3 */
+#endif /* !CONFIG_COLIBRI_T30 */
 	}
 
-#endif /* CONFIG_TRDX_CFG_BLOCK */
-
-#ifdef CONFIG_CMD_NAND
-	/* set the nand kernel offset */
+	/* Set eMMC or NAND kernel offset */
 	if (!getenv("lnxoffset")) {
 		sprintf(env_str, "0x%x", (unsigned)(gd->kernel_offset));
 		setenv("lnxoffset", env_str);
 	}
 
-	/* set the mtdparts string */
+#ifdef CONFIG_COLIBRI_T20
+	/* Set mtdparts string */
 	if (!getenv("mtdparts")) {
 		sprintf(env_str, "mtdparts=tegra_nand:");
 		i = strlen(env_str);
@@ -513,7 +518,16 @@ int board_late_init(void)
 
 		setenv("mtdparts", env_str);
 	}
-#endif /* CONFIG_CMD_NAND */
+#endif /* CONFIG_COLIBRI_T20 */
+
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || defined(CONFIG_COLIBRI_T30)
+	/* Set GPT offset */
+	if (!getenv("gptoffset")) {
+		sprintf(env_str, "0x%x", (unsigned)(gd->gpt_offset));
+
+		setenv("gptoffset", env_str);
+	}
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
 
 	return 0;
 }

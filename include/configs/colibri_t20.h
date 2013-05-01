@@ -138,12 +138,27 @@
 	"fatload usb 0:1 ${loadaddr} uImage;"			\
 	"run ramboot"
 
-#define SD_BOOTCMD					\
+#ifndef __CONFIG_SDBOOT_H
+#define SD_BOOT_ARGS						\
+	""
+#define SD_BOOT_SETUP						\
+	""
+#else /* !__CONFIG_SDBOOT_H */
+#define SD_BOOTCMD						\
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${sdargs} ${mtdparts} ${setupargs}; " \
-	"echo Booting from MMC/SD card...; " \
-	"mmc read 0 ${loadaddr} 0x2a00 0x4000; " \
+	"echo Booting from MMC/SD card...; "			\
+	"mmc read 0 ${loadaddr} ${lnxoffset} ${sd_kernel_size}; " \
 	"bootm"
+
+#define SD_BOOT_ARGS						\
+	"sdargs=root=/dev/mmcblk0p1 ip=off rw,noatime rootfstype=ext3 rootwait gpt\0" \
+	"sd_kernel_size=0x4000\0"				\
+	"sdboot=" SD_BOOTCMD "\0"
+
+#define SD_BOOT_SETUP						\
+	"gpt_sector=${gptoffset} "
+#endif /* !__CONFIG_SDBOOT_H */
 
 #undef CONFIG_BOOTARGS
 #undef CONFIG_BOOTCOMMAND
@@ -154,7 +169,7 @@
 //moved from disk/part_efi.h to here, give the block where the GP1 partition starts
 //compare with sdargs below
 #ifdef __CONFIG_SDBOOT_H
-#define GPT_PRIMARY_PARTITION_TABLE_LBA	18945ULL
+#define GPT_PRIMARY_PARTITION_TABLE_LBA	(gd->gpt_offset)
 #else
 #define GPT_PRIMARY_PARTITION_TABLE_LBA	1ULL
 #endif
@@ -167,9 +182,10 @@
 	"mmcboot=" MMC_BOOTCMD "\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
 	"ramargs=initrd=0xA1800000,32M ramdisk_size=32768 root=/dev/ram0 rw\0" \
-	"sdargs=root=/dev/mmcblk0p1 ip=:::::eth0:off rw,noatime rootfstype=ext3 rootwait gpt gpt_sector=18945\0" \
-	"sdboot=" SD_BOOTCMD "\0" \
-	"setup=setenv setupargs asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 ${memargs}\0" \
+	SD_BOOT_ARGS \
+	"setup=setenv setupargs " \
+	SD_BOOT_SETUP \
+	"asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 ${memargs}\0" \
 	"ubiargs=ubi.mtd=0 root=ubi0:rootfs rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
 	"usbboot=" USB_BOOTCMD "\0" \

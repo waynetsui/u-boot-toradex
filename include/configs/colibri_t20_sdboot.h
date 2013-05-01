@@ -34,17 +34,16 @@ SD-BOOT
 The sd sector numbers are used as follows:
 u-boot needs to find ENV and LNX to get to the environment and the kernel, the kernel needs to find the APP partition for the rootfs.
 ENV: colibri_t20_sdboot.h
-Set CONFIG_ENV_MMC_OFFSET to the byte start address of ENV, take the sector address of Partid 6 (which is in 2024 byte sectors)
+Set CONFIG_ENV_MMC_OFFSET to the byte start address of ENV, take the sector address of Partid 6 (which is in 2048 byte sectors)
 
 LNX: colibri_t20.h
-Set the u-boot environment SDBOOTCMD below, mmc read RAMloadaddr, 512byte sector start, 512byte copy length
-take the sector address of Partid 7 (which is in 2024 byte sectors)
+Set the u-boot environment SDBOOTCMD below, mmc read RAMloadaddr, 512byte sector start, 512byte copy length.
+Take the sector address of Partid 7 (which is in 2048 byte sectors).
 
 APP: colibri_t20.h
 Set the u-boot environment sdargs and the variable GPT_PRIMARY_PARTITION_TABLE_LBA below.
 The kernel finds the partition with the help of the GP1/GPT partitions. The kernel commandline must include "gpt gpt_sector=xxx"
 to force it to use GUID Partition Table (GPT) and to give the 512byte sector start address of the primary GUID.
-Set this in
 Take the start address of Partid 8 (which is in 2048 byte sectors). add 1 to the resulting 512byte block. (at pos. 0 is the MBR)
 
 E.g. Output during nvflash procedure on serial console:
@@ -53,12 +52,12 @@ SD Alloc Partid=3, start sector=1536,num=64
 SD Alloc Partid=4, start sector=1600,num=960
 SD Alloc Partid=5, start sector=2560,num=64
 SD Alloc Partid=6, start sector=2624,num=64
-SD Alloc Partid=7, start sector=2688,num=2048
-SD Alloc Partid=8, start sector=4736,num=512
-SD Alloc Partid=9, start sector=5248,num=500032
-SD Alloc Partid=10, start sector=505280,num=460352
+SD Alloc Partid=7, start sector=2688,num=4096
+SD Alloc Partid=8, start sector=6784,num=512
+SD Alloc Partid=9, start sector=7296,num=3879808
+SD Alloc Partid=11, start sector=3887104,num=0
 
-sector start address 4736 * 2048 -> 18944 * 512 -> GPT start sector is 18945.
+sector start address 6784 * 2048 -> 27137 * 512 -> GPT start sector is 27137.
 */
 
 
@@ -87,7 +86,8 @@ sector start address 4736 * 2048 -> 18944 * 512 -> GPT start sector is 18945.
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV 0 /* use MMC0, slot on eval board and Iris */
-#define CONFIG_ENV_MMC_OFFSET  (10496 * 512) /* Byteaddress of the beginning of the ENV partition */
+/* once the eMMC is detected the corresponding setting is taken */
+#define CONFIG_ENV_MMC_OFFSET  (gd->env_offset * 512)
 #endif
 
 #endif /* __CONFIG_H */

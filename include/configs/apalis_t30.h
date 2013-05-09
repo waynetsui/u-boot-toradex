@@ -30,7 +30,7 @@
 #define CONFIG_APALIS_T30	/* Toradex Apalis T30 module */
 
 /* High-level configuration options */
-#define TEGRA3_SYSMEM		"mem=1023M@2048M vmalloc=128M"
+#define TEGRA3_SYSMEM		"mem=2036M@2048M vmalloc=256M"
 #define V_PROMPT		"Tegra3 # "
 
 #include "tegra3-common.h"
@@ -109,7 +109,7 @@
 #define CONFIG_LOADADDR 0x80408000
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_STD_DEVICES_SETTINGS \
-	"defargs=video=tegrafb vmalloc=128M mem=1023M@2048M core_edp_mv=1300 tegra_fbmem=3072K@0xBFE00000 usb_high_speed=1\0" \
+	"defargs=video=tegrafb vmalloc=256M mem=2036M@2048M core_edp_mv=1300 fbmem=12M@4084M usb_high_speed=1\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
 	"mmcargs=ip=off root=/dev/mmcblk0p1 rw,noatime rootfstype=ext3 rootwait\0" \
 	"mmc_kernel_size=0x4000\0" \

@@ -64,7 +64,7 @@
 /* disabled for now #define CONFIG_HW_WATCHDOG */
 
 #undef CONFIG_BOOTDELAY
-#define CONFIG_BOOTDELAY	5
+#define CONFIG_BOOTDELAY	0
 #define CONFIG_NETMASK		255.255.255.0
 #undef CONFIG_IPADDR
 #define CONFIG_IPADDR		192.168.10.2

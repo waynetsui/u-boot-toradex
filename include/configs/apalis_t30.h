@@ -114,7 +114,7 @@
 	"mmcargs=ip=off root=/dev/mmcblk0p1 rw,noatime rootfstype=ext3 rootwait\0" \
 	"mmc_kernel_size=0x4000\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
-	"setup=setenv setupargs gpt gpt_sector=${gptoffset} igb_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0\0" \
+	"setup=setenv setupargs gpt gpt_sector=${gptoffset} igb_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 fbcon=map:1\0" \
 	"usbboot=" USB_BOOTCMD "\0" \
 	""
 

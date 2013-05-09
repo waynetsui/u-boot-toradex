@@ -9,7 +9,7 @@
 #include <fdt_decode.h>
 #include <malloc.h>
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
-    defined(CONFIG_COLIBRI_T30)
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 #include <mmc.h>
 #endif
 #ifdef CONFIG_COLIBRI_T20
@@ -42,7 +42,7 @@ DECLARE_GLOBAL_DATA_PTR;
 static int block_size;
 
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
-    defined(CONFIG_COLIBRI_T30)
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 /**
  * nvtegra_mmc_read - read data from mmc (unaligned)
  * @param startAddress:	data offset in bytes
@@ -86,7 +86,8 @@ ulong nvtegra_mmc_read(ulong startAddress, ulong dataCount, void *dst)
 
 	return dataCount;
 }
-#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 |
+	  CONFIG_APALIS_T30 */
 
 /**
  * nvtegra_print_partition_table - prints partition table info
@@ -207,7 +208,7 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 			pt_logical = 3 * 1024 * 1024 / block_size;
 		} else {
 // 3 M - BootPartitions
-#ifdef CONFIG_COLIBRI_T30
+#if defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 			pt_logical = 0x8000;
 #else
 			pt_logical = 0x4000;
@@ -251,7 +252,7 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 	else
 #endif
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
-    defined(CONFIG_COLIBRI_T30)
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	{
 		size = nvtegra_mmc_read(pt_offset, size, (void *)pt);
 		if (!size || size != sizeof(nvtegra_parttable_t)) {
@@ -260,7 +261,8 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 			return 0;
 		}
 	}
-#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 |
+	  CONFIG_APALIS_T30 */
 
 	/* some heuristics */
 	p = &(pt->partinfo[0]);
@@ -460,14 +462,15 @@ void tegra_partition_init(int boot_type)
 		}
 
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
-    defined(CONFIG_COLIBRI_T30)
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 		if ((pass == 1) && nvtegra_find_partition(pt, "GP1", &partinfo))
 		{
 			gd->gpt_offset =
 			    partinfo->start_sector * block_size + 1;
 			DEBUG_PARTITION(partinfo);
 		}
-#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 |
+	  CONFIG_APALIS_T30 */
 
 #if DEBUG > 0
 		nvtegra_print_partition_table(pt);
@@ -478,7 +481,7 @@ void tegra_partition_init(int boot_type)
 	printf("gd->conf_blk_offset=%u\n", gd->conf_blk_offset);
 	printf("gd->env_offset=%u\n", gd->env_offset);
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
-    defined(CONFIG_COLIBRI_T30)
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	printf("gd->gpt_offset=%u\n", gd->gpt_offset);
 #endif
 	printf("gd->kernel_offset=%u\n", gd->kernel_offset);

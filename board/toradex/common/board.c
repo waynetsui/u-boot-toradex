@@ -415,7 +415,7 @@ int board_late_init(void)
 	unsigned char *mac_addr;
 	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
 
-#ifdef CONFIG_COLIBRI_T30
+#if defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	struct mmc *mmc;
 #endif
 
@@ -446,7 +446,7 @@ int board_late_init(void)
 	ret = nand_read_skip_bad(&nand_info[0], gd->conf_blk_offset, &size,
 			(unsigned char *)config_block);
 #endif /* CONFIG_COLIBRI_T20 */
-#ifdef CONFIG_COLIBRI_T30
+#if defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	mmc = find_mmc_device(0);
 	/* Just reading one 512 byte block */
 	ret = mmc->block_dev.block_read(0, gd->conf_blk_offset, 1, (unsigned char *)config_block);
@@ -454,7 +454,7 @@ int board_late_init(void)
 		ret = 0;
 		size = 512;
 	}
-#endif /* CONFIG_COLIBRI_T30 */
+#endif /* CONFIG_COLIBRI_T30 | CONFIG_APALIS_T30 */
 
 	/* Check validity */
 	if ((ret == 0) && (size > 0)) {
@@ -492,7 +492,7 @@ int board_late_init(void)
 
 	/* Default memory arguments */
 	if (!getenv("memargs")) {
-#ifndef CONFIG_COLIBRI_T30
+#if !defined(CONFIG_COLIBRI_T30) && !defined(CONFIG_APALIS_T30)
 		if (gd->ram_size == 0x10000000) {
 			/* 256 MB */
 			setenv("memargs", "mem=148M@0M fbmem=12M@148M nvmem=96M@160M");
@@ -500,7 +500,7 @@ int board_late_init(void)
 			/* 512 MB */
 			setenv("memargs", "mem=372M@0M fbmem=12M@372M nvmem=128M@384M");
 		}
-#endif /* !CONFIG_COLIBRI_T30 */
+#endif /* !CONFIG_COLIBRI_T30 && !CONFIG_APALIS_T30 */
 	}
 
 	/* Set eMMC or NAND kernel offset */
@@ -520,14 +520,16 @@ int board_late_init(void)
 	}
 #endif /* CONFIG_COLIBRI_T20 */
 
-#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || defined(CONFIG_COLIBRI_T30)
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	/* Set GPT offset */
 	if (!getenv("gptoffset")) {
 		sprintf(env_str, "0x%x", (unsigned)(gd->gpt_offset));
 
 		setenv("gptoffset", env_str);
 	}
-#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 */
+#endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 |
+	  CONFIG_APALIS_T30 */
 
 	return 0;
 }

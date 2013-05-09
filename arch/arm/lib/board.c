@@ -87,7 +87,8 @@ extern void rtl8019_get_enetaddr (uchar * addr);
 #include <i2c.h>
 #endif
 
-#if defined(CONFIG_COLIBRI_T20) || defined(CONFIG_COLIBRI_T30)
+#if defined(CONFIG_COLIBRI_T20) || defined(CONFIG_COLIBRI_T30) || \
+    defined(CONFIG_APALIS_T30)
 extern void tegra_partition_init(int boot_type);
 #endif
 
@@ -603,7 +604,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
        mmc_initialize(bd);
 #endif
 
-#if defined(CONFIG_COLIBRI_T20) || defined(CONFIG_COLIBRI_T30)
+#if defined(CONFIG_COLIBRI_T20) || defined(CONFIG_COLIBRI_T30) || \
+    defined(CONFIG_APALIS_T30)
 	tegra_partition_init(
 #ifdef CONFIG_COLIBRI_T20
 #ifndef CONFIG_ENV_IS_IN_MMC
@@ -615,7 +617,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 			     2
 #endif /* CONFIG_COLIBRI_T20 */
 			     );
-#endif /* CONFIG_COLIBRI_T20 | CONFIG_COLIBRI_T30 */
+#endif /* CONFIG_COLIBRI_T20 | CONFIG_COLIBRI_T30 | CONFIG_APALIS_T30 */
 
 #ifdef CONFIG_HAS_DATAFLASH
 	AT91F_DataflashInit();

@@ -65,18 +65,18 @@ static struct clk_pll_table tegra_pll_x_table[TEGRA_SOC_COUNT]
 	 { 600, 13, 0, 12},
 	},
 
-	/* T30: 1.5 GHz with slower (216MHz) PLLP */
-	{{ 0xd8,  13, 1, 8},
-	 { 0xb4,  22, 1, 4},
-	 { 0x1b0, 12, 1, 8},
-	 { 0xd8,  26, 1, 8},
+	/* T30: 1.4 GHz with slower (216MHz) PLLP */
+	{{ 862, 8, 1, 8},
+	 { 583, 8, 1, 4},
+	 { 700, 6, 1, 8},
+	 { 700, 13, 1, 8},
 	},
 
-	/* T30: 1.5 GHz with 408MHz PLLP */
-	{{ 0x198, 13, 0, 8},
-	 { 0x154, 22, 0, 4},
-	 { 0x198, 12, 0, 8},
-	 { 0x198, 26, 0, 8},
+	/* T30: 1.4 GHz with 408MHz PLLP */
+	{{ 862, 8, 0, 8},
+	 { 583, 8, 0, 4},
+	 { 700, 6, 0, 8},
+	 { 700, 13, 0, 8},
 	},
 
 	/* TEGRA_SOC2_SLOW: 312 MHz */
@@ -223,8 +223,8 @@ void ap20_init_pllx(int slow)
 	sel = &tegra_pll_x_table[chip_type][osc];
 	pllx_set_rate(pll, sel->n, sel->m, sel->p, sel->cpcon);
 
-	/* once we are out of slow mode, set up the T30 PLLs also */
-	if (!slow && chip_type == TEGRA_SOC_T30_408MHZ)
+	/* set up the T30 PLLs also */
+	if (chip_type == TEGRA_SOC_T30_408MHZ)
 		adjust_pllp_out_freqs();
 }
 

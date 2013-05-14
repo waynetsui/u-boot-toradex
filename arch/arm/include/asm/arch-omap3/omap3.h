@@ -213,7 +213,6 @@ struct gpio {
 #define CPU_3XX_ES30		3
 #define CPU_3XX_ES31		4
 #define CPU_3XX_ES312		7
-#define CPU_3XX_MAX_REV		8
 
 #define CPU_3XX_ID_SHIFT	28
 

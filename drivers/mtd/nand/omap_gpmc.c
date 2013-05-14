@@ -64,9 +64,10 @@ void omap_dma_read_buf16(struct mtd_info *mtd, uint8_t *buf, int len)
 		return;
 	}
 
-	/* Invalidate the datacache for the buffer, program the DMA and wait
-	 * for it to finish */
-	invalidate_dcache_range((unsigned long)p, (unsigned long)(p + len));
+	/* Invalidate the data cache for the buffer, program the DMA and wait   *
+	 * for it to finish. buf is a word pointer, len is a byte count, so we  *
+	 * need to calculate the range using (len / 2)                          */
+	invalidate_dcache_range((unsigned long)p, (unsigned long)(p + (len / 2)));
 
 
 	/* Transfer the data(and wait to complete) */
@@ -657,7 +658,15 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 
 	nand->options |= NAND_OWN_BUFFERS;
 
-	/* Reset ecc interface */
+#ifdef CONFIG_OMAP_DMA
+	omap3_dma_channel_init(DMA_CHANNEL_NAND, -1, CSDP_DATA_TYPE_32BIT, CCR_SRC_AMODE_CONSTANT, CCR_DST_AMODE_POST_INC);
+	if (nand->options & NAND_BUSWIDTH_16)
+		nand->read_buf = omap_dma_read_buf16;
+	else
+		printf("%s: Huh? not 16-bit for DMA\n", __FUNCTION__);
+#endif
+
+		/* Reset ecc interface */
 	nand->ecc.read_page = NULL;
 	nand->ecc.write_page = NULL;
 	nand->ecc.read_oob = NULL;
@@ -731,13 +740,6 @@ void omap_nand_switch_ecc(enum omap_nand_ecc_mode mode)
 		nand->ecc.hwctl = omap_enable_chip_hwecc;
 		nand->ecc.correct = omap_correct_chip_hwecc;
 		nand->ecc.read_oob = omap_read_oob_chipecc;
-#ifdef CONFIG_OMAP_DMA
-		omap3_dma_channel_init(DMA_CHANNEL_NAND, -1, CSDP_DATA_TYPE_32BIT, CCR_SRC_AMODE_CONSTANT, CCR_DST_AMODE_POST_INC);
-		if (nand->options & NAND_BUSWIDTH_16)
-			nand->read_buf = omap_dma_read_buf16;
-		else
-			printf("%s: Huh? not 16-bit for DMA\n", __FUNCTION__);
-#endif
 		nand->ecc.mode = NAND_ECC_CHIP; /* internal to chip */
 		nand->ecc.layout = &chip_nand_oob;
 		if (nand->options & NAND_BUSWIDTH_16)

@@ -33,15 +33,23 @@
 
 extern omap3_sysinfo sysinfo;
 static struct ctrl *ctrl_base = (struct ctrl *)OMAP34XX_CTRL_BASE;
-static char *rev_s[CPU_3XX_MAX_REV] = {
+static char *rev_s[] = {
 				"1.0",
 				"2.0",
 				"2.1",
 				"3.0",
 				"3.1",
-				"UNKNOWN",
-				"UNKNOWN",
+				NULL,
+				NULL,
 				"3.1.2"};
+
+/* Return CPU revision string for known revisions or "unknown" */
+static char *get_rev_str(unsigned int rev)
+{
+	if (rev >= ARRAY_SIZE(rev_s) || !rev_s[rev])
+		return "Unknown";
+	return rev_s[rev];
+}
 
 /*****************************************************************
  * dieid_num_r(void) - read and set die ID
@@ -428,7 +436,7 @@ int print_cpuinfo (void)
 
 	printf("%s%s-%s ES%s, CPU-OPP2, L3-%uMHz, Max CPU Clock %s\n",
 			cpu_family_s, cpu_s, sec_s,
-		rev_s[get_cpu_rev()], l3_ick, max_clk);
+		get_rev_str(get_cpu_rev()), l3_ick, max_clk);
 
 	return 0;
 }

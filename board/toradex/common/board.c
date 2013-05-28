@@ -736,12 +736,11 @@ void get_board_serial(struct tag_serialnr *serialnr)
 			array[i--] = serial % 10;
 			serial /= 10;
 		}
-		serial = 0;
-		for (i = 0; i < 8; i++) {
-			serial += array[i];
+		serial = array[0];
+		for (i = 1; i < 8; i++) {
 			serial *= 16;
+			serial += array[i];
 		}
-		serial /= 16;
 	}
 
 	serialnr->low = serial;

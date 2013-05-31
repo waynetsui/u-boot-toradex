@@ -53,6 +53,7 @@ short console_row;
 
 void lcd_ctrl_init(void *lcdbase)
 {
+	printf("Entered ATMEL_HLCD_Controler lcd_ctrl_init-function");
 	unsigned long value;
 	struct lcd_dma_desc *desc;
 	struct atmel_hlcd_regs *regs;
@@ -111,8 +112,9 @@ void lcd_ctrl_init(void *lcdbase)
 	value |= panel_info.vl_sync;
 
 #ifndef LCD_OUTPUT_BPP
+	printf("Entered ATMEL_HLCD_Controler LCD_OUTPUT_BPP");
 	/* Output is 24bpp */
-	value |= LCDC_LCDCFG5_MODE_OUTPUT_24BPP;
+	value |= LCDC_LCDCFG5_MODE_OUTPUT_16BPP;
 #else
 	switch (LCD_OUTPUT_BPP) {
 	case 12:

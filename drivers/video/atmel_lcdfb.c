@@ -72,6 +72,8 @@ void lcd_setcolreg(ushort regno, ushort red, ushort green, ushort blue)
 #if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAMA5)
 void lcd_9x5_ctrl_init(void *lcdbase)
 {
+	printf("Entered lcd_9x5_ctrl_init(atmel_lcd_fb.c)");
+
 	unsigned long value;
 	lcd_dma_desc *desc;
 
@@ -133,22 +135,28 @@ void lcd_9x5_ctrl_init(void *lcdbase)
 
 #ifndef LCD_OUTPUT_BPP
 	/* Output is 24bpp */
-	value |= LCDC_LCDCFG5_MODE_OUTPUT_24BPP;
+	printf("Entered LCD_OUTPUT_BPP LCD_FB");
+	value |= LCDC_LCDCFG5_MODE_OUTPUT_16BPP;
 #else
 	switch (LCD_OUTPUT_BPP) {
 	case 12:
+		printf("Entered LCD_OUTPUT_BPP 12BPP");
 		value |= LCDC_LCDCFG5_MODE_OUTPUT_12BPP;
 		break;
 	case 16:
+		printf("Entered LCD_OUTPUT_BPP 16BPP");
 		value |= LCDC_LCDCFG5_MODE_OUTPUT_16BPP;
 		break;
 	case 18:
+		printf("Entered LCD_OUTPUT_BPP 18BPP");
 		value |= LCDC_LCDCFG5_MODE_OUTPUT_18BPP;
 		break;
 	case 24:
+		printf("Entered LCD_OUTPUT_BPP 24BPP");
 		value |= LCDC_LCDCFG5_MODE_OUTPUT_24BPP;
 		break;
 	default:
+		printf("Entered LCD_OUTPUT_BPP BUG");
 		BUG();
 		break;
 	}

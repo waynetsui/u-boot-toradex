@@ -41,9 +41,9 @@
 #define CONFIG_ARCH_CPU_INIT
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff	*/
 
-#undef CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
-#undef CONFIG_SETUP_MEMORY_TAGS
-#undef CONFIG_INITRD_TAG
+#define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs	*/
+#define CONFIG_SETUP_MEMORY_TAGS
+#define CONFIG_INITRD_TAG
 #define CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
@@ -80,7 +80,7 @@
 /* LCD */
 #define CONFIG_LCD
 #define LCD_BPP				LCD_COLOR16
-#define LCD_OUTPUT_BPP                  24
+#define LCD_OUTPUT_BPP                  16
 #define CONFIG_LCD_LOGO
 #undef LCD_TEST_PATTERN
 #define CONFIG_LCD_INFO

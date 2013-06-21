@@ -46,8 +46,8 @@ struct fsl_esdhc_cfg esdhc_cfg[2] = {
 
 void setup_iomux_ddr(void)
 {
-#define DDR_IOMUX	0x000001C0
-#define DDR_IOMUX1	0x000101C0
+#define DDR_IOMUX	0x00000140
+#define DDR_IOMUX1	0x00010140
 	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A15);
 	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A14);
 	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A13);
@@ -94,15 +94,19 @@ void setup_iomux_ddr(void)
 	__raw_writel(DDR_IOMUX, IOMUXC_DDR_WE);
 	__raw_writel(DDR_IOMUX, IOMUXC_DDR_ODT1);
 	__raw_writel(DDR_IOMUX, IOMUXC_DDR_ODT0);
+
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_DDRBYTE1);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_DDRBYTE0);
+
 }
 
 void ddr_phy_init(void)
 {
 #define PHY_DQ_TIMING		0x00002613
 #define PHY_DQS_TIMING		0x00002615
-#define PHY_CTRL		0x01210080
+#define PHY_CTRL		0x01310080
 #define PHY_MASTER_CTRL		0x0001012a
-#define PHY_SLAVE_CTRL		0x00012020
+#define PHY_SLAVE_CTRL		0x00012320
 
 	/* phy_dq_timing_reg freq set 0 */
 	__raw_writel(PHY_DQ_TIMING, DDR_PHY000);
@@ -134,7 +138,7 @@ void ddr_phy_init(void)
 	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY036);
 	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY052);
 
-	__raw_writel(0x00001100, DDR_PHY050);
+	__raw_writel(0x00001105, DDR_PHY050);
 }
 
 unsigned long ddr_ctrl_init(void)
@@ -154,8 +158,8 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x006DB00C, DDR_CR017);	/* tras_max, tmod */
 	__raw_writel(0x00000403, DDR_CR018);	/* tckesr, tcke */
 
-	__raw_writel(0x01000000, DDR_CR020);	/* ap, writrp */
-	__raw_writel(0x06050101, DDR_CR021);	/* trcd_int, tras_lockout
+	__raw_writel(0x01000403, DDR_CR020);	/* ap, writrp */
+	__raw_writel(0x06060101, DDR_CR021);	/* trcd_int, tras_lockout
 						   ccAP */
 	__raw_writel(0x000B0000, DDR_CR022);	/* tdal */
 	__raw_writel(0x03000200, DDR_CR023);	/* bstlen, tmrr, tdll */
@@ -196,8 +200,10 @@ unsigned long ddr_ctrl_init(void)
 						 */
 	__raw_writel(0x00000000, DDR_CR049);	/* mr2 */
 	__raw_writel(0x00000000, DDR_CR051);	/* mr3 & mrsingle_data_0 */
+	__raw_writel(0x00000000, DDR_CR052);	/* mr17 & mr16 */
 
 	__raw_writel(0x00000000, DDR_CR057);	/* ctrl_raw */
+	__raw_writel(0x00000000, DDR_CR058);
 
 	/* ECC */
 
@@ -268,13 +274,14 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x00000B00, DDR_CR126);	/* PHY rdlat */
 	__raw_writel(0x00000000, DDR_CR127);	/* dram ck dis */
 
-	__raw_writel(0x00003cc8, DDR_CR131);
+	__raw_writel(0x00000000, DDR_CR131);
 	__raw_writel(0x00000506, DDR_CR132);	/* wrlat, rdlat */
 	__raw_writel(0x00020000, DDR_CR137);
 	__raw_writel(0x04070303, DDR_CR139);
 
 	__raw_writel(0x00000000, DDR_CR136);
 
+#if 0
 	__raw_writel(0x80000301, DDR_CR138);
 	__raw_writel(0x0000000A, DDR_CR140);
 	__raw_writel(0x00000000, DDR_CR141);
@@ -289,8 +296,8 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x00000204, DDR_CR151);
 	__raw_writel(0x00000000, DDR_CR152);
 	__raw_writel(0x00000000, DDR_CR153);
-
-	__raw_writel(0x00000000, DDR_CR154);
+#endif
+	__raw_writel(0x68200000, DDR_CR154);
 	__raw_writel(0x00000202, DDR_CR155);	/* pad_ibe, _sel */
 	__raw_writel(0x00000006, DDR_CR158);	/* twr */
 	__raw_writel(0x00000006, DDR_CR159);	/* todth */

@@ -41,9 +41,9 @@
  * increase in the final file size: 144260 vs. 109536 Bytes.
  */
 
-#undef CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
-#undef CONFIG_SETUP_MEMORY_TAGS
-#undef CONFIG_INITRD_TAG
+#define CONFIG_CMDLINE_TAG			/* enable passing of ATAGs */
+#define CONFIG_SETUP_MEMORY_TAGS
+#define CONFIG_INITRD_TAG
 
 #undef CONFIG_OF_LIBFDT
 

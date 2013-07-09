@@ -486,7 +486,12 @@
 # define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 # define CONFIG_ENV_OFFSET		(892 << 10) /* 892 KiB in */
 # define CONFIG_ENV_SECT_SIZE		(4 << 10) /* 4 KB sectors */
-#endif /* SPI support */
+#elif defined(CONFIG_EMMC_BOOT)
+# undef CONFIG_ENV_IS_NOWHERE
+# define CONFIG_ENV_IS_IN_MMC
+# define CONFIG_SYS_MMC_ENV_DEV		1
+# define CONFIG_SYS_MMC_ENV_PART	2
+#endif
 
 /* Unsupported features */
 #undef CONFIG_USE_IRQ

@@ -188,7 +188,7 @@ int logic_dump_serialization_info(void)
 {
 	int ret;
 	struct id_cookie cookie;
-	int part_number, speed, model_number;
+	int part_number, speed, model_number, version_code;
 	u8 model_name[33];
 	u8 model_type[11];
 	u8 model_grade[11];
@@ -243,6 +243,19 @@ int logic_dump_serialization_info(void)
 
 	/* Find part number */
 	ret = id_find_number(&cookie, ID_KEY_part_number, &part_number);
+	if (ret != ID_EOK) {
+		printf("%s:%d ret %d\n", __FUNCTION__, __LINE__, ret);
+		return ret;
+	}
+
+	/* Find version code */
+	ret = id_find_number(&cookie, ID_KEY_version_code, &version_code);
+//printf("%s[%u] cookie.mem_ptr: 0x%08x, cookie.offset: %u, val: %02x %02x %02x %02x\n", __FILE__, __LINE__, cookie.mem_ptr, cookie.offset, 
+//	*(unsigned char*)((unsigned int)cookie.mem_ptr + cookie.offset + 0),
+//	*(unsigned char*)((unsigned int)cookie.mem_ptr + cookie.offset + 1),
+//	*(unsigned char*)((unsigned int)cookie.mem_ptr + cookie.offset + 2),
+//	*(unsigned char*)((unsigned int)cookie.mem_ptr + cookie.offset + 3)
+//	);
 	if (ret != ID_EOK) {
 		printf("%s:%d ret %d\n", __FUNCTION__, __LINE__, ret);
 		return ret;
@@ -321,6 +334,7 @@ int logic_dump_serialization_info(void)
 	hardware_platform[model_hardware_platform_size] = '\0';
 	serial_number[serial_number_size] = '\0';
 
+	printf("\nID data ROM  : Gen 2\n");
 	printf("Model        : %.*s%u ", model_type_size, model_type, model_number);
 	if (!strncmp(hardware_platform, "t", 2))
 		printf("Torpedo");
@@ -329,6 +343,7 @@ int logic_dump_serialization_info(void)
 	else if (!strncmp(hardware_platform, "m2", 2))
 		printf("SOM-M2");
 	printf("\n");
+	printf("Version Code : -%u\n", version_code);
 	printf("Temp Grade   : ");
 	if (!strncmp(model_grade, "i", 1))
 		printf("Industrial");
@@ -341,6 +356,7 @@ int logic_dump_serialization_info(void)
 	printf("Part Number  : %u\n", part_number);
 	printf("Model Name   : %.*s\n", model_name_size, model_name);
 	printf("Serial Number: %.*s\n", serial_number_size, serial_number);
+	printf("\n");
 	
 	return 0;
 }

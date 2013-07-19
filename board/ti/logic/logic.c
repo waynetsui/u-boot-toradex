@@ -257,8 +257,9 @@ void touchup_env(int initial_env)
 		setenv("defaultecc", "soft");
 
 	/* touchup the display environment variable(s) */
+#ifdef CONFIG_LCD
 	touchup_display_env();
-
+#endif
 	if (initial_env) {
 		/* Need to set mdtids/mtdparts to computed defaults */
 		setenv("mtdparts", get_mtdparts_default());

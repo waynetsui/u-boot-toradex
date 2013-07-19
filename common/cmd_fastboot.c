@@ -66,8 +66,9 @@
 #define	WARN
 #define	INFO
 //#define DEBUG
-
+#ifdef CONFIG_LCD
 void output_lcd_string(char *p);
+#endif
 
 #ifdef DEBUG
 #define FBTDBG(fmt,args...)\
@@ -348,7 +349,9 @@ static void fbt_event_handler (struct usb_device_instance *device,
 	switch (event) {
 	case DEVICE_RESET:
 	case DEVICE_BUS_INACTIVE:
+#ifdef CONFIG_LCD
 		output_lcd_string("/pAA/kFastboot is waiting for connection from PC/pBA/k/pCA/k");
+#endif
 
 		priv.configured = 0;
 
@@ -364,8 +367,10 @@ static void fbt_event_handler (struct usb_device_instance *device,
 		break;
 
 	case DEVICE_ADDRESS_ASSIGNED:
+#ifdef CONFIG_LCD
 		output_lcd_string("/pAA/kFastboot is connected to PC");
-
+#endif
+	
 		fbt_init_endpoints ();
 
 	default:
@@ -565,9 +570,11 @@ int do_lcd_percent (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
 
 void set_lcd_percent_string(char *string)
 {
+#ifdef CONFIG_LCD
 	char *lcd_percent[] = { "lcd_percent", string};
 
 	do_lcd_percent (NULL, 0, ARRAY_SIZE(lcd_percent), lcd_percent);
+#endif
 }
 
 static void set_serial_number(void)
@@ -772,7 +779,9 @@ static int fbt_handle_boot(char *cmdbuf)
 		sprintf(priv.response, "OKAY");
 		priv.flag |= FASTBOOT_FLAG_RESPONSE;
 		fbt_handle_response();
+#ifdef CONFIG_LCD
 		output_lcd_string("/pCA/k/pBA/kFastboot is booting uploaded image");
+#endif
 		udelay (1000000); /* 1 sec */
 		udc_disconnect();
 
@@ -813,11 +822,12 @@ static int fbt_rx_process(unsigned char *buffer, int length)
 		char *cmdbuf = (char *) buffer;
 
 		FBTDBG("command\n");
+#ifdef CONFIG_LCD
 		output_lcd_string("/pCA/k/pBA/kFastboot is processing command ");
 		output_lcd_string(cmdbuf);
 
 		set_lcd_percent_string("");
-
+#endif
 		if(memcmp(cmdbuf, "getvar:", 7) == 0) {
 			FBTDBG("getvar\n");
 			fbt_handle_getvar(cmdbuf);
@@ -849,7 +859,9 @@ static int fbt_rx_process(unsigned char *buffer, int length)
 
 		if(memcmp(cmdbuf, "boot", 4) == 0) {
 			FBTDBG("boot\n");
+#ifdef CONFIG_LCD
 			output_lcd_string("/pAA/kFastboot is continuing boot (timeout)/pBA/k/pCA/k");
+#endif
 			fbt_handle_boot(cmdbuf);
 		}
 
@@ -874,8 +886,10 @@ static int fbt_rx_process(unsigned char *buffer, int length)
 				sprintf(priv.response, "DATA%08x", priv.d_size);
 			}
 
+#ifdef CONFIG_LCD
 			set_lcd_percent_string("/pCA/kDownload /P% done");
 			lcd_percent_init(priv.d_size);
+#endif
 		}
 
 		if((memcmp(cmdbuf, "upload:", 7) == 0) ||
@@ -897,8 +911,9 @@ static int fbt_rx_process(unsigned char *buffer, int length)
 				buffer, xfr_size);
 			priv.d_bytes += xfr_size;
 
+#ifdef CONFIG_LCD
 			lcd_percent_update(priv.d_bytes);
-
+#endif
 #ifdef	INFO
 			/* Inform via prompt that download is happening */
 			if (! (priv.d_bytes % (16 * 0x1000)))
@@ -974,11 +989,15 @@ static int fbt_handle_response(void)
 	if (priv.flag & FASTBOOT_FLAG_RESPONSE) {
 		if(!strncmp(priv.response, "FAIL", 4))
 		{
+#ifdef CONFIG_LCD
 			output_lcd_string("/pCA/kCommand failed");
+#endif
 		} else
 		if(!strncmp(priv.response, "OKAY", 4))
 		{
+#ifdef CONFIG_LCD
 			output_lcd_string("/pCA/k/pBA/kFastboot is idle");
+#endif
 		}
 		fbt_response_process();
 		priv.flag &= ~FASTBOOT_FLAG_RESPONSE;
@@ -1029,7 +1048,9 @@ static int fbt_handle_tx(void)
 			 */
 			priv.u_bytes += bytes_written;
 
+#ifdef CONFIG_LCD
 			lcd_percent_update(priv.u_bytes);
+#endif
 #ifdef	INFO
 			/* Inform via prompt that upload is happening */
 			if (! (priv.d_bytes % (16 * 0x1000)))
@@ -1074,7 +1095,9 @@ int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	udc_connect();
 
 	FBTINFO("fastboot initialized\n");
+#ifdef CONFIG_LCD
 	output_lcd_string("/pAA/kFastboot is waiting for connection from PC");
+#endif
 
 	if(argc > 1)
 	{
@@ -1092,14 +1115,18 @@ int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		}
 		priv.exit |= ctrlc();
 		if (priv.exit) {
+#ifdef CONFIG_LCD
 			output_lcd_string("/pAA/kFastboot is continuing boot/pBA/k/pCA/k");
+#endif
 			set_lcd_percent_string("");
 			FBTINFO("fastboot end\n");
 			break;
 		}
 		if(timeout && fbt_getidle() > timeout)
 		{
+#ifdef CONFIG_LCD
 			output_lcd_string("/pAA/kFastboot is continuing boot (timeout)/pBA/k/pCA/k");
+#endif
 			FBTINFO("Timed out\n");
 			break;
 		}

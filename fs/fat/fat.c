@@ -300,7 +300,9 @@ get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
 			buffer += FS_BLOCK_SIZE;
 			startsect++;
 			size -= FS_BLOCK_SIZE;
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 			lcd_percent_update(buffer - start_buffer);
+#endif
 		}
 		if (size % FS_BLOCK_SIZE) {
 			__u8 tmpbuf[FS_BLOCK_SIZE];
@@ -313,7 +315,9 @@ get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
 			memcpy(buffer, tmpbuf, size % FS_BLOCK_SIZE);
 
 			buffer += size % FS_BLOCK_SIZE;
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 			lcd_percent_update(buffer - start_buffer);
+#endif
 			return 0;
 		}
 	} else {
@@ -321,7 +325,9 @@ get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
 			debug("Error reading data\n");
 			return -1;
 		}
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 		lcd_percent_update(buffer + (size & ~FS_BLOCK_SIZE) - start_buffer);
+#endif
 		if (size % FS_BLOCK_SIZE) {
 			__u8 tmpbuf[FS_BLOCK_SIZE];
 
@@ -333,7 +339,9 @@ get_cluster (fsdata *mydata, __u32 clustnum, __u8 *buffer,
 			buffer += idx * FS_BLOCK_SIZE;
 
 			memcpy(buffer, tmpbuf, size % FS_BLOCK_SIZE);
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 			lcd_percent_update(buffer + size - start_buffer);
+#endif
 			return 0;
 		}
 	}
@@ -356,7 +364,9 @@ get_contents (fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 	unsigned long actsize;
 	__u8 *start_buffer = buffer;
 
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 	lcd_percent_init(filesize);
+#endif
 	debug("Filesize: %ld bytes\n", filesize);
 
 	if (maxsize > 0 && filesize > maxsize)
@@ -378,7 +388,9 @@ get_contents (fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 				debug("Invalid FAT entry\n");
 				return gotsize;
 			}
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 			lcd_percent_update(actsize);
+#endif
 			endclust = newclust;
 			actsize += bytesperclust;
 		}
@@ -397,13 +409,17 @@ get_contents (fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 		filesize -= actsize;
 		buffer += actsize;
 		actsize = filesize;
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 		lcd_percent_update(gotsize);
+#endif
 		if (get_cluster(mydata, endclust, buffer, (int)actsize, start_buffer) != 0) {
 			printf("Error reading cluster\n");
 			return -1;
 		}
 		gotsize += actsize;
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 		lcd_percent_update(gotsize);
+#endif
 		return gotsize;
 getit:
 		if (get_cluster(mydata, curclust, buffer, (int)actsize, start_buffer) != 0) {
@@ -413,7 +429,9 @@ getit:
 		gotsize += (int)actsize;
 		filesize -= actsize;
 		buffer += actsize;
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 		lcd_percent_update(gotsize);
+#endif
 
 		curclust = get_fatent(mydata, endclust);
 		if (CHECK_CLUST(curclust, mydata->fatsize)) {

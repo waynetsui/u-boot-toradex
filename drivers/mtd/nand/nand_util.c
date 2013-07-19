@@ -120,8 +120,9 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 		priv_nand->bbt = NULL;
 	}
 
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 	lcd_percent_init(erase_length);
-
+#endif
 	for (erased_length = 0;
 	     erased_length < erase_length;
 	     erase.addr += meminfo->erasesize) {
@@ -140,8 +141,10 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 				if (!opts->spread)
 					erased_length++;
 
-				lcd_percent_update(erased_length);
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 
+				lcd_percent_update(erased_length);
+#endif
 				continue;
 
 			} else if (ret < 0) {
@@ -202,9 +205,15 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 					       erase.addr);
 			}
 		}
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
+
 		lcd_percent_update(erased_length);
+#endif		
 	}
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
+
 	lcd_percent_update(erased_length);
+#endif
 	if (!opts->quiet)
 		printf("\n");
 
@@ -523,8 +532,10 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 	}
 
 	total_to_write = left_to_write;
-	lcd_percent_init(total_to_write);
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 
+	lcd_percent_init(total_to_write);
+#endif
 	while (left_to_write > 0) {
 		size_t block_offset = offset & (nand->erasesize - 1);
 		size_t write_size;
@@ -586,11 +597,16 @@ int nand_write_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		}
 
 		left_to_write -= write_size;
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
+
 		lcd_percent_update(total_to_write - left_to_write);
+#endif
 	}
 
-	lcd_percent_update(total_to_write);
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 
+	lcd_percent_update(total_to_write);
+#endif
 	return 0;
 }
 
@@ -641,8 +657,10 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 	}
 
 	total_to_read = left_to_read;
-	lcd_percent_init(total_to_read);
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 
+	lcd_percent_init(total_to_read);
+#endif
 	while (left_to_read > 0) {
 		size_t block_offset = offset & (nand->erasesize - 1);
 		size_t read_length;
@@ -673,10 +691,15 @@ int nand_read_skip_bad(nand_info_t *nand, loff_t offset, size_t *length,
 		offset       += read_length;
 		p_buffer     += read_length;
 
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
+
 		lcd_percent_update(total_to_read - left_to_read);
+#endif
 	}
 
-	lcd_percent_update(total_to_read);
+#if (defined CONFIG_LCD && defined CONFIG_LCD_PERCENT)
 
+	lcd_percent_update(total_to_read);
+#endif
 	return 0;
 }

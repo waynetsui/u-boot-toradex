@@ -30,6 +30,8 @@
 #include "splash-332x57.h"
 #include "logic-proto.h"
 
+#ifdef CONFIG_LCD
+
 DECLARE_GLOBAL_DATA_PTR;
 
 /* LCD-required members */
@@ -932,3 +934,5 @@ U_BOOT_CMD(dump_video, 1, 1, do_info_video,
 	" - Displays information on video parameters",
 	""
 );
+
+#endif // #ifdef CONFIG_LCD

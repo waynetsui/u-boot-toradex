@@ -109,12 +109,12 @@
 #define CONFIG_LOADADDR 0x80408000
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_STD_DEVICES_SETTINGS \
-	"defargs=video=tegrafb vmalloc=128M mem=1023M@2048M core_edp_mv=1300 tegra_fbmem=3072K@0xBFE00000 usb_high_speed=1\0" \
+	"defargs=video=tegrafb core_edp_mv=1300 usb_high_speed=1\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
 	"mmcargs=ip=off root=/dev/mmcblk0p1 rw,noatime rootfstype=ext3 rootwait\0" \
 	"mmc_kernel_size=0x4000\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
-	"setup=setenv setupargs gpt gpt_sector=${gptoffset} asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0\0" \
+	"setup=setenv setupargs gpt gpt_sector=${gptoffset} asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 ${memargs}\0" \
 	"usbboot=" USB_BOOTCMD "\0" \
 	""
 

@@ -39,7 +39,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 unsigned int board_query_sdram_size(void)
 {
-#ifndef CONFIG_COLIBRI_T20
+#if !defined(CONFIG_APALIS_T30) && !defined(CONFIG_COLIBRI_T20) && !defined(CONFIG_COLIBRI_T30)
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 	u32 reg;
 
@@ -63,7 +63,8 @@ unsigned int board_query_sdram_size(void)
 	default:
 		return 0x40000000;	/* 1GB */
 	}
-#else /* CONFIG_COLIBRI_T20 */
+#else /* !CONFIG_APALIS_T30 & !CONFIG_COLIBRI_T20 & !CONFIG_COLIBRI_T30 */
+#ifdef CONFIG_COLIBRI_T20
 	/* Colibri T20 does not use OdmData but rather relies on memory controller
 	   configuration done by boot ROM based on BCT information */
 
@@ -88,7 +89,36 @@ unsigned int board_query_sdram_size(void)
 	}
 
 	return memsize;
+#else /* CONFIG_COLIBRI_T20 */
+	u32 *mc_emem_cfg = (void *)NV_PA_MC_EMEM_CFG_0;
+
+	u32 reg = readl(mc_emem_cfg);
+
+	/* Aperture in MB */
+	u32 memsize = reg * 1024 * 1024;
+
+	/* Unfortunately it is possible to at least boot a 1 GB module with
+	   a 2 GB BCT therefore double check whether we really do have that
+	   amount of physical memory */
+	if (memsize > 1024*1024*1024) {
+		volatile u32 *pMem = (void *)((u32)2048*1024*1024);
+		u32 temp = pMem[0];
+		pMem[0] = 0xabadcafe;
+		asm volatile("" ::: "memory");
+		if (pMem[0] == pMem[1024*1024*1024/4])
+			memsize = 0x40000000;	/* 1GB */
+		else
+			/*
+			 * On tegra3, out of 2GB, 1MB(0xFFF00000 - FFFFFFFF) is used for
+			 * Bootcode(IROM) and arm specific exception vector code.
+			 */
+			memsize = 0x7ff00000;	/* 2GB - 1MB */
+		pMem[0] = temp;
+	}
+
+	return memsize;
 #endif /* CONFIG_COLIBRI_T20 */
+#endif /* !CONFIG_APALIS_T30 & !CONFIG_COLIBRI_T20 & !CONFIG_COLIBRI_T30 */
 }
 
 #if defined(CONFIG_DISPLAY_BOARDINFO) || defined(CONFIG_DISPLAY_BOARDINFO_LATE)

@@ -492,15 +492,27 @@ int board_late_init(void)
 
 	/* Default memory arguments */
 	if (!getenv("memargs")) {
-#if !defined(CONFIG_COLIBRI_T30) && !defined(CONFIG_APALIS_T30)
-		if (gd->ram_size == 0x10000000) {
-			/* 256 MB */
-			setenv("memargs", "mem=148M@0M fbmem=12M@148M nvmem=96M@160M");
-		} else {
-			/* 512 MB */
-			setenv("memargs", "mem=372M@0M fbmem=12M@372M nvmem=128M@384M");
+		switch (gd->ram_size) {
+			case 0x10000000:
+				/* 256 MB */
+				setenv("memargs", "mem=148M@0M fbmem=12M@148M nvmem=96M@160M");
+				break;
+			case 0x20000000:
+				/* 512 MB */
+				setenv("memargs", "mem=372M@0M fbmem=12M@372M nvmem=128M@384M");
+				break;
+			case 0x40000000:
+				/* 1 GB */
+				setenv("memargs", "vmalloc=128M mem=1012M@2048M fbmem=12M@3060M");
+				break;
+			case 0x7ff00000:
+			case 0x80000000:
+				/* 2 GB */
+				setenv("memargs", "vmalloc=256M mem=2035M@2048M fbmem=12M@4083M");
+				break;
+			default:
+				printf("Failed detecting RAM size.\n");
 		}
-#endif /* !CONFIG_COLIBRI_T30 && !CONFIG_APALIS_T30 */
 	}
 
 	/* Set eMMC or NAND kernel offset */

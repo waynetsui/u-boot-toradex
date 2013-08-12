@@ -32,8 +32,7 @@
 //#define CONFIG_TEGRA2_LP0
 
 /* High-level configuration options */
-#define TEGRA2_SYSMEM		"mem=256M@0M"
-#define V_PROMPT		"Tegra2 # "
+#define V_PROMPT		"Colibri T20 # "
 
 #define CONFIG_OF_UPDATE_FDT_BEFORE_BOOT 1
 

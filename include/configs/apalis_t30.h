@@ -30,8 +30,7 @@
 #define CONFIG_APALIS_T30	/* Toradex Apalis T30 module */
 
 /* High-level configuration options */
-#define TEGRA3_SYSMEM		"mem=2036M@2048M vmalloc=256M"
-#define V_PROMPT		"Tegra3 # "
+#define V_PROMPT		"Apalis T30 # "
 
 #include "tegra3-common.h"
 /* undef the enviroment settings in tegra3-common.h / tegra-common.h */

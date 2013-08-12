@@ -30,8 +30,7 @@
 #define CONFIG_COLIBRI_T30	/* Toradex Colibri T30 module */
 
 /* High-level configuration options */
-#define TEGRA3_SYSMEM		"mem=1023M@2048M vmalloc=128M"
-#define V_PROMPT		"Tegra3 # "
+#define V_PROMPT		"Colibri T30 # "
 
 #include "tegra3-common.h"
 /* undef the enviroment settings in tegra3-common.h / tegra-common.h */

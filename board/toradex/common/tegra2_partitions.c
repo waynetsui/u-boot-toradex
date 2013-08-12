@@ -43,6 +43,14 @@ static int block_size;
 
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
     defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
+static u32 __def_get_boot_size_mult(struct mmc *mmc)
+{
+	/* return default boot size. */
+	return 0;
+}
+u32 get_boot_size_mult(struct mmc *mmc)
+		__attribute__((weak, alias("__def_get_boot_size_mult")));
+
 /**
  * nvtegra_mmc_read - read data from mmc (unaligned)
  * @param startAddress:	data offset in bytes
@@ -80,8 +88,7 @@ ulong nvtegra_mmc_read(ulong startAddress, ulong dataCount, void *dst)
 		free(buffer);
 		return 0;
 	}
-	memcpy(dst, buffer + (startAddress - startBlock * EMMC_BLOCK_SIZE),
-	       dataCount);
+	memcpy(dst, buffer, dataCount);
 	free(buffer);
 
 	return dataCount;
@@ -172,8 +179,8 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 #endif
 
 	/* Search PT logical offset
-	   Note: 0x326 for T30 Fastboot, 0xB48 for Eboot resp. Android
-		 Fastboot and 0xEEC for Vibrante Fastboot */
+	   Note: 0x326 for T30 Fastboot, 0xb48 for Eboot resp. Android
+		 Fastboot and 0xeec for Vibrante Fastboot */
 	for (i = 0; i < 0x800; i++) {
 		if (readw(bct_start) == 0x40) {
 			/* Either previous or 3rd next word */
@@ -227,6 +234,20 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 	} else
 #endif /* CONFIG_COLIBRI_T20 */
 	{
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
+    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
+		/* The PT offset has been calculated from the .cfg eMMC
+		   partition configuration file using virtual linearised
+		   addressing across all eMMC regions as expected by nvflash.
+		   Due to the lack of a region control mechanism in nvflash/
+		   .cfg flashing utility in order to obtain the actual PT
+		   offset from the start of the user region the size of the
+		   boot regions must be subtracted. */
+		struct mmc *mmc = find_mmc_device(EMMC_DEV);
+		if (mmc && !mmc_init(mmc) && (get_boot_size_mult(mmc) == 16))
+			pt_logical -= 0x5000; //why?
+#endif
+
 		/* StartLogicalSector / LogicalBlockSize * PhysicalBlockSize +
 		   BootPartitions */
 		pt_offset = pt_logical / block_size * 512 + 1024 * 1024;

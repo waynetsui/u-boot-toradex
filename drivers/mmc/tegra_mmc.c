@@ -735,3 +735,42 @@ int tegra_mmc_init(const void *blob)
 #endif
 	return 0;
 }
+
+/* An eMMC device is specified to have 0 or 2 boot regions and they must have
+   the same size ranging from 0 to 2 MiB. The boot region size can be queried
+   from the device through the BOOT_SIZE_MULT field of the response to the
+   EXT_CSD command sequence. */
+#define BOOT_SIZE_MULT	226
+u32 get_boot_size_mult(struct mmc *mmc)
+{
+	u32 ret = 0;
+	char *ext_csd = memalign(CACHE_LINE_SIZE, 512);
+
+	if (ext_csd) {
+		int err;
+		struct mmc_cmd cmd;
+		struct mmc_data data;
+
+		/* Get the Card Status Register */
+		cmd.cmdidx = MMC_CMD_SEND_EXT_CSD;
+		cmd.resp_type = MMC_RSP_R1;
+		cmd.cmdarg = 0;
+		cmd.flags = 0;
+
+		data.dest = ext_csd;
+		data.blocks = 1;
+		data.blocksize = 512;
+		data.flags = MMC_DATA_READ;
+
+		/*
+		* If EXT_CSD cmd fails, then just return CONFIG_ENV_OFFSET,
+		* because the eMMC is not supporting boot regions (no boot
+		* regions).
+		*/
+		err = mmc_send_cmd(mmc, &cmd, &data);
+		if (!err)
+			ret = (int)ext_csd[BOOT_SIZE_MULT];
+		free(ext_csd);
+	}
+	return ret;
+}

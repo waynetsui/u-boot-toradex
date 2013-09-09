@@ -445,8 +445,12 @@ int fec_init(struct eth_device *dev, bd_t * bd)
 	fecp->eir = 0xffffffff;
 
 	/* Set station address   */
+#ifdef CONFIG_SYS_FEC0_IOBASE
 	if ((u32) fecp == CONFIG_SYS_FEC0_IOBASE) {
-#ifdef CONFIG_SYS_FEC1_IOBASE
+#else
+	if (1) {
+#endif
+#if defined(CONFIG_SYS_FEC0_IOBASE) && defined(CONFIG_SYS_FEC1_IOBASE)
 		volatile fec_t *fecp1 = (fec_t *) (CONFIG_SYS_FEC1_IOBASE);
 		eth_getenv_enetaddr("eth1addr", ea);
 		fecp1->palr =

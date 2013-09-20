@@ -39,7 +39,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_FSL_ESDHC
-struct fsl_esdhc_cfg esdhc_cfg[1] = {
+struct fsl_esdhc_cfg esdhc_cfg[] = {
 	{CONFIG_SYS_ESDHC1_BASE, 1},
 };
 #endif
@@ -386,7 +386,7 @@ int board_mmc_getcd(struct mmc *mmc)
 
 int board_mmc_init(bd_t *bis)
 {
-	u32 index;
+	u32 index = 0;
 	s32 status = 0;
 
 	status |= fsl_esdhc_initialize(bis, &esdhc_cfg[index]);

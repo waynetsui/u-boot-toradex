@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 Toradex, Inc.
  *
- * Configuration settings for the vybrid Board
+ * Configuration settings for the Colibri VF50 module.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,6 +21,9 @@
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
+
+/* We now boot from the gfxRAM area of the OCRAM. */
+#define CONFIG_BOARD_SIZE_LIMIT		524288
 
  /* High Level Configuration Options */
 
@@ -49,9 +52,15 @@
 
 #define CONFIG_MACH_TYPE		MACH_TYPE_COLIBRI_VF50
 /* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 4 * 1024 * 1024)
 
 #define CONFIG_BOARD_LATE_INIT
+
+#define CONFIG_REVISION_TAG		1
+#define CONFIG_SERIAL_TAG		1
+
+#define CONFIG_TRDX_CFG_BLOCK
+#define CONFIG_TRDX_CFG_BLOCK_OFFSET	0x40000
 
 /* Hardware drivers */
 #define CONFIG_VYBRID_UART
@@ -67,11 +76,15 @@
 /* Command definition */
 #include <config_cmd_default.h>
 
+#define CONFIG_CMD_ASKENV
+#define CONFIG_CMD_DIAG
 #define CONFIG_CMD_BDI		/* bdinfo */
 #define CONFIG_CMD_BOOTD
 #define CONFIG_CMD_CONSOLE	/* coninfo */
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_ELF
+#undef CONFIG_CMD_FLASH
+#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_MEMORY	/* md mm nm mw cp cmp crc base loop mtest */
 #define CONFIG_CMD_MISC
 #define CONFIG_CMD_MII
@@ -79,31 +92,23 @@
 #undef CONFIG_CMD_NFS		/* NFS support			*/
 #define CONFIG_CMD_PING
 #define	CONFIG_CMD_NAND
+#define CONFIG_RBTREE
+#define CONFIG_LZO
+#define CONFIG_CMD_UBI
+//#define CONFIG_CMD_UBIFS	/* increases size by almost 60 KB */
 #undef CONFIG_CMD_DATE
-#undef CONFIG_CMD_IMI		/* iminfo */
+#define CONFIG_CMD_IMI		/* iminfo */
 #undef CONFIG_CMD_IMLS
 #undef CONFIG_CMD_LOADB		/* loadb */
 #undef CONFIG_CMD_LOADS		/* loads */
 
-#define CONFIG_MMC
-#ifdef CONFIG_MMC
-#define CONFIG_SYS_ESDHC1_BASE		ESDHC2_BASE_ADDR
-#define CONFIG_FSL_ESDHC
-#define CONFIG_SYS_FSL_ESDHC_ADDR	0
-#define CONFIG_SYS_FSL_ESDHC_NUM	1
-#define CONFIG_ESDHC_NO_SNOOP		1
-/*#define CONFIG_MMC_TRACE*/
+#define CONFIG_BOOTDELAY		1
 
-/*#define CONFIG_ESDHC_DETECT_USE_EXTERN_IRQ1*/
-#define CONFIG_SYS_FSL_ERRATUM_ESDHC135
-#define CONFIG_SYS_FSL_ERRATUM_ESDHC111
-#define CONFIG_SYS_FSL_ERRATUM_ESDHC_A001
+#define CONFIG_BZIP2
+#define CONFIG_CRC32_VERIFY
+#define CONFIG_TIMESTAMP
 
-#define CONFIG_CMD_MMC
-#define CONFIG_GENERIC_MMC
-#define CONFIG_CMD_FAT
-#define CONFIG_DOS_PARTITION
-#endif
+#define CONFIG_AUTO_COMPLETE
 
 /*
  * NAND FLASH
@@ -117,7 +122,7 @@
 #define NAND_MAX_CHIPS			CONFIG_SYS_MAX_NAND_DEVICE
 #define CONFIG_SYS_NAND_SELECT_DEVICE
 #define	CONFIG_SYS_64BIT_VSPRINTF	/* needed for nand_util.c */
-#endif
+#endif /* CONFIG_CMD_NAND */
 
 /* Network configuration */
 #define CONFIG_MCFFEC
@@ -134,26 +139,98 @@
 #	define MCFFEC_TOUT_LOOP 50000
 #	undef CONFIG_HAS_ETH1
 
-#	define CONFIG_ETHADDR		00:e0:0c:bc:e5:60
 #	define CONFIG_ETHPRIME		"FEC1"
 #	define CONFIG_IPADDR		192.168.10.2
 #	define CONFIG_NETMASK		255.255.255.0
 #	define CONFIG_SERVERIP		192.168.10.1
-#	define CONFIG_GATEWAYIP		192.168.10.1
-#	define CONFIG_OVERWRITE_ETHADDR_ONCE
+#endif /* CONFIG_MCFFEC */
 
-/* If CONFIG_SYS_DISCOVER_PHY is not defined - hardcoded */
-#	ifndef CONFIG_SYS_DISCOVER_PHY
-#		define FECDUPLEX	FULL
-#		define FECSPEED		_100BASET
-#	else
-#		ifndef CONFIG_SYS_FAULT_ECHO_LINK_DOWN
-#			define CONFIG_SYS_FAULT_ECHO_LINK_DOWN
-#		endif
-#	endif			/* CONFIG_SYS_DISCOVER_PHY */
-#endif
+#define DEFAULT_BOOTCOMMAND					\
+	"run ubiboot; run nfsboot"
 
-#define CONFIG_BOOTDELAY		3
+#define MMC_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
+	"echo Booting from MMC/SD card...; "			\
+	"fatload mmc 0:1 ${loadaddr} uImage && bootm"
+
+#define NFS_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; " \
+	"echo Booting from NFS...; "				\
+	"dhcp && bootm"
+
+#define UBI_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; " \
+	"echo Booting from NAND...; "				\
+	"ubi part kernel-ubi && ubi read ${loadaddr} kernel && bootm"
+
+#define CONFIG_BOOTCOMMAND	DEFAULT_BOOTCOMMAND
+#define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"defargs=vmalloc=64M mem=128M usb_high_speed=1\0" \
+	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
+	"mmcboot=" MMC_BOOTCMD "\0" \
+	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"setup=setenv setupargs " \
+	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
+		",${baudrate}n8\0" \
+	"ubiargs=ubi.mtd=5 root=ubi0:rootfs rootfstype=ubifs\0" \
+	"ubiboot=" UBI_BOOTCMD "\0" \
+	""
+
+/* Dynamic MTD partition support */
+#define CONFIG_CMD_MTDPARTS	/* Enable 'mtdparts' command line support */
+#define CONFIG_MTD_PARTITIONS	/* ??? */
+#define CONFIG_MTD_DEVICE	/* needed for mtdparts commands */
+#define MTDIDS_DEFAULT		"nand0=NAND"
+#define MTDPARTS_DEFAULT	"mtdparts=NAND:"		\
+				"256k(fcb)ro,"			\
+				"256k@256k(config-block)ro,"	\
+				"512k@512k(u-boot)ro,"		\
+				"1m(u-boot-env)ro,"		\
+				"8m(kernel-ubi),"		\
+				"-(rootfs-ubi)"
+
+/* SD/MMC */
+#define CONFIG_MMC
+#ifdef CONFIG_MMC
+#define CONFIG_SYS_ESDHC1_BASE		ESDHC2_BASE_ADDR
+#define CONFIG_FSL_ESDHC
+#define CONFIG_SYS_FSL_ESDHC_ADDR	0
+#define CONFIG_SYS_FSL_ESDHC_NUM	1
+#define CONFIG_ESDHC_NO_SNOOP		1
+//#define CONFIG_MMC_TRACE
+
+#define CONFIG_SYS_FSL_ERRATUM_ESDHC135
+#define CONFIG_SYS_FSL_ERRATUM_ESDHC111
+#define CONFIG_SYS_FSL_ERRATUM_ESDHC_A001
+
+#define CONFIG_CMD_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
+#endif /* CONFIG_MMC */
+
+/* FLASH and environment organization */
+#define CONFIG_SYS_NO_FLASH
+
+/* Environment not stored */
+//#define CONFIG_ENV_IS_NOWHERE
+#ifndef CONFIG_ENV_IS_NOWHERE
+/* Environment stored in NAND flash */
+#define CONFIG_ENV_IS_IN_NAND		1 /* use NAND for environment vars */
+#if defined(CONFIG_ENV_IS_IN_NAND)
+#define CONFIG_ENV_OFFSET		0x100000
+#define CONFIG_ENV_RANGE		0x100000
+#endif /* CONFIG_ENV_IS_IN_NAND */
+#endif /* !CONFIG_ENV_IS_NOWHERE */
+#define CONFIG_ENV_SIZE			(8 * 1024)
+
 #define CONFIG_LOADADDR			0x80010000	/* loadaddr env var */
 #define CONFIG_ARP_TIMEOUT		200UL
 
@@ -162,7 +239,6 @@
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_PROMPT		"Colibri VF50 # "
-#undef CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		\
@@ -221,6 +297,10 @@
 #define CONFIG_SYS_CLKCTL_CCGR11	0xFFFFFFFF
 
 #define CONFIG_SYS_CLKCTRL_CCR		0x00010005
+/* 10.2.3 CCM Clock Switcher Register (CCM_CCSR) */
+//DDRC_CLK_SEL: PLL2 PFD2 clk
+//PLL2 (PLL 528 MHz)
+//PFD2 396 MHz
 #define CONFIG_SYS_CLKCTRL_CCSR		0x0003FF24
 #define CONFIG_SYS_CLKCTRL_CACRR	0x00000810
 #define CONFIG_SYS_CLKCTRL_CSCMR1	0x03CA0000
@@ -244,8 +324,8 @@
 #define CONFIG_SYS_ANADIG_VID_NUM	0x00000000
 #define CONFIG_SYS_ANADIG_VID_DENOM	0x00000012
 /* 11.21.13 PLL5 Control register (ANADIG_PLL5_CTRL) */
-#define CONFIG_SYS_ANADIG_ENET_CTRL	0x00002001	/* !POWERDOWN, ENABLE,
-							   !BYPASS */
+#define CONFIG_SYS_ANADIG_ENET_CTRL	0x00002001	/* !BYPASS, !POWERDOWN,
+							   ENABLE */
 #define CONFIG_SYS_ANADIG_PFD_USB1	0x1B1D1A1C
 #define CONFIG_SYS_ANADIG_PFD_528	0x171C1813
 #define CONFIG_SYS_ANADIG_USB1_MISC	0x00000002
@@ -259,12 +339,4 @@
 #define CONFIG_SYS_ANADIG_SYS_PFD_528	0x00000000
 #define CONFIG_SYS_ANADIG_SYS_PLL_LOCK	0x00000000
 
-/* FLASH and environment organization */
-#define CONFIG_SYS_NO_FLASH
-
-#define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
-#define CONFIG_ENV_SIZE			(8 * 1024)
-#define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		0
-
-#endif
+#endif /* __CONFIG_H */

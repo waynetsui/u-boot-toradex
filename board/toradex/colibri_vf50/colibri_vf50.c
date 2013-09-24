@@ -20,121 +20,182 @@
  * MA 02111-1307 USA
  */
 
-#include <common.h>
-#include <asm/io.h>
+#include <common.h> /* do not change order of include file */
+
+#include <asm/arch/crm_regs.h>
+#include <asm/arch/iomux.h>
+#include <asm/arch/scsc_regs.h>
+#include <asm/arch/sys_proto.h>
+#include <asm/arch/vybrid-pins.h>
+#include <asm/arch/vybrid-regs.h>
+#include <asm/errno.h>
 #include <asm/fec.h>
 #include <asm/gpio.h>
-#include <asm/arch/vybrid-regs.h>
-#include <asm/arch/vybrid-pins.h>
-#include <asm/arch/iomux.h>
-#include <asm/errno.h>
-#include <asm/arch/sys_proto.h>
-#include <asm/arch/crm_regs.h>
-#include <asm/arch/scsc_regs.h>
-#include <i2c.h>
-#include <mmc.h>
+#include <asm/io.h>
 #include <fsl_esdhc.h>
+#include <i2c.h>
+#include <malloc.h>
+#include <mmc.h>
+#include <nand.h>
 #include <usb/ehci-fsl.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#if defined(CONFIG_BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
+		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
+static unsigned char *config_block = NULL;
+#endif
 
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg esdhc_cfg[] = {
 	{CONFIG_SYS_ESDHC1_BASE, 1},
 };
+#endif /* CONFIG_FSL_ESDHC */
+
+void ddr_phy_init(void);
+void setup_iomux_ddr(void);
+void setup_iomux_nfc(void);
+void setup_iomux_uart(void);
+
+int board_early_init_f(void)
+{
+	setup_iomux_uart();
+
+#ifdef CONFIG_NAND_FSL_NFC
+	setup_iomux_nfc();
 #endif
 
-void setup_iomux_ddr(void)
-{
-#define DDR_IOMUX	0x00000180
-#define DDR_IOMUX1	0x00010180
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A15);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A14);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A13);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A12);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A11);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A10);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A9);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A8);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A7);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A6);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A5);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A4);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A3);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A2);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A1);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_BA2);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_BA1);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_BA0);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_CAS);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_CKE);
-	__raw_writel(DDR_IOMUX1, IOMUXC_DDR_CLK);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_CS);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D15);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D14);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D13);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D12);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D11);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D10);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D9);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D8);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D7);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D6);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D5);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D4);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D3);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D2);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D1);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D0);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_DQM1);	/* UDM */
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_DQM0);	/* LDM */
-	__raw_writel(DDR_IOMUX1, IOMUXC_DDR_DQS1);	/* UDQS */
-	__raw_writel(DDR_IOMUX1, IOMUXC_DDR_DQS0);	/* LDQS */
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_RAS);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_WE);
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_ODT1);	/* ? */
-	__raw_writel(DDR_IOMUX, IOMUXC_DDR_ODT0);
+	return 0;
 }
 
-void ddr_phy_init(void)
+int board_init(void)
 {
-#define PHY_DQ_TIMING		0x00002613
-#define PHY_DQS_TIMING		0x00002615
-#define PHY_CTRL		0x01210080
-#define PHY_MASTER_CTRL		0x0001012a
-#define PHY_SLAVE_CTRL		0x00012020
+	u32 temp;
+	struct vybrid_scsc_reg *scsc = (struct vybrid_scsc_reg *)SCSCM_BASE_ADDR;
 
-	/* phy_dq_timing_reg freq set 0 */
-	__raw_writel(PHY_DQ_TIMING, DDR_PHY000);
-	__raw_writel(PHY_DQ_TIMING, DDR_PHY016);
-	__raw_writel(PHY_DQ_TIMING, DDR_PHY032);
-	__raw_writel(PHY_DQ_TIMING, DDR_PHY048);
+	/* address of boot parameters */
+	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
 
-	/* phy_dqs_timing_reg freq set 0 */
-	__raw_writel(PHY_DQS_TIMING, DDR_PHY001);
-	__raw_writel(PHY_DQS_TIMING, DDR_PHY017);
-	__raw_writel(PHY_DQS_TIMING, DDR_PHY033);
-	__raw_writel(PHY_DQS_TIMING, DDR_PHY049);
+	/*
+	 * Enable external 32K Oscillator
+	 *
+	 * The internal clock experiences significant drift
+         * so we must use the external oscillator in order
+	 * to maintain correct time in the hwclock
+	 */
+	temp = __raw_readl(&scsc->sosc_ctr);
+	temp |= VYBRID_SCSC_SICR_CTR_SOSC_EN;
+	__raw_writel(temp, &scsc->sosc_ctr);
 
-	/* phy_gate_lpbk_ctrl_reg freq set 0 */
-	__raw_writel(PHY_CTRL, DDR_PHY002);	/* read delay bit21:19 */
-	__raw_writel(PHY_CTRL, DDR_PHY018);	/* phase_detect_sel bit18:16 */
-	__raw_writel(PHY_CTRL, DDR_PHY034);	/* bit lpbk_ctrl bit12 */
-	__raw_writel(PHY_CTRL, DDR_PHY050);
+	return 0;
+}
 
-	/* phy_dll_master_ctrl_reg freq set 0 */
-	__raw_writel(PHY_MASTER_CTRL, DDR_PHY003);
-	__raw_writel(PHY_MASTER_CTRL, DDR_PHY019);
-	__raw_writel(PHY_MASTER_CTRL, DDR_PHY035);
-	__raw_writel(PHY_MASTER_CTRL, DDR_PHY051);
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+	char env_str[256];
 
-	/* phy_dll_slave_ctrl_reg freq set 0 */
-	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY004);
-	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY020);
-	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY036);
-	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY052);
+	int i;
 
-	__raw_writel(0x00001105, DDR_PHY050);
+	char *addr_str, *end;
+	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
+	unsigned char *mac_addr;
+	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
+
+	size_t size			= 4096;
+	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
+	int valid			= 0;
+
+        int ret;
+
+	/* Allocate RAM area for config block */
+	config_block = malloc(size);
+	if (!config_block) {
+		printf("Not enough malloc space available!\n");
+		return -1;
+	}
+
+	/* Clear it */
+	memset((void *)config_block, 0, size);
+
+	/* Read production parameter config block from NAND */
+	ret = nand_read_skip_bad(&nand_info[0], CONFIG_TRDX_CFG_BLOCK_OFFSET, &size,
+			(unsigned char *)config_block);
+
+	/* Check validity */
+	if ((ret == 0) && (size > 0)) {
+		mac_addr = config_block + 8;
+		if (!(memcmp(mac_addr, toradex_oui, 3))) {
+			valid = 1;
+		}
+	}
+
+	if (!valid) {
+		printf("Missing Colibri config block\n");
+		memset((void *)config_block, 0, size);
+	} else {
+		/* Get MAC address from environment */
+		if ((addr_str = getenv("ethaddr")) != NULL) {
+			for (i = 0; i < 6; i++) {
+				bi_enetaddr[i] = addr_str ? simple_strtoul(addr_str, &end, 16) : 0;
+				if (addr_str) {
+					addr_str = (*end) ? end + 1 : end;
+				}
+			}
+		}
+
+		/* Set Ethernet MAC address from config block if not already set */
+		if (memcmp(mac_addr00, bi_enetaddr, 6) == 0) {
+			sprintf(env_str, "%02x:%02x:%02x:%02x:%02x:%02x",
+				mac_addr[0], mac_addr[1], mac_addr[2],
+				mac_addr[3], mac_addr[4], mac_addr[5]);
+			setenv("ethaddr", env_str);
+#ifndef CONFIG_ENV_IS_NOWHERE
+			saveenv();
+#endif
+		}
+	}
+
+#ifdef CONFIG_MXC_SPI
+	setup_iomux_spi();
+#endif
+
+	return 0;
+}
+#endif /* CONFIG_BOARD_LATE_INIT */
+
+#ifdef CONFIG_FSL_ESDHC
+int board_mmc_getcd(struct mmc *mmc)
+{
+	/*struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;*/
+	int ret;
+
+	__raw_writel(0x005031ef, IOMUXC_PAD_014);	/* clk */
+	__raw_writel(0x005031ef, IOMUXC_PAD_015);	/* cmd */
+	__raw_writel(0x005031ef, IOMUXC_PAD_016);	/* dat0 */
+	__raw_writel(0x005031ef, IOMUXC_PAD_017);	/* dat1 */
+	__raw_writel(0x005031ef, IOMUXC_PAD_018);	/* dat2 */
+	__raw_writel(0x005031ef, IOMUXC_PAD_019);	/* dat3 */
+
+	ret = 1;
+	return ret;
+}
+
+int board_mmc_init(bd_t *bis)
+{
+	u32 index = 0;
+	s32 status = 0;
+
+	status |= fsl_esdhc_initialize(bis, &esdhc_cfg[index]);
+	return status;
+}
+#endif /* CONFIG_FSL_ESDHC */
+
+int checkboard(void)
+{
+	puts("Board: Colibri VF50\n");
+
+	return 0;
 }
 
 unsigned long ddr_ctrl_init(void)
@@ -245,7 +306,6 @@ unsigned long ddr_ctrl_init(void)
 
 	__raw_writel(0x00002819, DDR_CR096);	/* wlmrd, wldqsen */
 
-
 	/* AXI ports */
 	__raw_writel(0x00202000, DDR_CR105);
 	__raw_writel(0x20200000, DDR_CR106);
@@ -301,26 +361,53 @@ unsigned long ddr_ctrl_init(void)
 	return dram_size;
 }
 
+void ddr_phy_init(void)
+{
+#define PHY_DQ_TIMING		0x00002613
+#define PHY_DQS_TIMING		0x00002615
+#define PHY_CTRL		0x01210080
+#define PHY_MASTER_CTRL		0x0001012a
+#define PHY_SLAVE_CTRL		0x00012020
+
+	/* phy_dq_timing_reg freq set 0 */
+	__raw_writel(PHY_DQ_TIMING, DDR_PHY000);
+	__raw_writel(PHY_DQ_TIMING, DDR_PHY016);
+	__raw_writel(PHY_DQ_TIMING, DDR_PHY032);
+	__raw_writel(PHY_DQ_TIMING, DDR_PHY048);
+
+	/* phy_dqs_timing_reg freq set 0 */
+	__raw_writel(PHY_DQS_TIMING, DDR_PHY001);
+	__raw_writel(PHY_DQS_TIMING, DDR_PHY017);
+	__raw_writel(PHY_DQS_TIMING, DDR_PHY033);
+	__raw_writel(PHY_DQS_TIMING, DDR_PHY049);
+
+	/* phy_gate_lpbk_ctrl_reg freq set 0 */
+	__raw_writel(PHY_CTRL, DDR_PHY002);	/* read delay bit21:19 */
+	__raw_writel(PHY_CTRL, DDR_PHY018);	/* phase_detect_sel bit18:16 */
+	__raw_writel(PHY_CTRL, DDR_PHY034);	/* bit lpbk_ctrl bit12 */
+	__raw_writel(PHY_CTRL, DDR_PHY050);
+
+	/* phy_dll_master_ctrl_reg freq set 0 */
+	__raw_writel(PHY_MASTER_CTRL, DDR_PHY003);
+	__raw_writel(PHY_MASTER_CTRL, DDR_PHY019);
+	__raw_writel(PHY_MASTER_CTRL, DDR_PHY035);
+	__raw_writel(PHY_MASTER_CTRL, DDR_PHY051);
+
+	/* phy_dll_slave_ctrl_reg freq set 0 */
+	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY004);
+	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY020);
+	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY036);
+	__raw_writel(PHY_SLAVE_CTRL, DDR_PHY052);
+
+	__raw_writel(0x00001105, DDR_PHY050);
+}
+
 int dram_init(void)
 {
 	setup_iomux_ddr();
-#ifdef CONFIG_SYS_UBOOT_IN_GPURAM
-	gd->ram_size = 0x80000;
-	ddr_ctrl_init();
-#else
 	gd->ram_size = ddr_ctrl_init();
-#endif
-	return 0;
-}
 
-void setup_iomux_uart(void)
-{
-	__raw_writel(0x002011a2, IOMUXC_PAD_026);	/* UART_C_TXD: SCI1_TX */
-	__raw_writel(0x002011a1, IOMUXC_PAD_027);	/* UART_C_RXD: SCI1_RX */
-	__raw_writel(0x001011a2, IOMUXC_PAD_032);	/* UART_A_TXD: SCI0_TX */
-	__raw_writel(0x001011a1, IOMUXC_PAD_033);	/* UART_A_RXD: SCI0_RX */
-	__raw_writel(0x001011a2, IOMUXC_PAD_079);	/* UART_B_TXD: SCI2_TX */
-	__raw_writel(0x001011a1, IOMUXC_PAD_080);	/* UART_B_RXD: SCI2_RX */
+	return 0;
 }
 
 #if defined(CONFIG_CMD_NET)
@@ -359,40 +446,137 @@ int fecpin_setclear(struct eth_device *dev, int setclear)
 
 	return 0;
 }
-#endif
+#endif /* CONFIG_CMD_NET */
 
-#ifdef CONFIG_MXC_SPI
-void setup_iomux_spi(void)
+#ifdef CONFIG_REVISION_TAG
+u32 get_board_rev(void)
 {
-}
-#endif
+#ifdef CONFIG_BOARD_LATE_INIT
+	int i;
+	unsigned short major = 0, minor = 0, release = 0;
+	size_t size = 4096;
 
-#ifdef CONFIG_FSL_ESDHC
-int board_mmc_getcd(struct mmc *mmc)
+	if(config_block == NULL) {
+		return 0;
+	}
+
+	/* Parse revision information in config block */
+	for (i = 0; i < (size - 8); i++) {
+		if (config_block[i] == 0x02 && config_block[i+1] == 0x40 &&
+				config_block[i+2] == 0x08) {
+			break;
+		}
+	}
+
+	major = (config_block[i+3] << 8) | config_block[i+4];
+	minor = (config_block[i+5] << 8) | config_block[i+6];
+	release = (config_block[i+7] << 8) | config_block[i+8];
+
+	/* Check validity */
+	if (major)
+		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) | ((release & 0xf) + 0xa);
+	else
+		return 0;
+#else
+	return 0;
+#endif /* CONFIG_BOARD_LATE_INIT */
+}
+#endif /* CONFIG_REVISION_TAG */
+
+#ifdef CONFIG_SERIAL_TAG
+void get_board_serial(struct tag_serialnr *serialnr)
 {
-	/*struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;*/
-	int ret;
+#ifdef CONFIG_BOARD_LATE_INIT
+	int array[8];
+	int i;
+	unsigned int serial		= 0;
+	unsigned int serial_offset	= 11;
 
-	__raw_writel(0x005031ef, IOMUXC_PAD_014);	/* clk */
-	__raw_writel(0x005031ef, IOMUXC_PAD_015);	/* cmd */
-	__raw_writel(0x005031ef, IOMUXC_PAD_016);	/* dat0 */
-	__raw_writel(0x005031ef, IOMUXC_PAD_017);	/* dat1 */
-	__raw_writel(0x005031ef, IOMUXC_PAD_018);	/* dat2 */
-	__raw_writel(0x005031ef, IOMUXC_PAD_019);	/* dat3 */
+	if(config_block == NULL) {
+		serialnr->low = 0;
+		serialnr->high = 0;
+		return;
+	}
 
-	ret = 1;
-	return ret;
+	/* Get MAC address from config block */
+	memcpy(&serial, config_block + serial_offset, 3);
+	serial = ntohl(serial);
+	serial >>= 8;
+
+	/* Check validity */
+	if (serial) {
+		/* Convert to Linux serial number format (hexadecimal coded decimal) */
+		i = 7;
+		while (serial) {
+			array[i--] = serial % 10;
+			serial /= 10;
+		}
+		serial = array[0];
+		for (i = 1; i < 8; i++) {
+			serial *= 16;
+			serial += array[i];
+		}
+	}
+
+	serialnr->low = serial;
+#else
+	serialnr->low = 0;
+#endif /* CONFIG_BOARD_LATE_INIT */
+	serialnr->high = 0;
 }
+#endif /* CONFIG_SERIAL_TAG */
 
-int board_mmc_init(bd_t *bis)
+void setup_iomux_ddr(void)
 {
-	u32 index = 0;
-	s32 status = 0;
-
-	status |= fsl_esdhc_initialize(bis, &esdhc_cfg[index]);
-	return status;
+#define DDR_IOMUX	0x00000180
+#define DDR_IOMUX1	0x00010180
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A15);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A14);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A13);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A12);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A11);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A10);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A9);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A8);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A7);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A6);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A5);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A4);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A3);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A2);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_A1);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_BA2);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_BA1);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_BA0);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_CAS);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_CKE);
+	__raw_writel(DDR_IOMUX1, IOMUXC_DDR_CLK);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_CS);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D15);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D14);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D13);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D12);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D11);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D10);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D9);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D8);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D7);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D6);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D5);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D4);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D3);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D2);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D1);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_D0);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_DQM1);	/* UDM */
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_DQM0);	/* LDM */
+	__raw_writel(DDR_IOMUX1, IOMUXC_DDR_DQS1);	/* UDQS */
+	__raw_writel(DDR_IOMUX1, IOMUXC_DDR_DQS0);	/* LDQS */
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_RAS);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_WE);
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_ODT1);	/* ? */
+	__raw_writel(DDR_IOMUX, IOMUXC_DDR_ODT0);
 }
-#endif
 
 #ifdef CONFIG_NAND_FSL_NFC
 void setup_iomux_nfc(void)
@@ -412,51 +596,20 @@ void setup_iomux_nfc(void)
 	__raw_writel(0x006038d2, IOMUXC_PAD_100);
 	__raw_writel(0x006038d2, IOMUXC_PAD_101);
 }
-#endif
-int board_early_init_f(void)
-{
-	setup_iomux_uart();
-#ifdef CONFIG_NAND_FSL_NFC
-	setup_iomux_nfc();
-#endif
-	return 0;
-}
+#endif /* CONFIG_NAND_FSL_NFC */
 
-int board_init(void)
-{
-	u32 temp;
-	struct vybrid_scsc_reg *scsc = (struct vybrid_scsc_reg *)SCSCM_BASE_ADDR;
-
-	/* address of boot parameters */
-	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
-
-	/*
-	 * Enable external 32K Oscillator
-	 *
-	 * The internal clock experiences significant drift
-         * so we must use the external oscillator in order
-	 * to maintain correct time in the hwclock
-	 */
-	temp = __raw_readl(&scsc->sosc_ctr);
-	temp |= VYBRID_SCSC_SICR_CTR_SOSC_EN;
-	__raw_writel(temp, &scsc->sosc_ctr);
-
-	return 0;
-}
-
-#ifdef CONFIG_BOARD_LATE_INIT
-int board_late_init(void)
-{
 #ifdef CONFIG_MXC_SPI
-	setup_iomux_spi();
-#endif
-	return 0;
-}
-#endif
-
-int checkboard(void)
+void setup_iomux_spi(void)
 {
-	puts("Board: Colibri VF50\n");
+}
+#endif /* CONFIG_MXC_SPI */
 
-	return 0;
+void setup_iomux_uart(void)
+{
+	__raw_writel(0x002011a2, IOMUXC_PAD_026);	/* UART_C_TXD: SCI1_TX */
+	__raw_writel(0x002011a1, IOMUXC_PAD_027);	/* UART_C_RXD: SCI1_RX */
+	__raw_writel(0x001011a2, IOMUXC_PAD_032);	/* UART_A_TXD: SCI0_TX */
+	__raw_writel(0x001011a1, IOMUXC_PAD_033);	/* UART_A_RXD: SCI0_RX */
+	__raw_writel(0x001011a2, IOMUXC_PAD_079);	/* UART_B_TXD: SCI2_TX */
+	__raw_writel(0x001011a1, IOMUXC_PAD_080);	/* UART_B_RXD: SCI2_RX */
 }

@@ -22,9 +22,11 @@
 /MLO
 /System.map
 /u-boot
+/u-boot-pad
 /u-boot.hex
 /u-boot.imx
 /u-boot.map
+/u-boot.nand
 /u-boot.srec
 /u-boot.ldr
 /u-boot.ldr.hex

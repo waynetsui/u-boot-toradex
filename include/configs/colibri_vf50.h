@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 Toradex, Inc.
  *
- * Configuration settings for the Colibri VF50 module.
+ * Configuration settings for the Colibri VF50 module booting from NAND flash.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -172,7 +172,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"defargs=vmalloc=64M mem=128M usb_high_speed=1\0" \
 	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
-	"mmcboot=" MMC_BOOTCMD "\0" \
+	"sdboot=" MMC_BOOTCMD "\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
 	"setup=setenv setupargs " \
@@ -188,7 +188,7 @@
 #define CONFIG_MTD_DEVICE	/* needed for mtdparts commands */
 #define MTDIDS_DEFAULT		"nand0=NAND"
 #define MTDPARTS_DEFAULT	"mtdparts=NAND:"		\
-				"256k(fcb)ro,"			\
+				"256k(fcb_)ro,"			\
 				"256k@256k(config-block)ro,"	\
 				"512k@512k(u-boot)ro,"		\
 				"1m(u-boot-env)ro,"		\

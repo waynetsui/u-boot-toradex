@@ -511,6 +511,9 @@ void get_board_serial(struct tag_serialnr *serialnr)
 			array[i--] = serial % 10;
 			serial /= 10;
 		}
+		while (i >= 0) {
+			array[i--] = 0;
+		}
 		serial = array[0];
 		for (i = 1; i < 8; i++) {
 			serial *= 16;

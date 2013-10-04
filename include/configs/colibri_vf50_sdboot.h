@@ -44,6 +44,8 @@
 #endif
 #ifdef CONFIG_ENV_IS_IN_NAND
 #undef CONFIG_ENV_IS_IN_NAND
+#undef CONFIG_ENV_OFFSET
+#undef CONFIG_ENV_RANGE
 #endif
 
 /* Environment stored in SD/MMC */

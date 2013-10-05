@@ -163,11 +163,6 @@ static int display_dram_config(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		size += gd->bd->bi_dram[i].size;
 
-	if (size != PHYS_SDRAM_1_SIZE) {
-		printf("boot hang issue detected ");
-		do_reset(NULL, 0, 0, NULL);
-	}
-
 	puts("DRAM:  ");
 	print_size(size, "\n");
 #endif

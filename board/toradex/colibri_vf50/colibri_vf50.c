@@ -338,7 +338,8 @@ unsigned long ddr_ctrl_init(void)
 
 	__raw_writel(0x00000000, DDR_CR136);
 
-	__raw_writel(0x68200000, DDR_CR154);
+	__raw_writel(0x682C0000, DDR_CR154);	/* Bit 19–18 DDR_SEL_PAD_Contr
+						   DDR_SEL = 11 (DDR3 mode) */
 	__raw_writel(0x00000202, DDR_CR155);	/* pad_ibe, _sel */
 	__raw_writel(0x00000006, DDR_CR158);	/* twr */
 	__raw_writel(0x00000006, DDR_CR159);	/* todth */

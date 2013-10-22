@@ -122,7 +122,7 @@
 	usb@0x7d000000 {
 		status = "ok";
 		host-mode = <1>;
-		vbus-gpio = <&gpio 157 3>;	/* PT5, USBO1_EN */
+//		vbus-gpio = <&gpio 157 3>;	/* PT5, USBO1_EN */
 	};
 
 	usbphya: usbphy@0 {

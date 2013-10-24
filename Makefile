@@ -790,7 +790,7 @@ backup:
 	F=`basename $(TOPDIR)` ; cd .. ; \
 	gtar --force-local -zcvf `LC_ALL=C date "+$$F-%Y-%m-%d-%T.tar.gz"` $$F
 
-ifeq ($(BOARD),colibri_vf50)
+ifneq (,$(filter $(BOARD),colibri_vf50 colibri_vf61))
 .DEFAULT_GOAL := u-boot.imx
 ifeq ($(CONFIG_NANDBOOT),y)
 .DEFAULT_GOAL := u-boot.nand

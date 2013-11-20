@@ -43,7 +43,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #if defined(CONFIG_BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
 		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
-static unsigned char *config_block = NULL;
+static unsigned char *config_block;
 #endif
 
 #ifdef CONFIG_FSL_ESDHC
@@ -71,7 +71,8 @@ int board_early_init_f(void)
 int board_init(void)
 {
 	u32 temp;
-	struct vybrid_scsc_reg *scsc = (struct vybrid_scsc_reg *)SCSCM_BASE_ADDR;
+	struct vybrid_scsc_reg *scsc =
+			(struct vybrid_scsc_reg *)SCSCM_BASE_ADDR;
 
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
@@ -80,7 +81,7 @@ int board_init(void)
 	 * Enable external 32K Oscillator
 	 *
 	 * The internal clock experiences significant drift
-         * so we must use the external oscillator in order
+	 * so we must use the external oscillator in order
 	 * to maintain correct time in the hwclock
 	 */
 	temp = __raw_readl(&scsc->sosc_ctr);
@@ -98,7 +99,8 @@ int board_late_init(void)
 	int i;
 
 	char *addr_str, *end;
-	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
+	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0};	/* Ethernet
+								   address */
 	unsigned char *mac_addr;
 	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
 
@@ -106,7 +108,7 @@ int board_late_init(void)
 	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
 	int valid			= 0;
 
-        int ret;
+	int ret;
 
 	/* Allocate RAM area for config block */
 	config_block = malloc(size);
@@ -119,15 +121,14 @@ int board_late_init(void)
 	memset((void *)config_block, 0, size);
 
 	/* Read production parameter config block from NAND */
-	ret = nand_read_skip_bad(&nand_info[0], CONFIG_TRDX_CFG_BLOCK_OFFSET, &size,
-			(unsigned char *)config_block);
+	ret = nand_read_skip_bad(&nand_info[0], CONFIG_TRDX_CFG_BLOCK_OFFSET,
+			&size, (unsigned char *)config_block);
 
 	/* Check validity */
 	if ((ret == 0) && (size > 0)) {
 		mac_addr = config_block + 8;
-		if (!(memcmp(mac_addr, toradex_oui, 3))) {
+		if (!(memcmp(mac_addr, toradex_oui, 3)))
 			valid = 1;
-		}
 	}
 
 	if (!valid) {
@@ -135,16 +136,18 @@ int board_late_init(void)
 		memset((void *)config_block, 0, size);
 	} else {
 		/* Get MAC address from environment */
-		if ((addr_str = getenv("ethaddr")) != NULL) {
+		addr_str = getenv("ethaddr");
+		if (addr_str != NULL) {
 			for (i = 0; i < 6; i++) {
-				bi_enetaddr[i] = addr_str ? simple_strtoul(addr_str, &end, 16) : 0;
-				if (addr_str) {
+				bi_enetaddr[i] = addr_str ? simple_strtoul(
+						addr_str, &end, 16) : 0;
+				if (addr_str)
 					addr_str = (*end) ? end + 1 : end;
-				}
 			}
 		}
 
-		/* Set Ethernet MAC address from config block if not already set */
+		/* Set Ethernet MAC address from config block if not already set
+		*/
 		if (memcmp(mac_addr00, bi_enetaddr, 6) == 0) {
 			sprintf(env_str, "%02x:%02x:%02x:%02x:%02x:%02x",
 				mac_addr[0], mac_addr[1], mac_addr[2],
@@ -153,6 +156,22 @@ int board_late_init(void)
 #ifndef CONFIG_ENV_IS_NOWHERE
 			saveenv();
 #endif
+		}
+	}
+
+	/* Default memory arguments */
+	if (!getenv("memargs")) {
+		switch (gd->ram_size) {
+		case 0x08000000:
+			/* 128 MB */
+			setenv("memargs", "mem=128M");
+			break;
+		case 0x10000000:
+			/* 256 MB */
+			setenv("memargs", "mem=256M");
+			break;
+		default:
+			printf("Failed detecting RAM size.\n");
 		}
 	}
 
@@ -200,6 +219,9 @@ int checkboard(void)
 
 unsigned long ddr_ctrl_init(void)
 {
+	volatile u32 *pMem = 0x80000000;
+	u32 temp = 0;
+
 	int dram_size, rows, cols, banks, port;
 
 	__raw_writel(0x00000600, DDR_CR000);	/* DDR3 */
@@ -314,12 +336,18 @@ unsigned long ddr_ctrl_init(void)
 	__raw_writel(0x00202000, DDR_CR114);
 	__raw_writel(0x20200000, DDR_CR115);
 
+//synchronous vs. asynchronous mode
+//DDRMC_CR117 17–16 Clock domain relativity between AXI port 0 and memory
+//controller core.
+//Set to 0 for asynchronous or set to AXI0_FITYPREG 2 for 1:2 port:core
+//pseudo-sync.
+//3 sync hangs!
 	__raw_writel(0x00000101, DDR_CR117);	/* FIFO type (0-async, 1-2:1
 						 *	2-1:2, 3- sync, w_pri
 						 * r_pri
 						 */
 	__raw_writel(0x01010000, DDR_CR118);	/* w_pri, rpri, en */
-	__raw_writel(0x00000000, DDR_CR119);	/* fifo_type */
+	__raw_writel(0x00000000, DDR_CR119);	/* fifo_type? */
 
 	__raw_writel(0x02020000, DDR_CR120);
 	__raw_writel(0x00000202, DDR_CR121);
@@ -347,9 +375,26 @@ unsigned long ddr_ctrl_init(void)
 
 	ddr_phy_init();
 	__raw_writel(0x1FFFFFFF, DDR_CR082);	/* ??? */
-	__raw_writel(0x00000601, DDR_CR000);	/* LPDDR2 or DDR3, start */
+	__raw_writel(0x00000601, DDR_CR000);	/* DDR3, start */
 
 	udelay(200);
+
+	/* auto detect memory size */
+	temp = pMem[0];
+	pMem[0] = 0xabadcafe;
+	asm volatile("" ::: "memory");
+	if (pMem[0] == pMem[128*1024*1024/4]) {
+		/* only detected 128 MB (e.g. wrap around detected)
+		   re-configure memory controller for 128 MB */
+		__raw_writel(0x00000600, DDR_CR000);	/* DDR3, stop */
+		__raw_writel(0x0a010300, DDR_CR073);	/* arebit, col_diff,
+							   row_diff,
+							   bank_diff */
+		__raw_writel(0x00000601, DDR_CR000);	/* DDR3, start */
+
+		udelay(200);
+	}
+	pMem[0] = temp;
 
 	rows = (__raw_readl(DDR_CR001) & 0x1F) -
 	       ((__raw_readl(DDR_CR073) >> 8) & 3);
@@ -399,22 +444,25 @@ void ddr_phy_init(void)
 	__raw_writel(0x00001105, DDR_PHY050);
 }
 
-static int do_mc_reg_dump(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_mc_reg_dump(cmd_tbl_t *cmdtp, int flag, int argc,
+		char * const argv[])
 {
 	u32 addr;
-	for (addr = DDR_CR000; addr <= DDR_CR161; addr+=4) {
-		printf("DDR_CR[%d] = 0x%08x\n", (addr-DDR_CR000)/4, __raw_readl(addr));
+	for (addr = DDR_CR000; addr <= DDR_CR161; addr += 4) {
+		printf("DDR_CR[%d] = 0x%08x\n", (addr-DDR_CR000)/4,
+				__raw_readl(addr));
 	}
-	for (addr = DDR_PHY000; addr <= DDR_PHY052; addr+=4) {
-		printf("DDR_PHY[%d] = 0x%08x\n", (addr-DDR_PHY000)/4, __raw_readl(addr));
+	for (addr = DDR_PHY000; addr <= DDR_PHY052; addr += 4) {
+		printf("DDR_PHY[%d] = 0x%08x\n", (addr-DDR_PHY000)/4,
+				__raw_readl(addr));
 	}
 
 	return 0;
 }
 U_BOOT_CMD(
-        mcdump, 1, 1, do_mc_reg_dump,
-        "Dump MC registers",
-        ""
+	mcdump, 1, 1, do_mc_reg_dump,
+	"Dump MC registers",
+	""
 );
 
 int dram_init(void)
@@ -435,27 +483,27 @@ int fecpin_setclear(struct eth_device *dev, int setclear)
 
 	if (setclear) {
 		if (info->iobase == CONFIG_SYS_FEC1_IOBASE) {
-			__raw_writel(0x00103192, IOMUXC_PAD_054);	/* MDC */
-			__raw_writel(0x00103193, IOMUXC_PAD_055);	/* MDIO */
-			__raw_writel(0x00103191, IOMUXC_PAD_056);	/* RxDV */
-			__raw_writel(0x00103191, IOMUXC_PAD_057);	/* RxD1 */
-			__raw_writel(0x00103191, IOMUXC_PAD_058);	/* RxD0 */
-			__raw_writel(0x00103191, IOMUXC_PAD_059);	/* RxER */
-			__raw_writel(0x00103192, IOMUXC_PAD_060);	/* TxD1 */
-			__raw_writel(0x00103192, IOMUXC_PAD_061);	/* TxD0 */
-			__raw_writel(0x00103192, IOMUXC_PAD_062);	/* TxEn */
+			__raw_writel(0x00103192, IOMUXC_PAD_054); /* MDC */
+			__raw_writel(0x00103193, IOMUXC_PAD_055); /* MDIO */
+			__raw_writel(0x00103191, IOMUXC_PAD_056); /* RxDV */
+			__raw_writel(0x00103191, IOMUXC_PAD_057); /* RxD1 */
+			__raw_writel(0x00103191, IOMUXC_PAD_058); /* RxD0 */
+			__raw_writel(0x00103191, IOMUXC_PAD_059); /* RxER */
+			__raw_writel(0x00103192, IOMUXC_PAD_060); /* TxD1 */
+			__raw_writel(0x00103192, IOMUXC_PAD_061); /* TxD0 */
+			__raw_writel(0x00103192, IOMUXC_PAD_062); /* TxEn */
 		}
 	} else {
 		if (info->iobase == CONFIG_SYS_FEC1_IOBASE) {
-			__raw_writel(0x00003192, IOMUXC_PAD_054);	/* MDC */
-			__raw_writel(0x00003193, IOMUXC_PAD_055);	/* MDIO */
-			__raw_writel(0x00003191, IOMUXC_PAD_056);	/* RxDV */
-			__raw_writel(0x00003191, IOMUXC_PAD_057);	/* RxD1 */
-			__raw_writel(0x00003191, IOMUXC_PAD_058);	/* RxD0 */
-			__raw_writel(0x00003191, IOMUXC_PAD_059);	/* RxER */
-			__raw_writel(0x00003192, IOMUXC_PAD_060);	/* TxD1 */
-			__raw_writel(0x00003192, IOMUXC_PAD_061);	/* TxD0 */
-			__raw_writel(0x00003192, IOMUXC_PAD_062);	/* TxEn */
+			__raw_writel(0x00003192, IOMUXC_PAD_054); /* MDC */
+			__raw_writel(0x00003193, IOMUXC_PAD_055); /* MDIO */
+			__raw_writel(0x00003191, IOMUXC_PAD_056); /* RxDV */
+			__raw_writel(0x00003191, IOMUXC_PAD_057); /* RxD1 */
+			__raw_writel(0x00003191, IOMUXC_PAD_058); /* RxD0 */
+			__raw_writel(0x00003191, IOMUXC_PAD_059); /* RxER */
+			__raw_writel(0x00003192, IOMUXC_PAD_060); /* TxD1 */
+			__raw_writel(0x00003192, IOMUXC_PAD_061); /* TxD0 */
+			__raw_writel(0x00003192, IOMUXC_PAD_062); /* TxEn */
 		}
 	}
 
@@ -471,9 +519,8 @@ u32 get_board_rev(void)
 	unsigned short major = 0, minor = 0, release = 0;
 	size_t size = 4096;
 
-	if(config_block == NULL) {
+	if (config_block == NULL)
 		return 0;
-	}
 
 	/* Parse revision information in config block */
 	for (i = 0; i < (size - 8); i++) {
@@ -489,7 +536,8 @@ u32 get_board_rev(void)
 
 	/* Check validity */
 	if (major)
-		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) | ((release & 0xf) + 0xa);
+		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) |
+				((release & 0xf) + 0xa);
 	else
 		return 0;
 #else
@@ -507,7 +555,7 @@ void get_board_serial(struct tag_serialnr *serialnr)
 	unsigned int serial		= 0;
 	unsigned int serial_offset	= 11;
 
-	if(config_block == NULL) {
+	if (config_block == NULL) {
 		serialnr->low = 0;
 		serialnr->high = 0;
 		return;
@@ -520,15 +568,15 @@ void get_board_serial(struct tag_serialnr *serialnr)
 
 	/* Check validity */
 	if (serial) {
-		/* Convert to Linux serial number format (hexadecimal coded decimal) */
+		/* Convert to Linux serial number format (hexadecimal coded
+		   decimal) */
 		i = 7;
 		while (serial) {
 			array[i--] = serial % 10;
 			serial /= 10;
 		}
-		while (i >= 0) {
+		while (i >= 0)
 			array[i--] = 0;
-		}
 		serial = array[0];
 		for (i = 1; i < 8; i++) {
 			serial *= 16;
@@ -628,10 +676,10 @@ void setup_iomux_spi(void)
 
 void setup_iomux_uart(void)
 {
-	__raw_writel(0x002011a2, IOMUXC_PAD_026);	/* UART_C_TXD: SCI1_TX */
-	__raw_writel(0x002011a1, IOMUXC_PAD_027);	/* UART_C_RXD: SCI1_RX */
-	__raw_writel(0x001011a2, IOMUXC_PAD_032);	/* UART_A_TXD: SCI0_TX */
-	__raw_writel(0x001011a1, IOMUXC_PAD_033);	/* UART_A_RXD: SCI0_RX */
-	__raw_writel(0x001011a2, IOMUXC_PAD_079);	/* UART_B_TXD: SCI2_TX */
-	__raw_writel(0x001011a1, IOMUXC_PAD_080);	/* UART_B_RXD: SCI2_RX */
+	__raw_writel(0x002011a2, IOMUXC_PAD_026); /* UART_C_TXD: SCI1_TX */
+	__raw_writel(0x002011a1, IOMUXC_PAD_027); /* UART_C_RXD: SCI1_RX */
+	__raw_writel(0x001011a2, IOMUXC_PAD_032); /* UART_A_TXD: SCI0_TX */
+	__raw_writel(0x001011a1, IOMUXC_PAD_033); /* UART_A_RXD: SCI0_RX */
+	__raw_writel(0x001011a2, IOMUXC_PAD_079); /* UART_B_TXD: SCI2_TX */
+	__raw_writel(0x001011a1, IOMUXC_PAD_080); /* UART_B_RXD: SCI2_RX */
 }

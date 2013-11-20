@@ -132,7 +132,17 @@
 	ldr r1, =CONFIG_SYS_CLKCTRL_CCR
 	str r1, [r0, #CLKCTL_CCR]
 
+#ifdef CONFIG_AUTO_DETECT_FREQUENCY
+	/* check for L2 cache */
+	ldr r2, =MSCM_BASE_ADDR
+	ldr r1, [r2, #MSCM_CP0CFG1_OFFSET]
+	cmp r1, #0x0
+	ldr r1, =CONFIG_SYS_CLKCTRL_CCSR_400
+	/* use 500 MHz if L2 cache present (Colibri VF61) */
+	ldrne r1, =CONFIG_SYS_CLKCTRL_CCSR_500
+#else /* CONFIG_AUTO_DETECT_FREQUENCY */
 	ldr r1, =CONFIG_SYS_CLKCTRL_CCSR
+#endif /* CONFIG_AUTO_DETECT_FREQUENCY */
 	str r1, [r0, #CLKCTL_CCSR]
 
 	ldr r1, =CONFIG_SYS_CLKCTRL_CACRR

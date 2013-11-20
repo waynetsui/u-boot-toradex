@@ -176,7 +176,12 @@ static u32 get_ipg_clk(void)
 
 	return freq / div;
 #else
-	return 66000000;
+#ifdef CONFIG_AUTO_DETECT_FREQUENCY
+	if (__raw_readl(MSCM_CP0CFG1))
+		return 83000000;
+	else
+#endif
+		return 66000000;
 #endif
 }
 

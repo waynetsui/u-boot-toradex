@@ -33,7 +33,12 @@ DECLARE_GLOBAL_DATA_PTR;
 int get_clocks(void)
 {
 	gd->bus_clk = 66000000;
-	gd->ipg_clk = 66000000;
+#ifdef CONFIG_AUTO_DETECT_FREQUENCY
+	if (__raw_readl(MSCM_CP0CFG1))
+		gd->ipg_clk = 83000000;
+	else
+#endif
+		gd->ipg_clk = 66000000;
 #ifdef CONFIG_FSL_ESDHC
 	gd->sdhc_clk = 132000000;
 #endif

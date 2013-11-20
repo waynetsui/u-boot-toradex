@@ -103,7 +103,11 @@ int print_cpuinfo(void)
 		(cpurev & 0xFFF000) >> 12,
 		(cpurev & 0x000F0) >> 4,
 		(cpurev & 0x0000F) >> 0,
+#ifdef CONFIG_AUTO_DETECT_FREQUENCY
+		__raw_readl(MSCM_CP0CFG1)?500:400);
+#else
 		vybrid_get_clock(VYBRID_ARM_CLK) / 1000000);
+#endif
 	if (get_reset_cause() != NULL)
 		printf("Reset cause: %s\n", get_reset_cause());
 	return 0;

@@ -1,7 +1,8 @@
 /*
  * Copyright 2013 Toradex, Inc.
  *
- * Configuration settings for the Colibri VF61 module booting from NAND flash.
+ * Configuration settings for the Colibri VF50 and VF61 modules
+ * booting from NAND flash.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -50,7 +51,8 @@
 
 #undef CONFIG_OF_LIBFDT
 
-#define CONFIG_MACH_TYPE		MACH_TYPE_COLIBRI_VF61
+#define CONFIG_AUTO_DETECT_FREQUENCY
+#define CONFIG_MACH_TYPE		(__raw_readl(MSCM_CP0CFG1)?MACH_TYPE_COLIBRI_VF61:MACH_TYPE_COLIBRI_VF50)
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 4 * 1024 * 1024)
 
@@ -152,7 +154,7 @@
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
 	"echo Booting from MMC/SD card...; "			\
-	"fatload mmc 0:1 ${loadaddr} uImage && bootm"
+	"mmc part 0; fatload mmc 0:1 ${loadaddr} uImage && bootm"
 
 #define NFS_BOOTCMD						\
 	"run setup; "						\
@@ -170,14 +172,14 @@
 #define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"defargs=vmalloc=64M mem=256M usb_high_speed=1\0" \
+	"defargs=vmalloc=64M usb_high_speed=1\0" \
 	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
 	"sdboot=" MMC_BOOTCMD "\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
 	"setup=setenv setupargs " \
 	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
-		",${baudrate}n8\0" \
+		",${baudrate}n8 ${memargs}\0" \
 	"ubiargs=ubi.mtd=5 root=ubi0:rootfs rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
 	""
@@ -238,7 +240,7 @@
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		"Colibri VF61 # "
+#define CONFIG_SYS_PROMPT		"Colibri VFxx # "
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		\
@@ -265,7 +267,6 @@
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1
-#define PHYS_SDRAM_1_SIZE		(256 * 1024 * 1024)
 
 #define CONFIG_SYS_SDRAM_BASE		(0x80000000)
 #define CONFIG_SYS_INIT_RAM_ADDR	(IRAM_BASE_ADDR)
@@ -298,10 +299,20 @@
 
 #define CONFIG_SYS_CLKCTRL_CCR		0x00010005
 /* 10.2.3 CCM Clock Switcher Register (CCM_CCSR) */
+//PLL1_PFD_CLK_SEL:
+//001 PLL1 PFD1 clock = 500 MHz
+//010 PLL1 PFD2 clock
+//011 PLL1 PFD3 clock = 396 MHz
+//100 PLL1 PFD4 clock
 //DDRC_CLK_SEL: PLL2 PFD2 clk
 //PLL2 (PLL 528 MHz)
 //PFD2 396 MHz
-#define CONFIG_SYS_CLKCTRL_CCSR		0x0003FF24
+#define CONFIG_SYS_CLKCTRL_CCSR_400		0x0003FF24
+#define CONFIG_SYS_CLKCTRL_CCSR_500		0x0001FF24
+//10.2.4 CCM ARM Clock Root Register (CCM_CACRR)
+//ARM_CLK_DIV = 1 => 396 resp. 500 MHz
+//BUS_CLK_DIV = 3 => 132 resp. 166 MHz
+//IPG_CLK_DIV = 2 => 66 resp. 83 MHz
 #define CONFIG_SYS_CLKCTRL_CACRR	0x00000810
 #define CONFIG_SYS_CLKCTRL_CSCMR1	0x03CA0000
 #define CONFIG_SYS_CLKCTRL_CSCDR1	0x01000000

@@ -212,7 +212,10 @@ int board_mmc_init(bd_t *bis)
 
 int checkboard(void)
 {
-	puts("Board: Colibri VF61\n");
+	if (__raw_readl(MSCM_CP0CFG1))
+		puts("Board: Colibri VF61\n");
+	else
+		puts("Board: Colibri VF50\n");
 
 	return 0;
 }

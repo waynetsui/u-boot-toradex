@@ -222,7 +222,7 @@ int checkboard(void)
 
 unsigned long ddr_ctrl_init(void)
 {
-	volatile u32 *pMem = 0x80000000;
+	volatile u32 *pMem = (u32 *)0x80000000;
 	u32 temp = 0;
 
 	int dram_size, rows, cols, banks, port;

@@ -23,13 +23,13 @@
  * Use this configuration for an u-boot which stores its environment in SD/MMC
  * Useful if SD/MMC is selected as the boot device, so also the environment is taken from there
  *
- * Use colibri_vf50.h for everything which is not specific to using SD/MMC as the boot device!!
+ * Use colibri_vf61.h for everything which is not specific to using SD/MMC as the boot device!!
  */
 
 #ifndef __CONFIG_SDBOOT_H
 #define __CONFIG_SDBOOT_H
 
-#include "colibri_vf50.h"
+#include "colibri_vf.h"
 
 #undef DEFAULT_BOOTCOMMAND
 #undef CONFIG_BOOTCOMMAND

@@ -32,12 +32,22 @@
 		reg = <0x80000000 0xc0000000>;
 	};
 
-	serial@70006000 {
+	uarta: serial@70006000 {
 		status = "ok";
 		/*
 		 * TBD - use CONFIG_SYS_PLLP_BASE_IS_408MHZ somehow here.
 		 * Currently I put this back to 216MHz in fdt_decode.c
 		 */
+		clock-frequency = <408000000>;
+	};
+
+	uartb: serial@70006040 {
+		status = "ok";
+		clock-frequency = <408000000>;
+	};
+
+	uartd: serial@70006300 {
+		status = "ok";
 		clock-frequency = <408000000>;
 	};
 

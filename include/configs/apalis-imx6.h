@@ -69,8 +69,8 @@
 /* MMC Configs */
 #define CONFIG_FSL_ESDHC
 #define CONFIG_FSL_USDHC
-#define CONFIG_SYS_FSL_ESDHC_ADDR      0
-#define CONFIG_SYS_FSL_USDHC_NUM       3
+#define CONFIG_SYS_FSL_ESDHC_ADDR	0
+#define CONFIG_SYS_FSL_USDHC_NUM	3
 
 #define CONFIG_MMC
 #define CONFIG_CMD_MMC
@@ -108,7 +108,7 @@
 #define CONFIG_FEC_MXC_PHYADDR		6
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_MICREL
-#define CONFIG_PHY_MICREL_KSZ9021
+//#define CONFIG_PHY_MICREL_KSZ9021
 
 /* USB Configs */
 #define CONFIG_CMD_USB
@@ -249,7 +249,7 @@
 	   "else run netboot; fi"
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"console=ttymxc1\0" \
+	"console=ttymxc0\0" \
 	"clearenv=if sf probe || sf probe || sf probe 1 ; then " \
 		"sf erase 0xc0000 0x2000 && " \
 		"echo restored environment to factory default ; fi\0" \
@@ -280,6 +280,8 @@
 			"done ; " \
 		"done ; " \
 	"done\0" \
+	"ethaddr=00:14:2D:00:00:00\0" \
+	"ipaddr=192.168.10.2\0" \
 
 #endif
 /* Miscellaneous configurable options */
@@ -324,7 +326,7 @@
 #define CONFIG_ENV_IS_IN_MMC
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_ENV_OFFSET		((1024 * 1024) - (2 * CONFIG_ENV_SIZE))
+#define CONFIG_ENV_OFFSET		(512 * 1024)
 #define CONFIG_SYS_MMC_ENV_DEV		0
 #endif
 

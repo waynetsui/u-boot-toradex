@@ -83,22 +83,21 @@ iomux_v3_cfg_t const uart2_pads[] = {
 };
 
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
-#if TODO
-/* I2C1, SGTL5000 */
-struct i2c_pads_info i2c_pad_info0 = {
+/* Apalis I2C1 */
+struct i2c_pads_info i2c_pad_info1 = {
 	.scl = {
-		.i2c_mode = MX6_PAD_EIM_D21__I2C1_SCL | PC,
-		.gpio_mode = MX6_PAD_EIM_D21__GPIO_3_21 | PC,
-		.gp = IMX_GPIO_NR(3, 21)
+		.i2c_mode = MX6_PAD_CSI0_DAT9__I2C1_SCL | PC,
+		.gpio_mode = MX6_PAD_CSI0_DAT9__GPIO_5_27 | PC,
+		.gp = IMX_GPIO_NR(5, 27)
 	},
 	.sda = {
-		.i2c_mode = MX6_PAD_EIM_D28__I2C1_SDA | PC,
-		.gpio_mode = MX6_PAD_EIM_D28__GPIO_3_28 | PC,
-		.gp = IMX_GPIO_NR(3, 28)
+		.i2c_mode = MX6_PAD_CSI0_DAT8__I2C1_SDA | PC,
+		.gpio_mode = MX6_PAD_CSI0_DAT8__GPIO_5_26 | PC,
+		.gp = IMX_GPIO_NR(5, 26)
 	}
 };
-/* I2C2 Camera, MIPI */
-struct i2c_pads_info i2c_pad_info1 = {
+/* Apalis local, PMIC, SGTL5000, STMPE811*/
+struct i2c_pads_info i2c_pad_info_loc = {
 	.scl = {
 		.i2c_mode = MX6_PAD_KEY_COL3__I2C2_SCL | PC,
 		.gpio_mode = MX6_PAD_KEY_COL3__GPIO_4_12 | PC,
@@ -111,20 +110,33 @@ struct i2c_pads_info i2c_pad_info1 = {
 	}
 };
 
-/* I2C3, J15 - RGB connector */
-struct i2c_pads_info i2c_pad_info2 = {
+/* Apalis I2C3 / CAM */
+struct i2c_pads_info i2c_pad_info3 = {
 	.scl = {
-		.i2c_mode = MX6_PAD_GPIO_5__I2C3_SCL | PC,
-		.gpio_mode = MX6_PAD_GPIO_5__GPIO_1_5 | PC,
-		.gp = IMX_GPIO_NR(1, 5)
+		.i2c_mode = MX6_PAD_EIM_D17__I2C3_SCL | PC,
+		.gpio_mode = MX6_PAD_EIM_D17__GPIO_3_17 | PC,
+		.gp = IMX_GPIO_NR(3, 17)
 	},
 	.sda = {
-		.i2c_mode = MX6_PAD_GPIO_16__I2C3_SDA | PC,
-		.gpio_mode = MX6_PAD_GPIO_16__GPIO_7_11 | PC,
-		.gp = IMX_GPIO_NR(7, 11)
+		.i2c_mode = MX6_PAD_EIM_D18__I2C3_SDA | PC,
+		.gpio_mode = MX6_PAD_EIM_D18__GPIO_3_18 | PC,
+		.gp = IMX_GPIO_NR(3, 18)
 	}
 };
-#endif
+/* Apalis I2C2 / DDC */
+struct i2c_pads_info i2c_pad_info_ddc = {
+	.scl = {
+		.i2c_mode = MX6_PAD_EIM_EB2__HDMI_TX_DDC_SCL | PC,
+		.gpio_mode = MX6_PAD_EIM_EB2__GPIO_2_30 | PC,
+		.gp = IMX_GPIO_NR(2, 30)
+	},
+	.sda = {
+		.i2c_mode = MX6_PAD_EIM_D16__HDMI_TX_DDC_SDA | PC,
+		.gpio_mode = MX6_PAD_EIM_D16__GPIO_3_16 | PC,
+		.gp = IMX_GPIO_NR(3, 16)
+	}
+};
+
 /* Apalis MMC1 */
 iomux_v3_cfg_t const usdhc1_pads[] = {
 	MX6_PAD_SD1_CLK__USDHC1_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -153,6 +165,7 @@ iomux_v3_cfg_t const usdhc3_pads[] = {
 	MX6_PAD_SD3_DAT7__USDHC3_DAT7 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD3_RST__USDHC3_RST   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 };
+
 /* Apalis SD1 */
 iomux_v3_cfg_t const usdhc4_pads[] = {
 	MX6_PAD_SD2_CLK__USDHC2_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -199,6 +212,7 @@ iomux_v3_cfg_t const enet_pads2[] = {
 	MX6_PAD_RGMII_RD3__ENET_RGMII_RD3	| MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL),
 };
+
 #if 0
 /* wl1271 pads on nitrogen6x */
 iomux_v3_cfg_t const wl12xx_pads[] = {
@@ -232,7 +246,7 @@ static iomux_v3_cfg_t const button_pads[] = {
 
 static void setup_iomux_enet(void)
 {
-	gpio_direction_output(IMX_GPIO_NR(1, 25), 0); /* Colibri iMX6 PHY rst */
+	gpio_direction_output(IMX_GPIO_NR(1, 25), 0); /* Apalis iMX6 PHY rst */
 	gpio_direction_output(IMX_GPIO_NR(6, 30), 1);
 	gpio_direction_output(IMX_GPIO_NR(6, 25), 1);
 	gpio_direction_output(IMX_GPIO_NR(6, 27), 1);
@@ -241,11 +255,12 @@ static void setup_iomux_enet(void)
 	imx_iomux_v3_setup_multiple_pads(enet_pads1, ARRAY_SIZE(enet_pads1));
 	gpio_direction_output(IMX_GPIO_NR(6, 24), 1);
 
-	/* Need delay 10ms according to KSZ9021 spec */
+	/* Need delay 10ms according to KSZ9031 spec */
 	udelay(1000 * 10);
-	gpio_set_value(IMX_GPIO_NR(1, 25), 1); /* Colibri iMX6 PHY reset */
-
+	gpio_set_value(IMX_GPIO_NR(1, 25), 1); /* Apalis iMX6 PHY reset */
+	udelay(1); /* strapping hold time > 5ns */
 	imx_iomux_v3_setup_multiple_pads(enet_pads2, ARRAY_SIZE(enet_pads2));
+	udelay(1);
 }
 
 iomux_v3_cfg_t const usb_pads[] = {
@@ -287,16 +302,12 @@ struct fsl_esdhc_cfg usdhc_cfg[CONFIG_SYS_FSL_USDHC_NUM] = {
 int board_mmc_getcd(struct mmc *mmc)
 {
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
-	int ret;
+	int ret = true; /* without card detect pin: inserted */
 
 	switch (cfg->esdhc_base) {
 	case USDHC1_BASE_ADDR:
 		gpio_direction_input(IMX_GPIO_NR(4, 20));
 		ret = !gpio_get_value(IMX_GPIO_NR(4, 20));
-		break;
-	case USDHC3_BASE_ADDR:
-		/* eMMC soldered */
-		ret = true;
 		break;
 	case USDHC4_BASE_ADDR:
 		gpio_direction_input(IMX_GPIO_NR(6, 14));
@@ -331,14 +342,14 @@ int board_mmc_init(bd_t *bis)
 				usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
 			break;
 		case 2:
-		       imx_iomux_v3_setup_multiple_pads(
-			       usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
-		       break;
+			imx_iomux_v3_setup_multiple_pads(
+				usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
+			break;
 		default:
-		       printf("Warning: you configured more USDHC controllers"
-			       "(%d) then supported by the board (%d)\n",
-			       index + 1, CONFIG_SYS_FSL_USDHC_NUM);
-		       return status;
+			printf("Warning: you configured more USDHC controllers"
+				"(%d) then supported by the board (%d)\n",
+				index + 1, CONFIG_SYS_FSL_USDHC_NUM);
+			return status;
 		}
 
 		status |= fsl_esdhc_initialize(bis, &usdhc_cfg[index]);
@@ -364,6 +375,7 @@ void setup_spi(void)
 #endif
 int board_phy_config(struct phy_device *phydev)
 {
+#ifdef TODO
 	/* min rx data delay */
 	ksz9021_phy_extended_write(phydev,
 			MII_KSZ9021_EXT_RGMII_RX_DATA_SKEW, 0x0);
@@ -375,7 +387,7 @@ int board_phy_config(struct phy_device *phydev)
 			MII_KSZ9021_EXT_RGMII_CLOCK_SKEW, 0xf0f0);
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
-
+#endif
 	return 0;
 }
 
@@ -396,6 +408,7 @@ int board_eth_init(bd_t *bis)
 	phydev = phy_find_by_mask(bus, (0xf << 4), PHY_INTERFACE_MODE_RGMII);
 	if (!phydev) {
 		free(bus);
+		puts("no phy found\n");
 		return 0;
 	}
 	printf("using phy at %d\n", phydev->addr);
@@ -552,8 +565,8 @@ static struct display_info_t const displays[] = {{
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
 } }, {
-	.bus	= 2,
-	.addr	= 0x4,
+	.bus	= -1,
+	.addr	= 0,
 	.pixfmt	= IPU_PIX_FMT_LVDS666,
 	.detect	= detect_i2c,
 	.enable	= enable_lvds,
@@ -572,8 +585,8 @@ static struct display_info_t const displays[] = {{
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
 } }, {
-	.bus	= 2,
-	.addr	= 0x38,
+	.bus	= -1,
+	.addr	= 0,
 	.pixfmt	= IPU_PIX_FMT_LVDS666,
 	.detect	= detect_i2c,
 	.enable	= enable_lvds,
@@ -592,8 +605,8 @@ static struct display_info_t const displays[] = {{
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
 } }, {
-	.bus	= 2,
-	.addr	= 0x48,
+		.bus	= -1,
+		.addr	= 0,
 	.pixfmt	= IPU_PIX_FMT_RGB666,
 	.detect	= detect_i2c,
 	.enable	= enable_rgb,
@@ -714,6 +727,66 @@ static void setup_display(void)
 }
 #endif
 
+/* 7-bit I2C bus slave address */
+#define PFUZE100_I2C_ADDR 		(0x08)
+#define PFUZE100_DEVICEID		(0x0)
+#define PFUZE100_REVID			(0x3)
+#define PFUZE100_SW1AMODE		(0x23)
+#define PFUZE100_SW1ACON		36
+#define PFUZE100_SW1ACON_SPEED_VAL	(0x1<<6)	/*default */
+#define PFUZE100_SW1ACON_SPEED_M	(0x3<<6)
+#define PFUZE100_SW1CCON		49
+#define PFUZE100_SW1CCON_SPEED_VAL	(0x1<<6)	/*default */
+#define PFUZE100_SW1CCON_SPEED_M	(0x3<<6)
+#define PFUZE100_SW1AVOL		32
+#define PFUZE100_SW1AVOL_VSEL_M		(0x3f<<0)
+#define PFUZE100_SW1CVOL		46
+#define PFUZE100_SW1CVOL_VSEL_M		(0x3f<<0)
+#define PFUZE100_VGEN1CTL		(0x6c)
+#define PFUZE100_VGEN1_VAL		(0x30 + 0x08) /* Always ON, 1.2V */
+#define PFUZE100_SWBSTCTL		(0x66)
+#define PFUZE100_SWBST_VAL		(0x40 + 0x08 + 0x00) /* Always ON, Auto Switching Mode, 5.0V */
+
+void pmic_init(void)
+{
+	uchar bus = 1;
+	uchar devid, revid, val;
+
+	puts("PMIC: ");
+	if(!(0 == i2c_set_bus_num(bus) && (0 == i2c_probe(PFUZE100_I2C_ADDR))))
+	{
+		puts("i2c bus failed\n");
+		return;
+	}
+	/* get device ident */
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_DEVICEID, 1, &devid, 1) < 0)
+	{
+		puts("i2c pmic devid read failed\n");
+		return;
+	}
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_REVID, 1, &revid, 1) < 0)
+	{
+		puts("i2c pmic revid read failed\n");
+		return;
+	}
+	printf("device id: 0x%.2x, revision id: 0x%.2x\n", devid, revid);
+
+	/* set VGEN1 to 1.2V */
+	val = PFUZE100_VGEN1_VAL;
+	if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_VGEN1CTL, 1, &val, 1))
+	{
+		puts("i2c write failed\n");
+		return;
+	}
+	/* set SWBST to 5.0V */
+	val = PFUZE100_SWBST_VAL;
+	if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_SWBSTCTL, 1, &val, 1))
+	{
+		puts("i2c write failed\n");
+		return;
+	}
+}
+
 int board_early_init_f(void)
 {
 	setup_iomux_uart();
@@ -750,11 +823,13 @@ int board_init(void)
 #ifdef CONFIG_MXC_SPI
 	setup_spi();
 #endif
-#if TODO
-	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info0);
-	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
-	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
-#endif
+#
+	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
+	setup_i2c(1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info_loc);
+	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info3);
+
+	pmic_init();
+
 #ifdef CONFIG_CMD_SATA
 	setup_sata();
 #endif
@@ -764,7 +839,7 @@ int board_init(void)
 
 int checkboard(void)
 {
-	puts("Board: Toradex Colibri iMX6\n");
+	puts("Board: Toradex Apalis iMX6\n");
 	return 0;
 }
 #if TODO

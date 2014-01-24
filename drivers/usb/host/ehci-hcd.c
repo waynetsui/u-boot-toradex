@@ -1018,7 +1018,7 @@ enable_periodic(struct ehci_ctrl *ctrl)
 	ehci_writel(&hcor->or_usbcmd, cmd);
 
 	int ret = handshake((uint32_t *)&hcor->or_usbsts,
-			STD_PSS, STD_PSS, 100 * 1000);
+			STS_PSS, STS_PSS, 100 * 1000);
 	if (ret < 0) {
 		printf("EHCI failed: timeout when enabling periodic list\n");
 		return -1;
@@ -1037,9 +1037,9 @@ disable_periodic(struct ehci_ctrl *ctrl)
 	ehci_writel(&hcor->or_usbcmd, cmd);
 
 	int ret = handshake((uint32_t *)&hcor->or_usbsts,
-			STD_PSS, 0, 100 * 1000);
+			STS_PSS, 0, 100 * 1000);
 	if (ret < 0) {
-		printf("EHCI failed: timeout when enabling periodic list\n");
+		printf("EHCI failed: timeout when disabling periodic list\n");
 		return -1;
 	}
 	return 0;
@@ -1080,7 +1080,7 @@ create_int_queue(struct usb_device *dev, unsigned long pipe, int queuesize,
 		goto fail2;
 	}
 	result->current = result->first;
-	result->last = result->first + elementsize - 1;
+	result->last = result->first + queuesize - 1;
 	result->tds = memalign(32, sizeof(struct qTD) * queuesize);
 	if (!result->tds) {
 		debug("ehci intr queue: out of memory\n");
@@ -1105,14 +1105,14 @@ create_int_queue(struct usb_device *dev, unsigned long pipe, int queuesize,
 			(usb_pipespeed(pipe) << 12) | /* EPS */
 			(usb_pipeendpoint(pipe) << 8) | /* Endpoint Number */
 			(usb_pipedevice(pipe) << 0);
-		qh->qh_endpt2 = (1 << 30); /* 1 Tx per mframe */
+		qh->qh_endpt2 = (1 << 30) | /* 1 Tx per mframe */
+				(1 << 0); /* S-mask: microframe 0 */ 
 		if (usb_pipespeed(pipe) < 2) { /* full or low speed */
 			debug("TT: port: %d, hub address: %d\n",
 				dev->portnr, dev->parent->devnum);
 			qh->qh_endpt2 |= (dev->portnr << 23) |
 				(dev->parent->devnum << 16) |
-				(0x1c << 8) | /* C-mask: microframes 2-4 */
-				(1 << 0); /* S-mask: microframe 0 */
+				(0x1c << 8); /* C-mask: microframes 2-4 */
 		}
 
 		td->qt_next = QT_NEXT_TERMINATE;
@@ -1210,13 +1210,13 @@ destroy_int_queue(struct usb_device *dev, struct int_queue *queue)
 			debug("found candidate. removing from chain\n");
 			cur->qh_link = queue->last->qh_link;
 			result = 0;
-			goto out;
+			break;
 		}
 		cur = NEXT_QH(cur);
 		if (get_timer(0) > timeout) {
 			printf("Timeout destroying interrupt endpoint queue\n");
 			result = -1;
-			break;
+			goto out;
 		}
 	}
 

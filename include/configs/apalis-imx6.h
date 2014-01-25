@@ -2,7 +2,7 @@
  * Copyright (C) 2010-2011 Freescale Semiconductor, Inc.
  * Copyright (C) 2014, Toradex AG
  *
- * Configuration settings for the Toradex Apalis i.MX6
+ * Configuration settings for the Toradex Apalis iMX6
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -38,17 +38,6 @@
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE	       UART1_BASE
-
-//TODO #define CONFIG_CMD_SF
-#ifdef CONFIG_CMD_SF
-#define CONFIG_SPI_FLASH
-#define CONFIG_SPI_FLASH_SST
-#define CONFIG_MXC_SPI
-#define CONFIG_SF_DEFAULT_BUS  0
-#define CONFIG_SF_DEFAULT_CS   (0|(IMX_GPIO_NR(3, 19)<<8))
-#define CONFIG_SF_DEFAULT_SPEED 25000000
-#define CONFIG_SF_DEFAULT_MODE (SPI_MODE_0)
-#endif
 
 /* I2C Configs */
 #define CONFIG_CMD_I2C
@@ -108,7 +97,6 @@
 #define CONFIG_FEC_MXC_PHYADDR		6
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_MICREL
-//#define CONFIG_PHY_MICREL_KSZ9021
 
 /* USB Configs */
 #define CONFIG_CMD_USB
@@ -122,6 +110,11 @@
 #define CONFIG_MXC_USB_PORT	1
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
+#define CONFIG_USB_KEYBOARD
+#ifdef CONFIG_USB_KEYBOARD
+#define CONFIG_SYS_USB_EVENT_POLL
+#define CONFIG_PREBOOT "usb start"
+#endif /* CONFIG_USB_KEYBOARD */
 
 /* Miscellaneous commands */
 #define CONFIG_CMD_BMODE
@@ -269,7 +262,7 @@
 		"echo ; echo 6x_bootscript not found ; " \
 		"echo ; echo serial console at 115200, 8N1 ; echo ; " \
 		"echo details at http://boundarydevices.com/6q_bootscript ; " \
-		"setenv stdout serial\0" \
+		"setenv stdin serial,usbkbd\0" \
 	"upgradeu=for dtype in " CONFIG_DRIVE_TYPES \
 		"; do " \
 		"for disk in 0 1 ; do ${dtype} dev ${disk} ;" \

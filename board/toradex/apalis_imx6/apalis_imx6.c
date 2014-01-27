@@ -405,20 +405,54 @@ int setup_sata(void)
 
 static iomux_v3_cfg_t const backlight_pads[] = {
 	/* Backlight on RGB connector: J15 */
-	MX6_PAD_SD1_DAT3__GPIO_1_21 | MUX_PAD_CTRL(NO_PAD_CTRL),
-#define RGB_BACKLIGHT_GP IMX_GPIO_NR(1, 21)
-
-	/* Backlight on LVDS connector: J6 */
-	MX6_PAD_SD1_CMD__GPIO_1_18 | MUX_PAD_CTRL(NO_PAD_CTRL),
-#define LVDS_BACKLIGHT_GP IMX_GPIO_NR(1, 18)
+	MX6_PAD_EIM_DA13__GPIO_3_13 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#define RGB_BACKLIGHT_GP IMX_GPIO_NR(3, 13)
+/* TODO PWM not GPIO */
+	MX6_PAD_EIM_DA14__GPIO_3_14 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#define RGB_BACKLIGHTPWM_GP IMX_GPIO_NR(3, 14)
+	/* PSAVE# integrated VDAC */
+	MX6_PAD_EIM_BCLK__GPIO_6_31 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#define VGA_PSAVE_NOT_GP IMX_GPIO_NR(6, 31)
 };
 
 static iomux_v3_cfg_t const rgb_pads[] = {
+	MX6_PAD_EIM_A16__IPU1_DI1_DISP_CLK,
+	MX6_PAD_EIM_DA10__IPU1_DI1_PIN15,
+	MX6_PAD_EIM_DA11__IPU1_DI1_PIN2,
+	MX6_PAD_EIM_DA12__IPU1_DI1_PIN3,
+	MX6_PAD_EIM_DA9__IPU1_DISP1_DAT_0,
+	MX6_PAD_EIM_DA8__IPU1_DISP1_DAT_1,
+	MX6_PAD_EIM_DA7__IPU1_DISP1_DAT_2,
+	MX6_PAD_EIM_DA6__IPU1_DISP1_DAT_3,
+	MX6_PAD_EIM_DA5__IPU1_DISP1_DAT_4,
+	MX6_PAD_EIM_DA4__IPU1_DISP1_DAT_5,
+	MX6_PAD_EIM_DA3__IPU1_DISP1_DAT_6,
+	MX6_PAD_EIM_DA2__IPU1_DISP1_DAT_7,
+	MX6_PAD_EIM_DA1__IPU1_DISP1_DAT_8,
+	MX6_PAD_EIM_DA0__IPU1_DISP1_DAT_9,
+	MX6_PAD_EIM_EB1__IPU1_DISP1_DAT_10,
+	MX6_PAD_EIM_EB0__IPU1_DISP1_DAT_11,
+	MX6_PAD_EIM_A17__IPU1_DISP1_DAT_12,
+	MX6_PAD_EIM_A18__IPU1_DISP1_DAT_13,
+	MX6_PAD_EIM_A19__IPU1_DISP1_DAT_14,
+	MX6_PAD_EIM_A20__IPU1_DISP1_DAT_15,
+	MX6_PAD_EIM_A21__IPU1_DISP1_DAT_16,
+	MX6_PAD_EIM_A22__IPU1_DISP1_DAT_17,
+	MX6_PAD_EIM_A23__IPU1_DISP1_DAT_18,
+	MX6_PAD_EIM_A24__IPU1_DISP1_DAT_19,
+	MX6_PAD_EIM_D26__IPU1_DISP1_DAT_22,
+	MX6_PAD_EIM_D27__IPU1_DISP1_DAT_23,
+	MX6_PAD_EIM_D30__IPU1_DISP1_DAT_21,
+	MX6_PAD_EIM_D31__IPU1_DISP1_DAT_20,
+};
+
+static iomux_v3_cfg_t const vga_pads[] = {
+#ifdef FOR_DL_SOLO
+	/* Dualite/Solo doesn't have IPU2 */
 	MX6_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK,
 	MX6_PAD_DI0_PIN15__IPU1_DI0_PIN15,
 	MX6_PAD_DI0_PIN2__IPU1_DI0_PIN2,
 	MX6_PAD_DI0_PIN3__IPU1_DI0_PIN3,
-	MX6_PAD_DI0_PIN4__GPIO_4_20,
 	MX6_PAD_DISP0_DAT0__IPU1_DISP0_DAT_0,
 	MX6_PAD_DISP0_DAT1__IPU1_DISP0_DAT_1,
 	MX6_PAD_DISP0_DAT2__IPU1_DISP0_DAT_2,
@@ -435,14 +469,28 @@ static iomux_v3_cfg_t const rgb_pads[] = {
 	MX6_PAD_DISP0_DAT13__IPU1_DISP0_DAT_13,
 	MX6_PAD_DISP0_DAT14__IPU1_DISP0_DAT_14,
 	MX6_PAD_DISP0_DAT15__IPU1_DISP0_DAT_15,
-	MX6_PAD_DISP0_DAT16__IPU1_DISP0_DAT_16,
-	MX6_PAD_DISP0_DAT17__IPU1_DISP0_DAT_17,
-	MX6_PAD_DISP0_DAT18__IPU1_DISP0_DAT_18,
-	MX6_PAD_DISP0_DAT19__IPU1_DISP0_DAT_19,
-	MX6_PAD_DISP0_DAT20__IPU1_DISP0_DAT_20,
-	MX6_PAD_DISP0_DAT21__IPU1_DISP0_DAT_21,
-	MX6_PAD_DISP0_DAT22__IPU1_DISP0_DAT_22,
-	MX6_PAD_DISP0_DAT23__IPU1_DISP0_DAT_23,
+#else
+	MX6_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK,
+	MX6_PAD_DI0_PIN15__IPU2_DI0_PIN15,
+	MX6_PAD_DI0_PIN2__IPU2_DI0_PIN2,
+	MX6_PAD_DI0_PIN3__IPU2_DI0_PIN3,
+	MX6_PAD_DISP0_DAT0__IPU2_DISP0_DAT_0,
+	MX6_PAD_DISP0_DAT1__IPU2_DISP0_DAT_1,
+	MX6_PAD_DISP0_DAT2__IPU2_DISP0_DAT_2,
+	MX6_PAD_DISP0_DAT3__IPU2_DISP0_DAT_3,
+	MX6_PAD_DISP0_DAT4__IPU2_DISP0_DAT_4,
+	MX6_PAD_DISP0_DAT5__IPU2_DISP0_DAT_5,
+	MX6_PAD_DISP0_DAT6__IPU2_DISP0_DAT_6,
+	MX6_PAD_DISP0_DAT7__IPU2_DISP0_DAT_7,
+	MX6_PAD_DISP0_DAT8__IPU2_DISP0_DAT_8,
+	MX6_PAD_DISP0_DAT9__IPU2_DISP0_DAT_9,
+	MX6_PAD_DISP0_DAT10__IPU2_DISP0_DAT_10,
+	MX6_PAD_DISP0_DAT11__IPU2_DISP0_DAT_11,
+	MX6_PAD_DISP0_DAT12__IPU2_DISP0_DAT_12,
+	MX6_PAD_DISP0_DAT13__IPU2_DISP0_DAT_13,
+	MX6_PAD_DISP0_DAT14__IPU2_DISP0_DAT_14,
+	MX6_PAD_DISP0_DAT15__IPU2_DISP0_DAT_15,
+#endif
 };
 
 struct display_info_t {
@@ -480,15 +528,25 @@ static void enable_lvds(struct display_info_t const *dev)
 	u32 reg = readl(&iomux->gpr[2]);
 	reg |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT;
 	writel(reg, &iomux->gpr[2]);
-	gpio_direction_output(LVDS_BACKLIGHT_GP, 1);
+	gpio_direction_output(RGB_BACKLIGHT_GP, 1);
+	gpio_direction_output(RGB_BACKLIGHTPWM_GP, 0);
 }
 
 static void enable_rgb(struct display_info_t const *dev)
 {
 	imx_iomux_v3_setup_multiple_pads(
 		rgb_pads,
-		 ARRAY_SIZE(rgb_pads));
+		ARRAY_SIZE(rgb_pads));
 	gpio_direction_output(RGB_BACKLIGHT_GP, 1);
+	gpio_direction_output(RGB_BACKLIGHTPWM_GP, 0);
+}
+
+static void enable_vga(struct display_info_t const *dev)
+{
+	imx_iomux_v3_setup_multiple_pads(
+		vga_pads,
+		ARRAY_SIZE(vga_pads));
+	gpio_direction_output(VGA_PSAVE_NOT_GP, 1);
 }
 
 static struct display_info_t const displays[] = {{
@@ -552,8 +610,8 @@ static struct display_info_t const displays[] = {{
 		.sync           = FB_SYNC_EXT,
 		.vmode          = FB_VMODE_NONINTERLACED
 } }, {
-		.bus	= -1,
-		.addr	= 0,
+	.bus	= -1,
+	.addr	= 0,
 	.pixfmt	= IPU_PIX_FMT_RGB666,
 	.detect	= detect_i2c,
 	.enable	= enable_rgb,
@@ -571,6 +629,24 @@ static struct display_info_t const displays[] = {{
 		.vsync_len      = 10,
 		.sync           = 0,
 		.vmode          = FB_VMODE_NONINTERLACED
+} }, {
+	.bus	= -1,
+	.addr	= 0,
+	.pixfmt	= IPU_PIX_FMT_RGB565,
+	.enable	= enable_vga,
+	.mode	= {
+		.name           = "xga-analog-rgb",
+		.refresh        = 60,
+		.xres           = 1024,
+		.yres           = 768,
+		.pixclock       = 15385,
+		.left_margin    = 220,
+		.right_margin   = 40,
+		.upper_margin   = 21,
+		.lower_margin   = 7,
+		.hsync_len      = 60,
+		.vsync_len      = 10,
+		.sync           = FB_SYNC_EXT,
 } } };
 
 int board_video_skip(void)
@@ -581,7 +657,15 @@ int board_video_skip(void)
 	if (!panel) {
 		for (i = 0; i < ARRAY_SIZE(displays); i++) {
 			struct display_info_t const *dev = displays+i;
-			if (dev->detect(dev)) {
+			if (dev->detect) {
+				if (dev->detect(dev)) {
+					panel = dev->mode.name;
+					printf("auto-detected panel %s\n", panel);
+					break;
+				}
+			}
+			else {
+				/* assume connected */
 				panel = dev->mode.name;
 				printf("auto-detected panel %s\n", panel);
 				break;
@@ -669,10 +753,10 @@ static void setup_display(void)
 	/* backlights off until needed */
 	imx_iomux_v3_setup_multiple_pads(backlight_pads,
 					 ARRAY_SIZE(backlight_pads));
-	gpio_direction_input(LVDS_BACKLIGHT_GP);
+	gpio_direction_input(RGB_BACKLIGHTPWM_GP);
 	gpio_direction_input(RGB_BACKLIGHT_GP);
 }
-#endif
+#endif /* defined(CONFIG_VIDEO_IPUV3) */
 
 /* 7-bit I2C bus slave address */
 #define PFUZE100_I2C_ADDR 		(0x08)

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2010-2013 Freescale Semiconductor, Inc.
  * Copyright (C) 2013, Boundary Devices <info@boundarydevices.com>
- * Copyright (C) 2013, Toradex AG
+ * Copyright (C) 2014, Toradex AG
  * copied from nitrogen6x
  *
  * SPDX-License-Identifier:	GPL-2.0+
@@ -30,6 +30,7 @@
 #include <asm/arch/crm_regs.h>
 #include <asm/arch/mxc_hdmi.h>
 #include <i2c.h>
+#include "pf0100.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -757,66 +758,6 @@ static void setup_display(void)
 	gpio_direction_input(RGB_BACKLIGHT_GP);
 }
 #endif /* defined(CONFIG_VIDEO_IPUV3) */
-
-/* 7-bit I2C bus slave address */
-#define PFUZE100_I2C_ADDR 		(0x08)
-#define PFUZE100_DEVICEID		(0x0)
-#define PFUZE100_REVID			(0x3)
-#define PFUZE100_SW1AMODE		(0x23)
-#define PFUZE100_SW1ACON		36
-#define PFUZE100_SW1ACON_SPEED_VAL	(0x1<<6)	/*default */
-#define PFUZE100_SW1ACON_SPEED_M	(0x3<<6)
-#define PFUZE100_SW1CCON		49
-#define PFUZE100_SW1CCON_SPEED_VAL	(0x1<<6)	/*default */
-#define PFUZE100_SW1CCON_SPEED_M	(0x3<<6)
-#define PFUZE100_SW1AVOL		32
-#define PFUZE100_SW1AVOL_VSEL_M		(0x3f<<0)
-#define PFUZE100_SW1CVOL		46
-#define PFUZE100_SW1CVOL_VSEL_M		(0x3f<<0)
-#define PFUZE100_VGEN1CTL		(0x6c)
-#define PFUZE100_VGEN1_VAL		(0x30 + 0x08) /* Always ON, 1.2V */
-#define PFUZE100_SWBSTCTL		(0x66)
-#define PFUZE100_SWBST_VAL		(0x40 + 0x08 + 0x00) /* Always ON, Auto Switching Mode, 5.0V */
-
-void pmic_init(void)
-{
-	uchar bus = 1;
-	uchar devid, revid, val;
-
-	puts("PMIC: ");
-	if(!(0 == i2c_set_bus_num(bus) && (0 == i2c_probe(PFUZE100_I2C_ADDR))))
-	{
-		puts("i2c bus failed\n");
-		return;
-	}
-	/* get device ident */
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_DEVICEID, 1, &devid, 1) < 0)
-	{
-		puts("i2c pmic devid read failed\n");
-		return;
-	}
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_REVID, 1, &revid, 1) < 0)
-	{
-		puts("i2c pmic revid read failed\n");
-		return;
-	}
-	printf("device id: 0x%.2x, revision id: 0x%.2x\n", devid, revid);
-
-	/* set VGEN1 to 1.2V */
-	val = PFUZE100_VGEN1_VAL;
-	if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_VGEN1CTL, 1, &val, 1))
-	{
-		puts("i2c write failed\n");
-		return;
-	}
-	/* set SWBST to 5.0V */
-	val = PFUZE100_SWBST_VAL;
-	if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_SWBSTCTL, 1, &val, 1))
-	{
-		puts("i2c write failed\n");
-		return;
-	}
-}
 
 int board_early_init_f(void)
 {

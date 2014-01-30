@@ -264,6 +264,10 @@ static int handle_stage(const void *blob)
 #if defined(CONFIG_TEGRA2)
 		/* TODO: put pinmux into the FDT */
 		pinmux_config_table(pinmux_cros_1, ARRAY_SIZE(pinmux_cros_1));
+
+		/* Hack: manually untristate BL_ON (PT4 - SODIMM 71)
+			 as specified through device-tree */
+		pinmux_tristate_disable(PINGRP_DTA);
 #endif
 
 		fdt_setup_gpio(&config.panel_vdd);

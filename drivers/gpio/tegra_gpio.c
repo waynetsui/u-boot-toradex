@@ -298,4 +298,7 @@ U_BOOT_CMD(
 	"	- using 'offset', set port:bit as output and drive low or high\n"
 	"     input offset\n"
 	"	- using 'offset', set port:bit as input and read value"
+#ifdef CONFIG_TEGRA2
+	"\nNote: GPIO pins require manual untristating respective pin group!\n"
+#endif
 );

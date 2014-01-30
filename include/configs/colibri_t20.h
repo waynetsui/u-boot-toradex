@@ -94,48 +94,35 @@
 #undef CONFIG_LINUXCONSOLE	/* dynamically adjusted */
 
 #define DEFAULT_BOOTCOMMAND					\
-	"run flashboot; run nfsboot"
+	"run flashboot; run usbboot; run nfsboot"
 
 #define FLASH_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${flashargs} ${mtdparts} ${setupargs}; "	\
+	"setenv bootargs ${defargs} ${flashargs} ${mtdparts} "	\
+		"${setupargs} ${vidargs}; "			\
 	"echo Booting from NAND...; "				\
 	"nboot ${loadaddr} 0 ${lnxoffset} && bootm"
 
-#define MMC_BOOTCMD						\
-	"echo Loading RAM disk and kernel from MMC/SD card...; "\
-	"mmc init && "						\
-	"fatload mmc 0:1 0xC08000 rootfs-ext2.img.gz && "	\
-	"fatload mmc 0:1 ${loadaddr} uImage;"			\
-	"run ramboot"
-
 #define NFS_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; "	\
-	"echo Booting from NFS...; "				\
-	"usb start; "						\
-	"dhcp; "						\
-	"bootm"
-
-#define RAM_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${ramargs} ${mtdparts} ${setupargs}; "	\
-	"echo Booting from RAM...; "				\
-	"bootm"
+	"setenv bootargs ${defargs} ${mtdparts} ${nfsargs} "	\
+		"${setupargs} ${vidargs}; "			\
+	"echo Booting via DHCP/TFTP/NFS...; "			\
+	"usb start; && dhcp && bootm"
 
 #define UBI_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; "	\
+	"setenv bootargs ${defargs} ${mtdparts} ${setupargs} "	\
+		"${ubiargs} ${vidargs}; "			\
 	"echo Booting from NAND...; "				\
-	"ubi part kernel-ubi && ubi read ${loadaddr} kernel; "	\
-	"bootm"
+	"ubi part kernel-ubi && ubi read ${loadaddr} kernel && bootm"
 
 #define USB_BOOTCMD						\
-	"echo Loading RAM disk and kernel from USB stick...; "	\
-	"usb start && "						\
-	"fatload usb 0:1 0xC08000 rootfs-ext2.img.gz && "	\
-	"fatload usb 0:1 ${loadaddr} uImage;"			\
-	"run ramboot"
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${mtdparts} ${setupargs} "	\
+		"${usbargs} ${vidargs}; "			\
+	"echo Booting from USB stick...; "			\
+	"usb start && fatload usb 0:1 ${loadaddr} uimage && bootm"
 
 #ifndef __CONFIG_SDBOOT_H
 #define SD_BOOT_ARGS						\
@@ -145,13 +132,14 @@
 #else /* !__CONFIG_SDBOOT_H */
 #define SD_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${sdargs} ${mtdparts} ${setupargs}; " \
+	"setenv bootargs ${defargs} ${mtdparts} ${sdargs} "
+		"${setupargs} ${vidargs}; " 			\
 	"echo Booting from MMC/SD card...; "			\
-	"mmc read 0 ${loadaddr} ${lnxoffset} ${sd_kernel_size}; " \
-	"bootm"
+	"mmc read 0 ${loadaddr} ${lnxoffset} ${sd_kernel_size} && bootm"
 
 #define SD_BOOT_ARGS						\
-	"sdargs=root=/dev/mmcblk0p1 ip=off rw,noatime rootfstype=ext3 rootwait gpt\0" \
+	"sdargs=root=/dev/mmcblk0p1 ip=off rw,noatime "		\
+		"rootfstype=ext3 rootwait gpt\0"		\
 	"sd_kernel_size=0x4000\0"				\
 	"sdboot=" SD_BOOTCMD "\0"
 
@@ -164,9 +152,8 @@
 #undef CONFIG_DIRECT_BOOTARGS
 #define CONFIG_BOOTCOMMAND	DEFAULT_BOOTCOMMAND
 #define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
-#define CONFIG_RAMBOOTCOMMAND	RAM_BOOTCMD
-//moved from disk/part_efi.h to here, give the block where the GP1 partition starts
-//compare with sdargs below
+//moved from disk/part_efi.h to here, give the block where the GP1 partition
+//starts compare with sdargs below
 #ifdef __CONFIG_SDBOOT_H
 #define GPT_PRIMARY_PARTITION_TABLE_LBA	(gd->gpt_offset)
 #else
@@ -178,16 +165,18 @@
 	"defargs=video=tegrafb vmalloc=128M usb_high_speed=1\0" \
 	"flashargs=ip=off root=/dev/mtdblock0 rw rootfstype=yaffs2\0" \
 	"flashboot=" FLASH_BOOTCMD "\0" \
-	"mmcboot=" MMC_BOOTCMD "\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
-	"ramargs=initrd=0xA1800000,32M ramdisk_size=32768 root=/dev/ram0 rw\0" \
 	SD_BOOT_ARGS \
 	"setup=setenv setupargs " \
-	SD_BOOT_SETUP \
-	"asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 ${memargs}\0" \
-	"ubiargs=ubi.mtd=0 root=ubi0:rootfs rootfstype=ubifs\0" \
+		SD_BOOT_SETUP \
+		"asix_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
+		"console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 " \
+		"${memargs}\0" \
+	"ubiargs=ubi.mtd=7 root=ubi0:rootfs rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
+	"usbargs=root=/dev/sda2 rw rootwait\0" \
 	"usbboot=" USB_BOOTCMD "\0" \
+	"vidargs=video=tegrafb0:640x480-16@60\0" \
 	""
 
 /* Dynamic MTD partition support */

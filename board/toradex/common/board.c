@@ -98,58 +98,55 @@ enum {
 	UART_ALL	= 0xf
 };
 
-typedef enum
-{
-    NvBootFuseBootDevice_Sdmmc,
-    NvBootFuseBootDevice_SnorFlash,
-    NvBootFuseBootDevice_SpiFlash,
-    NvBootFuseBootDevice_NandFlash,
-    NvBootFuseBootDevice_NandFlash_x8  = NvBootFuseBootDevice_NandFlash,
-    NvBootFuseBootDevice_NandFlash_x16 = NvBootFuseBootDevice_NandFlash,
-    NvBootFuseBootDevice_MobileLbaNand,
-    NvBootFuseBootDevice_MuxOneNand,
-    NvBootFuseBootDevice_Sata,
-    NvBootFuseBootDevice_BootRom_Reserved_Sdmmc3,   /* !!! this enum is strictly used by BootRom code only !!! */
-    NvBootFuseBootDevice_Max, /* Must appear after the last legal item */
-    NvBootFuseBootDevice_Force32 = 0x7fffffff
+typedef enum {
+	NvBootFuseBootDevice_Sdmmc,
+	NvBootFuseBootDevice_SnorFlash,
+	NvBootFuseBootDevice_SpiFlash,
+	NvBootFuseBootDevice_NandFlash,
+	NvBootFuseBootDevice_NandFlash_x8  = NvBootFuseBootDevice_NandFlash,
+	NvBootFuseBootDevice_NandFlash_x16 = NvBootFuseBootDevice_NandFlash,
+	NvBootFuseBootDevice_MobileLbaNand,
+	NvBootFuseBootDevice_MuxOneNand,
+	NvBootFuseBootDevice_Sata,
+	NvBootFuseBootDevice_BootRom_Reserved_Sdmmc3,	/* !!! this enum is
+				strictly used by BootRom code only !!! */
+	NvBootFuseBootDevice_Max, /* Must appear after the last legal item */
+	NvBootFuseBootDevice_Force32 = 0x7fffffff
 } NvBootFuseBootDevice;
 
-typedef enum
-{
-    NvStrapDevSel_Emmc_Primary_x4 = 0, /* eMMC primary (x4)          */
-    NvStrapDevSel_Emmc_Primary_x8,     /* eMMC primary (x8)          */
-    NvStrapDevSel_Emmc_Secondary_x4,   /* eMMC secondary (x4)        */
-    NvStrapDevSel_Nand,                /* NAND (x8 or x16)           */
-    NvStrapDevSel_Nand_42nm_x8,           /* NAND_42nm (x8)           */
-    NvStrapDevSel_MobileLbaNand,       /* mobileLBA NAND             */
-    NvStrapDevSel_MuxOneNand,          /* MuxOneNAND                 */
-    NvStrapDevSel_Esd_x4,              /* eSD (x4)                   */
-    NvStrapDevSel_SpiFlash,            /* SPI Flash                  */
-    NvStrapDevSel_Snor_Muxed_x16,      /* Sync NOR (Muxed, x16)      */
-    NvStrapDevSel_Snor_Muxed_x32,      /* Sync NOR (Muxed, x32)      */
-    NvStrapDevSel_Snor_NonMuxed_x16,   /* Sync NOR (NonMuxed, x16)   */
-    NvStrapDevSel_FlexMuxOneNand,      /* FlexMuxOneNAND             */
-    NvStrapDevSel_Sata,                /* Sata                       */
-    NvStrapDevSel_Emmc_Secondary_x8,   /* eMMC secondary (x8)        */
-    NvStrapDevSel_UseFuses,            /* Use fuses instead          */
+typedef enum {
+	NvStrapDevSel_Emmc_Primary_x4 = 0,	/* eMMC primary (x4) */
+	NvStrapDevSel_Emmc_Primary_x8,		/* eMMC primary (x8) */
+	NvStrapDevSel_Emmc_Secondary_x4,	/* eMMC secondary (x4) */
+	NvStrapDevSel_Nand,			/* NAND (x8 or x16) */
+	NvStrapDevSel_Nand_42nm_x8,		/* NAND_42nm (x8) */
+	NvStrapDevSel_MobileLbaNand,		/* mobileLBA NAND */
+	NvStrapDevSel_MuxOneNand,		/* MuxOneNAND */
+	NvStrapDevSel_Esd_x4,			/* eSD (x4) */
+	NvStrapDevSel_SpiFlash,			/* SPI Flash */
+	NvStrapDevSel_Snor_Muxed_x16,		/* Sync NOR (Muxed, x16) */
+	NvStrapDevSel_Snor_Muxed_x32,		/* Sync NOR (Muxed, x32) */
+	NvStrapDevSel_Snor_NonMuxed_x16,	/* Sync NOR (NonMuxed, x16) */
+	NvStrapDevSel_FlexMuxOneNand,		/* FlexMuxOneNAND */
+	NvStrapDevSel_Sata,			/* Sata */
+	NvStrapDevSel_Emmc_Secondary_x8,	/* eMMC secondary (x8) */
+	NvStrapDevSel_UseFuses,			/* Use fuses instead */
 
-    /* The following definitions must be last. */
-    NvStrapDevSel_Num, /* Must appear after the last legal item */
-    NvStrapDevSel_Force32 = 0x7fffffff
+	/* The following definitions must be last. */
+	NvStrapDevSel_Num,	/* Must appear after the last legal item */
+	NvStrapDevSel_Force32 = 0x7fffffff
 } NvStrapDevSel;
 
-typedef enum
-{
-    Trdx_BootDevice_NandFlash,
-    Trdx_BootDevice_eMMC,
-    Trdx_BootDevice_extSD,
-    Trdx_BootDevice_Unknown,
-    Trdx_BootDevice_Max, /* Must appear after the last legal item */
-    Trdx_BootDevice_Force32 = 0x7fffffff
+typedef enum {
+	Trdx_BootDevice_NandFlash,
+	Trdx_BootDevice_eMMC,
+	Trdx_BootDevice_extSD,
+	Trdx_BootDevice_Unknown,
+	Trdx_BootDevice_Max,	/* Must appear after the last legal item */
+	Trdx_BootDevice_Force32 = 0x7fffffff
 } TrdxBootDevice;
 
-const char* sTrdxBootDeviceStr[] =
-{
+const char *sTrdxBootDeviceStr[] = {
 	"Trdx_BootDevice_NandFlash",
 	"Trdx_BootDevice_eMMC",
 	"Trdx_BootDevice_extSD",
@@ -230,7 +227,7 @@ int board_early_init_f(void)
 static TrdxBootDevice board_get_current_bootdev(void)
 {
 	unsigned reg;
-#if GENERATE_FUSE_DEV_INFO	
+#if GENERATE_FUSE_DEV_INFO
 	unsigned reg1 = 0;
 	unsigned reg2;
 #endif /* GENERATE_FUSE_DEV_INFO */
@@ -244,10 +241,13 @@ static TrdxBootDevice board_get_current_bootdev(void)
 	TrdxBootDevice boot_device;
 
 	//get the latched strap pins, bit [26:29]
-	reg = readl( ((unsigned *)NV_APB_MISC_BASE) + APB_MISC_PP_STRAPPING_OPT_A_0);
+	reg = readl(((unsigned *)NV_APB_MISC_BASE) +
+		    APB_MISC_PP_STRAPPING_OPT_A_0);
 /*
-	printf("Strappings Reg 0x%x, BootSelect 0x%x, Recovery %x, NorBoot %x, JTAG %x, MIO_WIDTH %x, RAM_Code %x, NOR_Width %x\n",
-			reg, (reg>>26)&0xf, (reg>>25)&0x1, (reg>>24)&0x1, (reg>>22)&0x3, (reg>>8)&0x1, (reg>>4)&0xf, (reg)&0x1);
+	printf("Strappings Reg 0x%x, BootSelect 0x%x, Recovery %x, NorBoot %x, "
+	       "JTAG %x, MIO_WIDTH %x, RAM_Code %x, NOR_Width %x\n", reg,
+	       (reg>>26)&0xf, (reg>>25)&0x1, (reg>>24)&0x1, (reg>>22)&0x3,
+	       (reg>>8)&0x1, (reg>>4)&0xf, (reg)&0x1);
 */
 	strap_select = (reg>>26)&0xf;
 
@@ -256,20 +256,26 @@ static TrdxBootDevice board_get_current_bootdev(void)
 
 	clock_enable(PERIPH_ID_FUSE);
 	//make fuses visible
-	reg = readl( ((unsigned *)CLK_RST_BASE) + CLK_RST_CONTROLLER_MISC_CLK_ENB_0);
+	reg = readl(((unsigned *)CLK_RST_BASE) +
+		    CLK_RST_CONTROLLER_MISC_CLK_ENB_0);
 	reg = reg | (1<<28);
-	writel(reg, ((unsigned *)CLK_RST_BASE) + CLK_RST_CONTROLLER_MISC_CLK_ENB_0 );
+	writel(reg, ((unsigned *)CLK_RST_BASE) +
+		    CLK_RST_CONTROLLER_MISC_CLK_ENB_0);
 
 	printf("1");
-	reg = readl( ((unsigned *)NV_ADDRESS_MAP_FUSE_BASE) + FUSE_RESERVED_SW_0);
+	reg = readl(((unsigned *)NV_ADDRESS_MAP_FUSE_BASE) +
+		    FUSE_RESERVED_SW_0);
 	printf("2");
-	reg1 = readl( ((unsigned *)NV_ADDRESS_MAP_FUSE_BASE) + FUSE_BOOT_DEVICE_INFO_0);
+	reg1 = readl(((unsigned *)NV_ADDRESS_MAP_FUSE_BASE) +
+		     FUSE_BOOT_DEVICE_INFO_0);
 	printf("3");
 
 	//make fuses invisible
-	reg2 = readl( ((unsigned *)CLK_RST_BASE) + CLK_RST_CONTROLLER_MISC_CLK_ENB_0);
+	reg2 = readl(((unsigned *)CLK_RST_BASE) +
+		     CLK_RST_CONTROLLER_MISC_CLK_ENB_0);
 	reg2 = reg2 & ~(1<<28);
-	writel(reg2, ((unsigned *)CLK_RST_BASE) + CLK_RST_CONTROLLER_MISC_CLK_ENB_0 );
+	writel(reg2, ((unsigned *)CLK_RST_BASE) +
+		      CLK_RST_CONTROLLER_MISC_CLK_ENB_0);
 
 	clock_disable(PERIPH_ID_FUSE);
 #else
@@ -286,16 +292,15 @@ static TrdxBootDevice board_get_current_bootdev(void)
 	//get the fuse 'BOOT_DEV_SEL', bit [0:2]
 	fuse_select = reg & 7;
 
-	if(skip_strap || strap_select == NvStrapDevSel_UseFuses)
-	{
+	if (skip_strap || strap_select == NvStrapDevSel_UseFuses) {
 		printf("Using fuses, %u\n", fuse_select);
-		//getting fuse device info and sdmmc instance, bit 7 of fuse_device info
+		//getting fuse device info and sdmmc instance,
+		//bit 7 of fuse_device info
 #if GENERATE_FUSE_DEV_INFO
 		fuse_device_info = reg1 & 0x3fff;
-		sdmmc_instance = ((reg1 & 0x80)==0x80) ? 2 : 3;
+		sdmmc_instance = ((reg1 & 0x80) == 0x80) ? 2 : 3;
 #endif /* GENERATE_FUSE_DEV_INFO */
-		switch(fuse_select)
-		{
+		switch (fuse_select) {
 		case NvBootFuseBootDevice_Sdmmc:
 			boot_device = Trdx_BootDevice_eMMC;
 			break;
@@ -306,15 +311,12 @@ static TrdxBootDevice board_get_current_bootdev(void)
 			boot_device = Trdx_BootDevice_Unknown;
 			break;
 		}
-	}
-	else
-	{
+	} else {
 		/* printf("Using straps, %u\n", strap_select);*/
 #if GENERATE_FUSE_DEV_INFO
 		sdmmc_instance = 3;
 #endif
-		switch(strap_select)
-		{
+		switch (strap_select) {
 		case NvStrapDevSel_Emmc_Primary_x4:
 		case NvStrapDevSel_Emmc_Secondary_x4:
 		case NvStrapDevSel_Emmc_Secondary_x8:
@@ -331,8 +333,8 @@ static TrdxBootDevice board_get_current_bootdev(void)
 		}
 	}
 	/*
-	if(boot_device < sizeof(sTrdxBootDeviceStr)/sizeof(sTrdxBootDeviceStr[0]))
-	{
+	if (boot_device < sizeof(sTrdxBootDeviceStr) /
+			  sizeof(sTrdxBootDeviceStr[0])) {
 		printf("%s is used\n",sTrdxBootDeviceStr[boot_device]);
 	}
 	*/
@@ -411,7 +413,8 @@ int board_late_init(void)
 	int i;
 
 	char *addr_str, *end;
-	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0}; /* Ethernet address */
+	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0};	/* Ethernet
+								   address */
 	unsigned char *mac_addr;
 	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
 
@@ -423,7 +426,7 @@ int board_late_init(void)
 	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
 	int valid			= 0;
 
-        int ret;
+	int ret;
 
 #ifdef CONFIG_VIDEO_TEGRA
 	/* Make sure we finish initing the LCD */
@@ -449,7 +452,8 @@ int board_late_init(void)
 #if defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	mmc = find_mmc_device(0);
 	/* Just reading one 512 byte block */
-	ret = mmc->block_dev.block_read(0, gd->conf_blk_offset, 1, (unsigned char *)config_block);
+	ret = mmc->block_dev.block_read(0, gd->conf_blk_offset, 1,
+					(unsigned char *)config_block);
 	if (ret == 1) {
 		ret = 0;
 		size = 512;
@@ -459,9 +463,8 @@ int board_late_init(void)
 	/* Check validity */
 	if ((ret == 0) && (size > 0)) {
 		mac_addr = config_block + 8;
-		if (!(memcmp(mac_addr, toradex_oui, 3))) {
+		if (!(memcmp(mac_addr, toradex_oui, 3)))
 			valid = 1;
-		}
 	}
 
 	if (!valid) {
@@ -469,16 +472,18 @@ int board_late_init(void)
 		memset((void *)config_block, 0, size);
 	} else {
 		/* Get MAC address from environment */
-		if ((addr_str = getenv("ethaddr")) != NULL) {
+		addr_str = getenv("ethaddr");
+		if (addr_str != NULL) {
 			for (i = 0; i < 6; i++) {
-				bi_enetaddr[i] = addr_str ? simple_strtoul(addr_str, &end, 16) : 0;
-				if (addr_str) {
+				bi_enetaddr[i] = addr_str ? simple_strtoul(
+						addr_str, &end, 16) : 0;
+				if (addr_str)
 					addr_str = (*end) ? end + 1 : end;
-				}
 			}
 		}
 
-		/* Set Ethernet MAC address from config block if not already set */
+		/* Set Ethernet MAC address from config block if not already set
+		 */
 		if (memcmp(mac_addr00, bi_enetaddr, 6) == 0) {
 			sprintf(env_str, "%02x:%02x:%02x:%02x:%02x:%02x",
 				mac_addr[0], mac_addr[1], mac_addr[2],
@@ -493,25 +498,29 @@ int board_late_init(void)
 	/* Default memory arguments */
 	if (!getenv("memargs")) {
 		switch (gd->ram_size) {
-			case 0x10000000:
-				/* 256 MB */
-				setenv("memargs", "mem=148M@0M fbmem=12M@148M nvmem=96M@160M");
-				break;
-			case 0x20000000:
-				/* 512 MB */
-				setenv("memargs", "mem=372M@0M fbmem=12M@372M nvmem=128M@384M");
-				break;
-			case 0x40000000:
-				/* 1 GB */
-				setenv("memargs", "vmalloc=128M mem=1012M@2048M fbmem=12M@3060M");
-				break;
-			case 0x7ff00000:
-			case 0x80000000:
-				/* 2 GB */
-				setenv("memargs", "vmalloc=256M mem=2035M@2048M fbmem=12M@4083M");
-				break;
-			default:
-				printf("Failed detecting RAM size.\n");
+		case 0x10000000:
+			/* 256 MB */
+			setenv("memargs", "mem=148M@0M fbmem=12M@148M "
+			       "nvmem=96M@160M");
+			break;
+		case 0x20000000:
+			/* 512 MB */
+			setenv("memargs", "mem=372M@0M fbmem=12M@372M "
+			       "nvmem=128M@384M");
+			break;
+		case 0x40000000:
+			/* 1 GB */
+			setenv("memargs", "vmalloc=128M mem=1012M@2048M"
+			       " fbmem=12M@3060M");
+			break;
+		case 0x7ff00000:
+		case 0x80000000:
+			/* 2 GB */
+			setenv("memargs", "vmalloc=256M mem=2035M@2048M"
+			       " fbmem=12M@4083M");
+			break;
+		default:
+			printf("Failed detecting RAM size.\n");
 		}
 	}
 
@@ -533,7 +542,7 @@ int board_late_init(void)
 #endif /* CONFIG_COLIBRI_T20 */
 
 #if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20)) || \
-    defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
+defined(CONFIG_COLIBRI_T30) || defined(CONFIG_APALIS_T30)
 	/* Set GPT offset */
 	if (!getenv("gptoffset")) {
 		sprintf(env_str, "0x%x", (unsigned)(gd->gpt_offset));
@@ -588,7 +597,7 @@ static void board_voltage_init(void)
 	i2c_set_bus_num(0);		/* PMU is on bus 0 */
 
 	//switch v-core to 1.2V
-	data_buffer[0] = VDD_CORE_NOMINAL_T30; 
+	data_buffer[0] = VDD_CORE_NOMINAL_T30;
 	reg = PMU_CORE_VOLTAGE_DVFS_REG;
 	for (i = 0; i < MAX_I2C_RETRY; ++i) {
 		if (!i2c_write(PMU_CORE_I2C_ADDRESS, reg, 1, data_buffer, 1))
@@ -604,15 +613,17 @@ static void board_voltage_init(void)
 			break;
 		udelay(100);
 	}
-	if(data_buffer[0] & 0x7) {
-		data_buffer[0] = 0x10; /* kick the dog once before disabling it or disabling will fail */
+	if (data_buffer[0] & 0x7) {
+		data_buffer[0] = 0x10; /* kick the dog once before disabling it
+					  or disabling will fail */
 		reg = 0x54;
 		for (i = 0; i < MAX_I2C_RETRY; ++i) {
 			if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
 				break;
 			udelay(100);
 		}
-		data_buffer[0] = 0xf0; /* at least one of the reserved bits must be '1' or disabling will fail  */
+		data_buffer[0] = 0xf0; /* at least one of the reserved bits must
+					  be '1' or disabling will fail  */
 		reg = 0x69;
 		for (i = 0; i < MAX_I2C_RETRY; ++i) {
 			if (!i2c_write(PMU_I2C_ADDRESS, reg, 1, data_buffer, 1))
@@ -693,9 +704,8 @@ u32 get_board_rev(void)
 	unsigned short major = 0, minor = 0, release = 0;
 	size_t size = 4096;
 
-	if(config_block == NULL) {
+	if (config_block == NULL)
 		return 0;
-	}
 
 	/* Parse revision information in config block */
 	for (i = 0; i < (size - 8); i++) {
@@ -711,7 +721,8 @@ u32 get_board_rev(void)
 
 	/* Check validity */
 	if (major)
-		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) | ((release & 0xf) + 0xa);
+		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) |
+		       ((release & 0xf) + 0xa);
 	else
 		return 0;
 #else
@@ -729,7 +740,7 @@ void get_board_serial(struct tag_serialnr *serialnr)
 	unsigned int serial		= 0;
 	unsigned int serial_offset	= 11;
 
-	if(config_block == NULL) {
+	if (config_block == NULL) {
 		serialnr->low = 0;
 		serialnr->high = 0;
 		return;
@@ -742,15 +753,15 @@ void get_board_serial(struct tag_serialnr *serialnr)
 
 	/* Check validity */
 	if (serial) {
-		/* Convert to Linux serial number format (hexadecimal coded decimal) */
+		/* Convert to Linux serial number format (hexadecimal coded
+		   decimal) */
 		i = 7;
 		while (serial) {
 			array[i--] = serial % 10;
 			serial /= 10;
 		}
-		while (i >= 0) {
+		while (i >= 0)
 			array[i--] = 0;
-		}
 		serial = array[0];
 		for (i = 1; i < 8; i++) {
 			serial *= 16;
@@ -768,7 +779,7 @@ void get_board_serial(struct tag_serialnr *serialnr)
 
 #ifdef CONFIG_HW_WATCHDOG
 /*
- * kick watchdog in PMU 
+ * kick watchdog in PMU
  *
  */
 extern void hw_watchdog_reset(void)
@@ -780,10 +791,9 @@ extern void hw_watchdog_reset(void)
 	// only kick the watchdog every 10 seconds, the watchdog timeout is 100s
 	now = get_ticks();
 	//first kick after 10 seconds
-	if( !i2c_is_initialized || (last_kick == 0) ) {
+	if (!i2c_is_initialized || (last_kick == 0)) {
 		last_kick = now;
-	}
-	else if( (signed)(now - last_kick) > (10 * 1000) ) {
+	} else if ((signed)(now - last_kick) > (10 * 1000)) {
 		last_kick = now;
 		data_buffer[0] = 0x10;
 		reg = 0x54;

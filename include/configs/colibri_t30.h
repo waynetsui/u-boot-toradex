@@ -75,46 +75,51 @@
 #define DEFAULT_BOOTCOMMAND					\
 	"run emmcboot; run usbboot; run nfsboot"
 
-#define NFS_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${nfsargs} ${setupargs}; "	\
-	"echo Booting from NFS...; "				\
-	"usb start; "						\
-	"dhcp; "						\
-	"bootm"
-
-#define USB_BOOTCMD						\
-	"setenv bootargs ${defargs} root=/dev/sda3 rw rootwait; " \
-	"echo Booting from USB Stick...; "			\
-	"usb start; "						\
-	"fatload usb 0:1 ${loadaddr} uimage; "			\
-	"bootm ${loadaddr}"
-
 #define EMMC_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${mmcargs} ${setupargs};"	\
-	"echo Booting from internal eMMC card...; "		\
-	"mmc read 0 ${loadaddr} ${lnxoffset} ${mmc_kernel_size}; " \
-	"bootm ${loadaddr}"
+	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
+		"${vidargs};"					\
+	"echo Booting from internal eMMC chip...; "		\
+	"mmc read 0 ${loadaddr} ${lnxoffset} ${mmc_kernel_size} && bootm"
+
+#define NFS_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${nfsargs} ${setupargs} "	\
+		"${vidargs}; "					\
+	"echo Booting via DHCP/TFTP/NFS...; "			\
+	"usb start && dhcp && bootm"
+
+#define USB_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${setupargs} ${usbargs} "	\
+		"${vidargs}; "					\
+	"echo Booting from USB stick...; "			\
+	"usb start && fatload usb 0:1 ${loadaddr} uimage && bootm"
 
 #undef CONFIG_BOOTARGS
 #undef CONFIG_BOOTCOMMAND
 #undef CONFIG_DIRECT_BOOTARGS
 #define CONFIG_BOOTCOMMAND	DEFAULT_BOOTCOMMAND
 #define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
-//moved from disk/part_efi.h to here, give the block where the GP1 partition starts
-//compare with sdargs below
+//moved from disk/part_efi.h to here, give the block where the GP1 partition
+//starts compare with sdargs below
 #define GPT_PRIMARY_PARTITION_TABLE_LBA	(gd->gpt_offset)
 #define CONFIG_LOADADDR 0x80408000
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_STD_DEVICES_SETTINGS \
 	"defargs=video=tegrafb core_edp_mv=1300 usb_high_speed=1\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
-	"mmcargs=ip=off root=/dev/mmcblk0p1 rw,noatime rootfstype=ext3 rootwait\0" \
+	"mmcargs=ip=off root=/dev/mmcblk0p1 rw,noatime rootfstype=ext3 " \
+		"rootwait\0" \
 	"mmc_kernel_size=0x4000\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
-	"setup=setenv setupargs gpt gpt_sector=${gptoffset} asix_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 ${memargs}\0" \
+	"setup=setenv setupargs gpt gpt_sector=${gptoffset} " \
+		"asix_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
+		"console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 "
+		"${memargs}\0" \
+	"usbargs=root=/dev/sda2 rw rootwait\0" \
 	"usbboot=" USB_BOOTCMD "\0" \
+	"vidargs=video=tegrafb0:640x480-16@60\0" \
 	""
 
 /* GPIO */

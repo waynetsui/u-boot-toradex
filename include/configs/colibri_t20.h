@@ -132,7 +132,7 @@
 #else /* !__CONFIG_SDBOOT_H */
 #define SD_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${mtdparts} ${sdargs} "
+	"setenv bootargs ${defargs} ${mtdparts} ${sdargs} "	\
 		"${setupargs} ${vidargs}; " 			\
 	"echo Booting from MMC/SD card...; "			\
 	"mmc read 0 ${loadaddr} ${lnxoffset} ${sd_kernel_size} && bootm"

@@ -115,7 +115,7 @@
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
 	"setup=setenv setupargs gpt gpt_sector=${gptoffset} " \
 		"igb_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
-		"console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 "
+		"console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 " \
 		"${memargs} fbcon=map:1\0" \
 	"usbargs=root=/dev/sda2 rw rootwait\0" \
 	"usbboot=" USB_BOOTCMD "\0" \

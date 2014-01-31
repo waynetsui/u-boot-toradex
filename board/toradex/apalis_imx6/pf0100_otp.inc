@@ -57,6 +57,11 @@ struct pmic_otp_prog_t pmic_otp_prog[] = {
 {pmic_i2c, 0xDC, 0x0A}, // Auto gen from Row154
 {pmic_i2c, 0xDD, 0x03}, // Auto gen from Row155
 {pmic_i2c, 0xE0, 0x05}, // Auto gen from Row158
+
+#if 0 /* TBB mode */
+{pmic_i2c, 0xE4, 0x80}, // TBB_POR = 1{
+{pmic_delay, 0, 10},
+#else
 // Write OTP
 {pmic_i2c, 0xE4, 0x02}, // FUSE POR1=1
 {pmic_i2c, 0xE5, 0x02}, // FUSE POR2=1
@@ -182,4 +187,5 @@ struct pmic_otp_prog_t pmic_otp_prog[] = {
 {pmic_pwr, 0, 0}, // PWRON LOW to reload new OTP data
 {pmic_delay, 0, 500},
 {pmic_pwr, 0, 1},
+#endif
 };

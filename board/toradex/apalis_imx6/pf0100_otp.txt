@@ -57,6 +57,11 @@ WRITE_I2C:D9:07 // Auto gen from Row151
 WRITE_I2C:DC:0A // Auto gen from Row154
 WRITE_I2C:DD:03 // Auto gen from Row155
 WRITE_I2C:E0:05 // Auto gen from Row158
+
+#if 1 /* TBB mode */
+WRITE_I2C:E4:80 // TBB_POR = 1
+DELAY:10
+#else
 // Write OTP
 WRITE_I2C:E4:02 // FUSE POR1=1
 WRITE_I2C:E5:02 // FUSE POR2=1
@@ -182,4 +187,5 @@ WRITE_I2C:D1:00 // Clear
 PWRON:LOW // PWRON LOW to reload new OTP data
 DELAY:500
 PWRON: HIGH
+#endif
 };

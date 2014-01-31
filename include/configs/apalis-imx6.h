@@ -37,7 +37,7 @@
 #endif
 
 #define CONFIG_MXC_UART
-#define CONFIG_MXC_UART_BASE	       UART1_BASE
+#define CONFIG_MXC_UART_BASE		UART1_BASE
 
 /* I2C Configs */
 #define CONFIG_CMD_I2C
@@ -113,7 +113,7 @@
 #define CONFIG_USB_KEYBOARD
 #ifdef CONFIG_USB_KEYBOARD
 #define CONFIG_SYS_USB_EVENT_POLL
-#define CONFIG_PREBOOT "usb start"
+/* #define CONFIG_PREBOOT "usb start" */ /* put this in a failed bootcmd to save the USB enumeration? */
 #endif /* CONFIG_USB_KEYBOARD */
 
 /* Miscellaneous commands */
@@ -138,20 +138,26 @@
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_CONS_INDEX	       1
-#define CONFIG_BAUDRATE			       115200
+#define CONFIG_CONS_INDEX		1
+#define CONFIG_BAUDRATE			115200
 
 /* Command definition */
 #include <config_cmd_default.h>
 
 #undef CONFIG_CMD_IMLS
 
-#define CONFIG_BOOTDELAY	       1
+#undef CONFIG_BOOTDELAY
+#define CONFIG_BOOTDELAY	1
+#define CONFIG_NETMASK		255.255.255.0
+#undef CONFIG_IPADDR
+#define CONFIG_IPADDR		192.168.10.2
+#undef CONFIG_SERVERIP
+#define CONFIG_SERVERIP		192.168.10.1
 
-//TODO #define CONFIG_PREBOOT                 ""
+//TODO #define CONFIG_PREBOOT		""
 
-#define CONFIG_LOADADDR			       0x12000000
-#define CONFIG_SYS_TEXT_BASE	       0x17800000
+#define CONFIG_LOADADDR			0x12000000
+#define CONFIG_SYS_TEXT_BASE		0x17800000
 
 #ifdef CONFIG_CMD_SATA
 #define CONFIG_DRIVE_SATA "sata "
@@ -167,144 +173,81 @@
 
 #define CONFIG_DRIVE_TYPES CONFIG_DRIVE_SATA CONFIG_DRIVE_MMC
 
-#if defined(CONFIG_SABRELITE)
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"script=boot.scr\0" \
-	"uimage=uImage\0" \
-	"console=ttymxc1\0" \
-	"fdt_high=0xffffffff\0" \
-	"initrd_high=0xffffffff\0" \
-	"fdt_file=imx6q-sabrelite.dtb\0" \
-	"fdt_addr=0x11000000\0" \
-	"boot_fdt=try\0" \
-	"ip_dyn=yes\0" \
-	"mmcdev=0\0" \
-	"mmcpart=1\0" \
-	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
-	"mmcargs=setenv bootargs console=${console},${baudrate} " \
-		"root=${mmcroot}\0" \
-	"loadbootscript=" \
-		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
-	"loaduimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"bootm ${loadaddr} - ${fdt_addr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootm; " \
-		"fi;\0" \
-	"netargs=setenv bootargs console=${console},${baudrate} " \
-		"root=/dev/nfs " \
-	"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
-		"netboot=echo Booting from net ...; " \
-		"run netargs; " \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"${get_cmd} ${uimage}; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
-				"bootm ${loadaddr} - ${fdt_addr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootm; " \
-		"fi;\0"
+#define EMMC_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
+		"${vidargs};"					\
+	"echo Booting from internal eMMC chip...; "		\
+	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
+#define NFS_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${nfsargs} ${setupargs} "	\
+		"${vidargs}; "					\
+	"echo Booting via DHCP/TFTP/NFS...; "			\
+	"dhcp && bootm"
+#define SD_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
+		"${vidargs};"					\
+	"echo Booting from SD card in 8bit slot...; "		\
+	"fatload mmc 0:1 10800000 uImage && bootm 10800000"
 
-#define CONFIG_BOOTCOMMAND \
-	   "mmc dev ${mmcdev}; if mmc rescan; then " \
-		   "if run loadbootscript; then " \
-			   "run bootscript; " \
-		   "else " \
-			   "if run loaduimage; then " \
-				   "run mmcboot; " \
-			   "else run netboot; " \
-			   "fi; " \
-		   "fi; " \
-	   "else run netboot; fi"
-#else
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"console=ttymxc0\0" \
-	"clearenv=if sf probe || sf probe || sf probe 1 ; then " \
-		"sf erase 0xc0000 0x2000 && " \
-		"echo restored environment to factory default ; fi\0" \
-	"bootcmd=for dtype in " CONFIG_DRIVE_TYPES \
-		"; do " \
-			"for disk in 0 1 ; do ${dtype} dev ${disk} ;" \
-				"for fs in fat ext2 ; do " \
-					"${fs}load " \
-						"${dtype} ${disk}:1 " \
-						"10008000 " \
-						"/6x_bootscript" \
-						"&& source 10008000 ; " \
-				"done ; " \
-			"done ; " \
-		"done; " \
+	"bootcmd=run emmcboot ; "\
 		"setenv stdout serial,vga ; " \
-		"echo ; echo 6x_bootscript not found ; " \
-		"echo ; echo serial console at 115200, 8N1 ; echo ; " \
-		"echo details at http://boundarydevices.com/6q_bootscript ; " \
-		"setenv stdin serial,usbkbd\0" \
-	"upgradeu=for dtype in " CONFIG_DRIVE_TYPES \
-		"; do " \
-		"for disk in 0 1 ; do ${dtype} dev ${disk} ;" \
-		     "for fs in fat ext2 ; do " \
-				"${fs}load ${dtype} ${disk}:1 10008000 " \
-					"/6x_upgrade " \
-					"&& source 10008000 ; " \
-			"done ; " \
-		"done ; " \
-	"done\0" \
+		"echo ; echo emmcboot failed ; " \
+		"usb start; setenv stdin serial,usbkbd\0" \
+	"bootscript=fatload mmc 0:1 10008000 6x_bootscript && source 10008000\0" \
+	"console=ttymxc0\0" \
+	"defargs=enable_wait_mode=off vmalloc=400M\0" \
+	"emmcboot=" EMMC_BOOTCMD "\0" \
 	"ethaddr=00:14:2D:00:00:00\0" \
-	"ipaddr=192.168.10.2\0" \
+	"mmcargs=ip=off root=/dev/mmcblk0p2 rw,noatime rootfstype=ext3 " \
+		"rootwait\0" \
+	"mmc_kernel_size=0x4000\0" \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
+	"nfsboot=" NFS_BOOTCMD "\0" \
+	"sdboot=" SD_BOOTCMD "\0" \
+	"setup=setenv setupargs fec_mac=${ethaddr} " \
+		"consoleblank=0  no_console_suspend=1 console=tty1 " \
+		"console=ttymxc0,${baudrate}n8 " \
+		"fbcon=map:1\0 " \
+	"vidargs=fbmem=28M "
+/*	"vidargs=video=mxcfb0:dev=hdmi,1280x720M@60,if=RGB24 " \
+		"video=mxcfb3:dev=lcd,640x480M@60,if=RGB565 " \
+		"video=mxcfb1:dev=ldb,1024x600M@60,if=RGB666 " \
+		"video=mxcfb2:dev=lcd,1024x600M@60,if=RGB888 " \
+		"fbmem=28M "
+ */
 
-#endif
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT	       "U-Boot > "
+#define CONFIG_SYS_PROMPT		"Apalis iMX6 # "
 #define CONFIG_AUTO_COMPLETE
-#define CONFIG_SYS_CBSIZE	       1024
+#define CONFIG_SYS_CBSIZE		1024
 
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
-#define CONFIG_SYS_MAXARGS	       16
+#define CONFIG_SYS_MAXARGS		16
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
 
-#define CONFIG_SYS_MEMTEST_START       0x10000000
-#define CONFIG_SYS_MEMTEST_END	       0x10010000
-#define CONFIG_SYS_MEMTEST_SCRATCH     0x10800000
+#define CONFIG_SYS_MEMTEST_START	0x10000000
+#define CONFIG_SYS_MEMTEST_END		0x10010000
+#define CONFIG_SYS_MEMTEST_SCRATCH	0x10800000
 
-#define CONFIG_SYS_LOAD_ADDR	       CONFIG_LOADADDR
-#define CONFIG_SYS_HZ		       1000
+#define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
+#define CONFIG_SYS_HZ			1000
 
 #define CONFIG_CMDLINE_EDITING
 
 /* Physical Memory Map */
-#define CONFIG_NR_DRAM_BANKS	       1
-#define PHYS_SDRAM		       MMDC0_ARB_BASE_ADDR
+#define CONFIG_NR_DRAM_BANKS		1
+#define PHYS_SDRAM			MMDC0_ARB_BASE_ADDR
 
-#define CONFIG_SYS_SDRAM_BASE	       PHYS_SDRAM
-#define CONFIG_SYS_INIT_RAM_ADDR       IRAM_BASE_ADDR
-#define CONFIG_SYS_INIT_RAM_SIZE       IRAM_SIZE
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM
+#define CONFIG_SYS_INIT_RAM_ADDR	IRAM_BASE_ADDR
+#define CONFIG_SYS_INIT_RAM_SIZE	IRAM_SIZE
 
 #define CONFIG_SYS_INIT_SP_OFFSET \
 	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
@@ -320,7 +263,7 @@
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(512 * 1024)
-#define CONFIG_SYS_MMC_ENV_DEV		0
+#define CONFIG_SYS_MMC_ENV_DEV		1
 #endif
 
 #define CONFIG_OF_LIBFDT
@@ -339,4 +282,4 @@
 #define CONFIG_SUPPORT_RAW_INITRD
 #define CONFIG_CMD_FS_GENERIC
 
-#endif	       /* __CONFIG_H */
+#endif	/* __CONFIG_H */

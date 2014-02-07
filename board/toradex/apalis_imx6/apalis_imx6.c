@@ -156,6 +156,17 @@ iomux_v3_cfg_t const usdhc1_pads[] = {
 	MX6_PAD_DI0_PIN4__GPIO_4_20   | MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
 };
 
+/* Apalis SD1 */
+iomux_v3_cfg_t const usdhc2_pads[] = {
+	MX6_PAD_SD2_CLK__USDHC2_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_SD2_CMD__USDHC2_CMD   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_SD2_DAT0__USDHC2_DAT0 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_SD2_DAT1__USDHC2_DAT1 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_SD2_DAT2__USDHC2_DAT2 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_SD2_DAT3__USDHC2_DAT3 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_NANDF_CS1__GPIO_6_14  | MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
+};
+
 /* eMMC */
 iomux_v3_cfg_t const usdhc3_pads[] = {
 	MX6_PAD_SD3_CLK__USDHC3_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -169,17 +180,6 @@ iomux_v3_cfg_t const usdhc3_pads[] = {
 	MX6_PAD_SD3_DAT6__USDHC3_DAT6 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD3_DAT7__USDHC3_DAT7 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD3_RST__USDHC3_RST   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-};
-
-/* Apalis SD1 */
-iomux_v3_cfg_t const usdhc4_pads[] = {
-	MX6_PAD_SD2_CLK__USDHC2_CLK   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_SD2_CMD__USDHC2_CMD   | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_SD2_DAT0__USDHC2_DAT0 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_SD2_DAT1__USDHC2_DAT1 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_SD2_DAT2__USDHC2_DAT2 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_SD2_DAT3__USDHC2_DAT3 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_NANDF_CS1__GPIO_6_14  | MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
 };
 
 int mx6_rgmii_rework(struct phy_device *phydev)
@@ -271,23 +271,24 @@ int board_ehci_hcd_init(int port)
 #endif
 
 #ifdef CONFIG_FSL_ESDHC
+/* use the following sequence: eMMC, MMC, SD */
 struct fsl_esdhc_cfg usdhc_cfg[CONFIG_SYS_FSL_USDHC_NUM] = {
-	{USDHC1_BASE_ADDR},
 	{USDHC3_BASE_ADDR},
-	{USDHC4_BASE_ADDR},
+	{USDHC1_BASE_ADDR},
+	{USDHC2_BASE_ADDR},
 };
 
 int board_mmc_getcd(struct mmc *mmc)
 {
 	struct fsl_esdhc_cfg *cfg = (struct fsl_esdhc_cfg *)mmc->priv;
-	int ret = true; /* without card detect pin: inserted */
+	int ret = true; /* default: assume inserted */
 
 	switch (cfg->esdhc_base) {
 	case USDHC1_BASE_ADDR:
 		gpio_direction_input(IMX_GPIO_NR(4, 20));
 		ret = !gpio_get_value(IMX_GPIO_NR(4, 20));
 		break;
-	case USDHC4_BASE_ADDR:
+	case USDHC2_BASE_ADDR:
 		gpio_direction_input(IMX_GPIO_NR(6, 14));
 		ret = !gpio_get_value(IMX_GPIO_NR(6, 14));
 		break;
@@ -301,9 +302,9 @@ int board_mmc_init(bd_t *bis)
 	s32 status = 0;
 	u32 index = 0;
 
-	usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC_CLK);
-	usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
-	usdhc_cfg[2].sdhc_clk = mxc_get_clock(MXC_ESDHC4_CLK);
+	usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
+	usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC_CLK);
+	usdhc_cfg[2].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
 
 	usdhc_cfg[0].max_bus_width = 8;
 	usdhc_cfg[1].max_bus_width = 8;
@@ -313,15 +314,15 @@ int board_mmc_init(bd_t *bis)
 		switch (index) {
 		case 0:
 			imx_iomux_v3_setup_multiple_pads(
-				usdhc1_pads, ARRAY_SIZE(usdhc1_pads));
+				usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
 			break;
 		case 1:
 			imx_iomux_v3_setup_multiple_pads(
-				usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+				usdhc1_pads, ARRAY_SIZE(usdhc1_pads));
 			break;
 		case 2:
 			imx_iomux_v3_setup_multiple_pads(
-				usdhc4_pads, ARRAY_SIZE(usdhc4_pads));
+				usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
 			break;
 		default:
 			printf("Warning: you configured more USDHC controllers"

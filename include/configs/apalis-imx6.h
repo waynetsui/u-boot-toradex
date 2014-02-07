@@ -193,7 +193,7 @@
 	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootcmd=run emmcboot ; "\
+	"bootcmd=run nfsboot ; run emmcboot ; "\
 		"setenv stdout serial,vga ; " \
 		"echo ; echo emmcboot failed ; " \
 		"usb start; setenv stdin serial,usbkbd\0" \
@@ -212,13 +212,11 @@
 		"consoleblank=0  no_console_suspend=1 console=tty1 " \
 		"console=ttymxc0,${baudrate}n8 " \
 		"fbcon=map:1\0 " \
-	"vidargs=fbmem=28M "
-/*	"vidargs=video=mxcfb0:dev=hdmi,1280x720M@60,if=RGB24 " \
-		"video=mxcfb3:dev=lcd,640x480M@60,if=RGB565 " \
+	"vidargs=video=mxcfb0:dev=hdmi,1280x720M@60,if=RGB24 " \
 		"video=mxcfb1:dev=ldb,1024x600M@60,if=RGB666 " \
-		"video=mxcfb2:dev=lcd,1024x600M@60,if=RGB888 " \
+		"video=mxcfb2:dev=ldb,1024x600M@60,if=RGB666 " \
+		"video=mxcfb3:dev=lcd,800x480M@60,if=RGB24 " \
 		"fbmem=28M "
- */
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP

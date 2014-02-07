@@ -178,7 +178,7 @@
 	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
 		"${vidargs};"					\
 	"echo Booting from internal eMMC chip...; "		\
-	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
+	"fatload mmc 0:1 10800000 uImage && bootm 10800000"
 #define NFS_BOOTCMD						\
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${nfsargs} ${setupargs} "	\
@@ -190,14 +190,14 @@
 	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
 		"${vidargs};"					\
 	"echo Booting from SD card in 8bit slot...; "		\
-	"fatload mmc 0:1 10800000 uImage && bootm 10800000"
+	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootcmd=run emmcboot ; "\
 		"setenv stdout serial,vga ; " \
 		"echo ; echo emmcboot failed ; " \
 		"usb start; setenv stdin serial,usbkbd\0" \
-	"bootscript=fatload mmc 0:1 10008000 6x_bootscript && source 10008000\0" \
+	"bootscript=fatload mmc 1:1 10008000 6x_bootscript && source 10008000\0" \
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
@@ -263,7 +263,7 @@
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(512 * 1024)
-#define CONFIG_SYS_MMC_ENV_DEV		1
+#define CONFIG_SYS_MMC_ENV_DEV		0
 #endif
 
 #define CONFIG_OF_LIBFDT

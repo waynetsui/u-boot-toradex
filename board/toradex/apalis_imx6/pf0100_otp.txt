@@ -8,8 +8,8 @@
 // Customer: Toradex AG
 // Program: Apalis iMX6
 // Sample marking: 
-// Date: 20.11.2013
-// Time: 09:17:36
+// Date: 12.02.2014
+// Time: 17:16:41
 // Generated from Spreadsheet Revision: P1.8
 
 /* sed commands to get from programmer script to struct */
@@ -42,21 +42,21 @@ WRITE_I2C:B5:04 // Auto gen from Row115
 WRITE_I2C:B6:01 // Auto gen from Row116
 WRITE_I2C:B8:18 // Auto gen from Row118
 WRITE_I2C:BA:01 // Auto gen from Row120
-WRITE_I2C:BD:0A // Auto gen from Row123
+WRITE_I2C:BD:1F // Auto gen from Row123
 WRITE_I2C:C0:06 // Auto gen from Row126
 WRITE_I2C:C4:04 // Auto gen from Row130
 WRITE_I2C:C8:0E // Auto gen from Row134
-WRITE_I2C:C9:09 // Auto gen from Row135
+WRITE_I2C:C9:08 // Auto gen from Row135
 WRITE_I2C:CC:0E // Auto gen from Row138
 WRITE_I2C:CD:05 // Auto gen from Row139
 WRITE_I2C:D0:0C // Auto gen from Row142
-WRITE_I2C:D1:06 // Auto gen from Row143
-WRITE_I2C:D5:08 // Auto gen from Row147
+WRITE_I2C:D1:05 // Auto gen from Row143
+WRITE_I2C:D5:07 // Auto gen from Row147
 WRITE_I2C:D8:07 // Auto gen from Row150
-WRITE_I2C:D9:07 // Auto gen from Row151
+WRITE_I2C:D9:06 // Auto gen from Row151
 WRITE_I2C:DC:0A // Auto gen from Row154
 WRITE_I2C:DD:03 // Auto gen from Row155
-WRITE_I2C:E0:05 // Auto gen from Row158
+WRITE_I2C:E0:07 // Auto gen from Row158
 
 #if 1 /* TBB mode */
 WRITE_I2C:E4:80 // TBB_POR = 1

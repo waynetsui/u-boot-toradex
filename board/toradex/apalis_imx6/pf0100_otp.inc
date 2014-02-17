@@ -8,8 +8,8 @@
 // Customer: Toradex AG
 // Program: Apalis iMX6
 // Sample marking: 
-// Date: 20.11.2013
-// Time: 09:17:36
+// Date: 12.02.2014
+// Time: 17:16:41
 // Generated from Spreadsheet Revision: P1.8
 
 /* sed commands to get from programmer script to struct */
@@ -42,24 +42,24 @@ struct pmic_otp_prog_t pmic_otp_prog[] = {
 {pmic_i2c, 0xB6, 0x01}, // Auto gen from Row116
 {pmic_i2c, 0xB8, 0x18}, // Auto gen from Row118
 {pmic_i2c, 0xBA, 0x01}, // Auto gen from Row120
-{pmic_i2c, 0xBD, 0x0A}, // Auto gen from Row123
+{pmic_i2c, 0xBD, 0x1F}, // Auto gen from Row123
 {pmic_i2c, 0xC0, 0x06}, // Auto gen from Row126
 {pmic_i2c, 0xC4, 0x04}, // Auto gen from Row130
 {pmic_i2c, 0xC8, 0x0E}, // Auto gen from Row134
-{pmic_i2c, 0xC9, 0x09}, // Auto gen from Row135
+{pmic_i2c, 0xC9, 0x08}, // Auto gen from Row135
 {pmic_i2c, 0xCC, 0x0E}, // Auto gen from Row138
 {pmic_i2c, 0xCD, 0x05}, // Auto gen from Row139
 {pmic_i2c, 0xD0, 0x0C}, // Auto gen from Row142
-{pmic_i2c, 0xD1, 0x06}, // Auto gen from Row143
-{pmic_i2c, 0xD5, 0x08}, // Auto gen from Row147
+{pmic_i2c, 0xD1, 0x05}, // Auto gen from Row143
+{pmic_i2c, 0xD5, 0x07}, // Auto gen from Row147
 {pmic_i2c, 0xD8, 0x07}, // Auto gen from Row150
-{pmic_i2c, 0xD9, 0x07}, // Auto gen from Row151
+{pmic_i2c, 0xD9, 0x06}, // Auto gen from Row151
 {pmic_i2c, 0xDC, 0x0A}, // Auto gen from Row154
 {pmic_i2c, 0xDD, 0x03}, // Auto gen from Row155
-{pmic_i2c, 0xE0, 0x05}, // Auto gen from Row158
+{pmic_i2c, 0xE0, 0x07}, // Auto gen from Row158
 
 #if 0 /* TBB mode */
-{pmic_i2c, 0xE4, 0x80}, // TBB_POR = 1{
+{pmic_i2c, 0xE4, 0x80}, // TBB_POR = 1
 {pmic_delay, 0, 10},
 #else
 // Write OTP

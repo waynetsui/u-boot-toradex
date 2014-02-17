@@ -193,7 +193,7 @@
 	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootcmd=run nfsboot ; run emmcboot ; "\
+	"bootcmd=run emmcboot ; "\
 		"setenv stdout serial,vga ; " \
 		"echo ; echo emmcboot failed ; " \
 		"usb start; setenv stdin serial,usbkbd\0" \
@@ -212,11 +212,24 @@
 		"consoleblank=0  no_console_suspend=1 console=tty1 " \
 		"console=ttymxc0,${baudrate}n8 " \
 		"fbcon=map:1\0 " \
-	"vidargs=video=mxcfb0:dev=hdmi,1280x720M@60,if=RGB24 " \
-		"video=mxcfb1:dev=ldb,1024x600M@60,if=RGB666 " \
-		"video=mxcfb2:dev=ldb,1024x600M@60,if=RGB666 " \
-		"video=mxcfb3:dev=lcd,800x480M@60,if=RGB24 " \
-		"fbmem=28M "
+	"vidargs=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666,ldb=spl1 " \
+		"video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_hdmi=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666,ldb=spl1 " \
+		"video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_edt=video=mxcfb0:dev=lcd,EDT-WVGA,if=RGB24 " \
+		"video=mxcfb1:dev=ldb,1280x720M@60,if=RGB565,ldb=dul0 " \
+		"video=mxcfb2:dev=ldb,1280x720M@60,if=RGB565 " \
+		"video=mxcfb3:dev=off" \
+		"fbmem=32M\0 " \
+	"vidargs_all=video=mxcfb0:dev=hdmi,1280x720M@60,if=RGB24 " \
+		"video=mxcfb1:dev=ldb,1024x600M@60,if=RGB565,ldb=spl1 " \
+		"video=mxcfb2:dev=ldb,1024x600M@60,if=RGB565 " \
+		"video=mxcfb3:dev=lcd,EDT-WVGA,if=RGB24 " \
+		"fbmem=32M "
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP

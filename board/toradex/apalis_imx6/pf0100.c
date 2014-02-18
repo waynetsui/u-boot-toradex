@@ -10,12 +10,21 @@
 
 #include <common.h>
 #include <i2c.h>
+#include <asm/arch/imx-regs.h>
+#include <asm/arch/iomux.h>
+#include <asm/arch/mx6-pins.h>
+#include <asm/gpio.h>
+#include <asm/imx-common/iomux-v3.h>
 
 #include "pf0100_otp.inc"
 #include "pf0100.h"
 
 /* 7-bit I2C bus slave address */
 #define PFUZE100_I2C_ADDR 		(0x08)
+
+iomux_v3_cfg_t const pmic_prog_pads[] = {
+	MX6_PAD_GPIO_2__GPIO_1_2 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
 
 void pmic_init(void)
 {
@@ -64,6 +73,10 @@ void pf0100_prog(void)
 	unsigned char val;
 	unsigned i;
 
+	/* set up gpio to manipulate vprog, initially off */
+	imx_iomux_v3_setup_multiple_pads(pmic_prog_pads, ARRAY_SIZE(pmic_prog_pads));
+	gpio_direction_output(IMX_GPIO_NR(1, 2), 0);
+
 	if(!(0 == i2c_set_bus_num(bus) && (0 == i2c_probe(PFUZE100_I2C_ADDR))))
 	{
 		puts("i2c bus failed\n");
@@ -86,7 +99,7 @@ void pf0100_prog(void)
 			udelay(pmic_otp_prog[i].value * 1000);
 			break;
 		case pmic_vpgm:
-			/* TODO */
+			gpio_set_value(IMX_GPIO_NR(1, 2), pmic_otp_prog[i].value);
 			break;
 		case pmic_pwr:
 			/* TODO */
@@ -106,7 +119,7 @@ static int do_pf0100_prog(cmd_tbl_t *cmdtp, int flag, int argc,
 }
 
 U_BOOT_CMD(
-        pf0100_otp_prog, 1, 0, do_pf0100_prog,
-        "Program the OTP fuses on the PMIC PF0100",
-        ""
+	pf0100_otp_prog, 1, 0, do_pf0100_prog,
+	"Program the OTP fuses on the PMIC PF0100",
+	""
 );

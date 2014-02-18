@@ -101,6 +101,7 @@
 /* USB Configs */
 #define CONFIG_CMD_USB
 #define CONFIG_CMD_FAT
+#define CONFIG_FAT_WRITE
 #define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_MX6
 #define CONFIG_USB_STORAGE
@@ -212,6 +213,7 @@
 		"consoleblank=0  no_console_suspend=1 console=tty1 " \
 		"console=ttymxc0,${baudrate}n8 " \
 		"fbcon=map:1\0 " \
+	"setupdate=fatload mmc 1:1 ${loadaddr} flash_mmc.img; source \0 " \
 	"vidargs=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
 		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666,ldb=spl1 " \
 		"video=mxcfb2:off video=mxcfb3:off " \

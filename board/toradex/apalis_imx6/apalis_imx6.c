@@ -752,11 +752,11 @@ static void setup_display(void)
 	       <<IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET);
 	writel(reg, &iomux->gpr[3]);
 
-	/* backlights off until needed */
+	/* backlights unconditionally on for now */
 	imx_iomux_v3_setup_multiple_pads(backlight_pads,
 					 ARRAY_SIZE(backlight_pads));
-	gpio_direction_input(RGB_BACKLIGHTPWM_GP);
-	gpio_direction_input(RGB_BACKLIGHT_GP);
+	gpio_direction_output(RGB_BACKLIGHTPWM_GP,1);
+	gpio_direction_output(RGB_BACKLIGHT_GP,1);
 }
 #endif /* defined(CONFIG_VIDEO_IPUV3) */
 

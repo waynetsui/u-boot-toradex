@@ -147,7 +147,7 @@ int board_late_init(void)
 		}
 
 		/* Set Ethernet MAC address from config block if not already set
-		*/
+		 */
 		if (memcmp(mac_addr00, bi_enetaddr, 6) == 0) {
 			sprintf(env_str, "%02x:%02x:%02x:%02x:%02x:%02x",
 				mac_addr[0], mac_addr[1], mac_addr[2],
@@ -540,7 +540,7 @@ u32 get_board_rev(void)
 	/* Check validity */
 	if (major)
 		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) |
-				((release & 0xf) + 0xa);
+		       ((release & 0xf) + 0xa);
 	else
 		return 0;
 #else

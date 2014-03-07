@@ -152,19 +152,22 @@
 
 #define MMC_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
+	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} "	\
+		"${setupargs} ${vidargs}; "			\
 	"echo Booting from MMC/SD card...; "			\
 	"mmc part 0; fatload mmc 0:1 ${loadaddr} uImage && bootm"
 
 #define NFS_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; " \
-	"echo Booting from NFS...; "				\
+	"setenv bootargs ${defargs} ${mtdparts} ${nfsargs} "	\
+		"${setupargs} ${vidargs}; "			\
+	"echo Booting via DHCP/TFTP/NFS...; "			\
 	"dhcp && bootm"
 
 #define UBI_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; " \
+	"setenv bootargs ${defargs} ${mtdparts} ${setupargs} "	\
+		"${ubiargs} ${vidargs}; "			\
 	"echo Booting from NAND...; "				\
 	"ubi part kernel-ubi && ubi read ${loadaddr} kernel && bootm"
 
@@ -173,15 +176,16 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"defargs=vmalloc=64M usb_high_speed=1\0" \
-	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
-	"sdboot=" MMC_BOOTCMD "\0" \
+	"mmcargs=root=/dev/mmcblk0p2 rw,noatime rootwait\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
-	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs\0" \
+	"sdboot=" MMC_BOOTCMD "\0" \
 	"setup=setenv setupargs " \
-	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
-		",${baudrate}n8 ${memargs}\0" \
-	"ubiargs=ubi.mtd=5 root=ubi0:rootfs rootfstype=ubifs\0" \
+		"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
+		"console=ttymxc0,${baudrate}n8 ${memargs}\0" \
+	"ubiargs=ip=off ubi.mtd=5 root=ubi0:rootfs rw rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
+	"vidargs=video=dcufb:640x480-16@60\0" \
 	""
 
 /* Dynamic MTD partition support */

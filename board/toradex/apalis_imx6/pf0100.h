@@ -32,11 +32,24 @@
 #define PFUZE100_SWBSTCTL		(0x66)
 #define PFUZE100_SWBST_VAL		(0x40 + 0x08 + 0x00) /* Always ON, Auto Switching Mode, 5.0V */
 
-/* enables some rails on a not programmed PMIC */
-/* VGEN1 to 1.2V, set SWBST to 5.0V */
-void pmic_init(void);
+/* chooses the extended page (registers 0x80..0xff) */
+#define PFUZE100_PAGE_REGISTER		0x7f
+#define PFUZE100_PAGE_REGISTER_PAGE_M	(0x1f << 0)
+#define PFUZE100_PAGE_REGISTER_PAGE1	(0x01 & PFUZE100_PAGE_REGISTER_PAGE_M)
+#define PFUZE100_PAGE_REGISTER_PAGE2	(0x02 & PFUZE100_PAGE_REGISTER_PAGE_M)
+
+/* extended page 1 */
+#define PFUZE100_FUSE_POR1		0xe4
+#define PFUZE100_FUSE_POR2		0xe5
+#define PFUZE100_FUSE_POR3		0xe6
+#define PFUZE100_FUSE_POR_M		(0x1 << 1)
+
+
+/* output some informational messages, return the number FUSE_POR=1 */
+/* i.e. 0: unprogrammed, 3: programmed, other: undefined prog. state */
+unsigned pmic_init(void);
 
 /* programmes OTP fuses to values required on a Toradex Apalis iMX6 */
-void pf0100_prog(void);
+int pf0100_prog(void);
 
 #endif /* PF0100_H_ */

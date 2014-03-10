@@ -197,12 +197,11 @@
 	"bootcmd=run emmcboot ; "\
 		"setenv stdout serial,vga ; " \
 		"echo ; echo emmcboot failed ; " \
-		"usb start; setenv stdin serial,usbkbd\0" \
+		"run nfsboot\0" \
 	"bootscript=fatload mmc 1:1 10008000 6x_bootscript && source 10008000\0" \
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
-	"ethaddr=00:14:2D:00:00:00\0" \
 	"mmcargs=ip=off root=/dev/mmcblk0p2 rw,noatime rootfstype=ext3 " \
 		"rootwait\0" \
 	"mmc_kernel_size=0x4000\0" \

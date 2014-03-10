@@ -9,7 +9,7 @@ include $(TOPDIR)/config.mk
 
 LIB    = $(obj)lib$(BOARD).o
 
-COBJS  := apalis_imx6.o pf0100.o
+COBJS  := apalis_imx6.o pf0100.o do_fuse.o
 
 SRCS   := $(COBJS:.o=.c)
 OBJS   := $(addprefix $(obj),$(COBJS))

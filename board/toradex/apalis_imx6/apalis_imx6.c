@@ -265,6 +265,7 @@ int board_ehci_hcd_init(int port)
 	mdelay(2);
 	/* Set MXM USBH power enable */
 	gpio_set_value(IMX_GPIO_NR(3, 28), 1);
+	mdelay(100);
 
 	return 0;
 }

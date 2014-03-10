@@ -194,10 +194,10 @@
 	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootcmd=run emmcboot ; "\
-		"setenv stdout serial,vga ; " \
-		"echo ; echo emmcboot failed ; " \
-		"run nfsboot\0" \
+	"bootcmd=run emmcboot ; echo ; echo emmcboot failed ; " \
+		"run nfsboot ; echo ; echo nfsboot failed ; " \
+		"usb start ;" \
+		"setenv stdout serial,vga ; setenv stdin serial,usbkbd\0" \
 	"bootscript=fatload mmc 1:1 10008000 6x_bootscript && source 10008000\0" \
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \

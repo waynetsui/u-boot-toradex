@@ -160,6 +160,11 @@ int initialize_mmc_device(int dev_num)
 	}
 }
 
+int do_mmcinfo (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	return initialize_mmc_device(0);
+}
+
 U_BOOT_CMD(
 	mmcinfo, 1, 0, do_mmcinfo,
 	"display MMC info",

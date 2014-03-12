@@ -78,9 +78,9 @@
 #define EMMC_BOOTCMD						\
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
-		"${vidargs};"					\
+		"${vidargs}; "					\
 	"echo Booting from internal eMMC chip...; "		\
-	"mmc read 0 ${loadaddr} ${lnxoffset} ${mmc_kernel_size} && bootm"
+	"mmc read ${loadaddr} ${lnxoffset} ${mmc_kernel_size} && bootm"
 
 #define NFS_BOOTCMD						\
 	"run setup; "						\
@@ -107,7 +107,7 @@
 #define CONFIG_LOADADDR 0x80408000
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_STD_DEVICES_SETTINGS \
-	"defargs=video=tegrafb core_edp_mv=1300 usb_high_speed=1\0" \
+	"defargs=core_edp_mv=1300 usb_high_speed=1\0" \
 	"emmcboot=" EMMC_BOOTCMD "\0" \
 	"mmcargs=ip=off root=/dev/mmcblk0p1 rw,noatime rootfstype=ext3 " \
 		"rootwait\0" \
@@ -117,7 +117,7 @@
 		"asix_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
 		"console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 " \
 		"${memargs}\0" \
-	"usbargs=root=/dev/sda2 rw rootwait\0" \
+	"usbargs=root=/dev/sda2 rw,noatime rootwait\0" \
 	"usbboot=" USB_BOOTCMD "\0" \
 	"vidargs=video=tegrafb0:640x480-16@60\0" \
 	""

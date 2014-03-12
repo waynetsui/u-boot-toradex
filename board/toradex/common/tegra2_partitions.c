@@ -244,13 +244,25 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 		   offset from the start of the user region the size of the
 		   boot regions must be subtracted. */
 		struct mmc *mmc = find_mmc_device(EMMC_DEV);
-		if (mmc && !mmc_init(mmc) && (get_boot_size_mult(mmc) == 16))
-			pt_logical -= 0x5000; //why?
-#endif
+		u32 boot_size_mult = 0;
+		if (mmc && !mmc_init(mmc)) {
+			boot_size_mult = get_boot_size_mult(mmc);
+			if (boot_size_mult == 16)
+				pt_logical -= 0x5000; //why?
+		}
 
 		/* StartLogicalSector / LogicalBlockSize * PhysicalBlockSize +
 		   BootPartitions */
-		pt_offset = pt_logical / block_size * 512 + 1024 * 1024;
+		if (boot_size_mult == 32) {
+#if DEBUG > 1
+			printf("switch to second boot partition for PT access\n");
+#endif
+			mmc_switch_part(0, 2);
+			pt_offset = 0;
+		} else
+#endif /* (CONFIG_ENV_IS_IN_MMC && CONFIG_COLIBRI_T20) || CONFIG_COLIBRI_T30 ||
+	  CONFIG_APALIS_T30 */
+			pt_offset = pt_logical / block_size * 512 + 1024 * 1024;
 	}
 #if DEBUG > 1
 	printf("physical=0x%08x\n", pt_offset);
@@ -279,8 +291,12 @@ int nvtegra_read_partition_table(nvtegra_parttable_t * pt, int boot_media)
 		if (!size || size != sizeof(nvtegra_parttable_t)) {
 			printf("%s: Error! mmc block read failed. Read=%d\n",
 			       __FUNCTION__, size);
+			/* make sure we are back at the user partition */
+			mmc_switch_part(0, 0);
 			return 0;
 		}
+		/* make sure we are back at the user partition */
+		mmc_switch_part(0, 0);
 	}
 #endif /* (CONFIG_ENV_IS_IN_MMC & CONFIG_COLIBRI_T20) | CONFIG_COLIBRI_T30 |
 	  CONFIG_APALIS_T30 */

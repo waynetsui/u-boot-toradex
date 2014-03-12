@@ -45,7 +45,11 @@
 #define CONFIG_SYS_NAND_BASE_LIST {}
 
 //#define USB_KBD_DEBUG
-#define CONFIG_USB_KEYBOARD
+//#define CONFIG_USB_KEYBOARD
+#ifdef CONFIG_USB_KEYBOARD
+#define CONFIG_SYS_USB_EVENT_POLL
+#define CONFIG_PREBOOT "usb start"
+#endif /* CONFIG_USB_KEYBOARD */
 
 #define CONFIG_CONSOLE_MUX
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
@@ -108,7 +112,7 @@
 	"setenv bootargs ${defargs} ${mtdparts} ${nfsargs} "	\
 		"${setupargs} ${vidargs}; "			\
 	"echo Booting via DHCP/TFTP/NFS...; "			\
-	"usb start; && dhcp && bootm"
+	"usb start && dhcp && bootm"
 
 #define UBI_BOOTCMD						\
 	"run setup; "						\
@@ -135,7 +139,7 @@
 	"setenv bootargs ${defargs} ${mtdparts} ${sdargs} "	\
 		"${setupargs} ${vidargs}; " 			\
 	"echo Booting from MMC/SD card...; "			\
-	"mmc read 0 ${loadaddr} ${lnxoffset} ${sd_kernel_size} && bootm"
+	"mmc read ${loadaddr} ${lnxoffset} ${sd_kernel_size} && bootm"
 
 #define SD_BOOT_ARGS						\
 	"sdargs=root=/dev/mmcblk0p1 ip=off rw,noatime "		\
@@ -162,7 +166,7 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_STD_DEVICES_SETTINGS \
-	"defargs=video=tegrafb vmalloc=128M usb_high_speed=1\0" \
+	"defargs=vmalloc=128M usb_high_speed=1\0" \
 	"flashargs=ip=off root=/dev/mtdblock0 rw rootfstype=yaffs2\0" \
 	"flashboot=" FLASH_BOOTCMD "\0" \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
@@ -172,9 +176,9 @@
 		"asix_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
 		"console=ttyS0,${baudrate}n8 debug_uartport=lsport,0 " \
 		"${memargs}\0" \
-	"ubiargs=ubi.mtd=7 root=ubi0:rootfs rootfstype=ubifs\0" \
+	"ubiargs=ip=off ubi.mtd=7 root=ubi0:rootfs rw rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
-	"usbargs=root=/dev/sda2 rw rootwait\0" \
+	"usbargs=root=/dev/sda2 rw,noatime rootwait\0" \
 	"usbboot=" USB_BOOTCMD "\0" \
 	"vidargs=video=tegrafb0:640x480-16@60\0" \
 	""

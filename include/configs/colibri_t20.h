@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Toradex, Inc.
+ * Copyright (C) 2012-2014 Toradex, Inc.
  * Portions Copyright (c) 2010, 2011 NVIDIA Corporation
  * Portions Copyright (c) 2011 The Chromium OS Authors
  *
@@ -59,6 +59,7 @@
 
 #define CONFIG_SYS_BOARD_ODMDATA	0x300d8011 /* lp1, 1GB */
 
+#define CONFIG_INITRD_TAG		1
 #define CONFIG_REVISION_TAG		1
 #define CONFIG_SERIAL_TAG		1
 

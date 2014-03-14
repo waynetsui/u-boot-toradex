@@ -208,7 +208,7 @@ int pf0100_prog(void)
 			udelay(pmic_otp_prog[i].value * 1000);
 			break;
 		case pmic_vpgm:
-			gpio_set_value(IMX_GPIO_NR(1, 2), pmic_otp_prog[i].value);
+			gpio_direction_output(IMX_GPIO_NR(2, 4) , pmic_otp_prog[i].value);
 			break;
 		case pmic_pwr:
 			/* TODO */

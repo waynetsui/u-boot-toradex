@@ -31,23 +31,10 @@ unsigned mfgr_fuse(void)
 		puts("BT_FUSE_SEL already fused, will do nothing\n");
 		return 1;
 	}
-
-	if (!eth_getenv_enetaddr("ethaddr", mac_id))
-	{
-		puts("ethaddr not set or not valid in environment, will do nothing\n");
-		return 1;
-	}
-	mac_hi = (mac_id[0] << 8) + mac_id[1];
-	mac_lo = (mac_id[2] << 24) + (mac_id[3] << 16) + (mac_id[4] << 8) + mac_id[5];
-
 	/* boot cfg */
 	fuse_prog(0, 5, 0x00005062);
 	/* BT_FUSE_SEL */
 	fuse_prog(0, 6, 0x00000010);
-	/* MAC addr */
-	fuse_prog(4, 3, mac_hi);
-	fuse_prog(4, 2, mac_lo);
-
 	return 0;
 }
 

@@ -35,7 +35,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #if defined(CONFIG_BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
-		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
+		defined(CONFIG_SERIAL_TAG))
 /* buffer suitable for DMA */
 #define CONFIG_BLOCK_BUFFER_SIZE 4096
 static unsigned char config_block[roundup(CONFIG_BLOCK_BUFFER_SIZE, ARCH_DMA_MINALIGN)]
@@ -877,7 +877,10 @@ int board_late_init(void)
 }
 #endif /* CONFIG_BOARD_LATE_INIT */
 
-#ifdef CONFIG_REVISION_TAG
+/* i.MX6 uses the 'standard' board revision for things, i.e.
+   video decoding no longer works.
+   so don't interfere with the Apalis iMX6 HW Revision */
+#if 0
 u32 get_board_rev(void)
 {
 #ifdef CONFIG_BOARD_LATE_INIT

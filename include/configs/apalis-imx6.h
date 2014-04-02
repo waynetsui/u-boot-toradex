@@ -11,6 +11,7 @@
 #define __CONFIG_H
 
 #define CONFIG_MX6
+#define CONFIG_APALIS_IMX6 /* Toradex Apalis iMX6 module */
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
@@ -23,11 +24,13 @@
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 #define CONFIG_REVISION_TAG
+#define CONFIG_SERIAL_TAG
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(10 * 1024 * 1024)
 
 #define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_MISC_INIT_R
 #define CONFIG_MXC_GPIO
 
@@ -277,6 +280,10 @@
 #define CONFIG_ENV_OFFSET		(512 * 1024)
 #define CONFIG_SYS_MMC_ENV_DEV		0
 #endif
+
+/* Toradex Configblock */
+#define CONFIG_TRDX_CFG_BLOCK
+#define CONFIG_TRDX_CFG_BLOCK_OFFSET	(640 * 1024)
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMD_BOOTZ

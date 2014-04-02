@@ -34,6 +34,14 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#if defined(CONFIG_BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
+		defined(CONFIG_REVISION_TAG) || defined(CONFIG_SERIAL_TAG))
+/* buffer suitable for DMA */
+#define CONFIG_BLOCK_BUFFER_SIZE 4096
+static unsigned char config_block[roundup(CONFIG_BLOCK_BUFFER_SIZE, ARCH_DMA_MINALIGN)]
+                                  __aligned(ARCH_DMA_MINALIGN);
+#endif
+
 #define UART_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
 	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm |			\
 	PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
@@ -798,6 +806,157 @@ int board_init(void)
 
 	return 0;
 }
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+#ifdef CONFIG_TRDX_CFG_BLOCK
+	char env_str[256];
+
+	int i;
+	unsigned size = 0;
+
+	char *addr_str, *end;
+	unsigned char bi_enetaddr[6]	= {0, 0, 0, 0, 0, 0};	/* Ethernet
+								   address */
+	unsigned char *mac_addr;
+	unsigned char mac_addr00[6]	= {0, 0, 0, 0, 0, 0};
+
+	struct mmc *mmc;
+
+	unsigned char toradex_oui[3]	= { 0x00, 0x14, 0x2d };
+	int valid			= 0;
+
+	int ret;
+	/* Read production parameter config block from eMMC */
+	mmc = find_mmc_device(0);
+	/* Just reading one 512 byte block */
+	ret = mmc->block_dev.block_read(0, (CONFIG_TRDX_CFG_BLOCK_OFFSET / 512), 1,
+					(unsigned char *)config_block);
+	if (ret == 1) {
+		ret = 0;
+		size = 512;
+	}
+
+	/* Check validity */
+	if ((ret == 0) && (size > 0)) {
+		mac_addr = config_block + 8;
+		if (!(memcmp(mac_addr, toradex_oui, 3)))
+			valid = 1;
+	}
+
+	if (!valid) {
+		printf("Missing Colibri config block\n");
+		memset((void *)config_block, 0, size);
+	} else {
+		/* Get MAC address from environment */
+		addr_str = getenv("ethaddr");
+		if (addr_str != NULL) {
+			for (i = 0; i < 6; i++) {
+				bi_enetaddr[i] = addr_str ? simple_strtoul(
+						addr_str, &end, 16) : 0;
+				if (addr_str)
+					addr_str = (*end) ? end + 1 : end;
+			}
+		}
+
+		/* Set Ethernet MAC address from config block if not already set
+		 */
+		if (memcmp(mac_addr00, bi_enetaddr, 6) == 0) {
+			sprintf(env_str, "%02x:%02x:%02x:%02x:%02x:%02x",
+				mac_addr[0], mac_addr[1], mac_addr[2],
+				mac_addr[3], mac_addr[4], mac_addr[5]);
+			setenv("ethaddr", env_str);
+#ifndef CONFIG_ENV_IS_NOWHERE
+			saveenv();
+#endif
+		}
+	}
+#endif /* CONFIG_TRDX_CFG_BLOCK */
+	return 0;
+}
+#endif /* CONFIG_BOARD_LATE_INIT */
+
+#ifdef CONFIG_REVISION_TAG
+u32 get_board_rev(void)
+{
+#ifdef CONFIG_BOARD_LATE_INIT
+	int i;
+	unsigned short major = 0, minor = 0, release = 0;
+	size_t size = 4096;
+
+	if (config_block == NULL)
+		return 0;
+
+	/* Parse revision information in config block */
+	for (i = 0; i < (size - 8); i++) {
+		if (config_block[i] == 0x02 && config_block[i+1] == 0x40 &&
+				config_block[i+2] == 0x08) {
+			break;
+		}
+	}
+
+	major = (config_block[i+3] << 8) | config_block[i+4];
+	minor = (config_block[i+5] << 8) | config_block[i+6];
+	release = (config_block[i+7] << 8) | config_block[i+8];
+
+	/* Check validity */
+	if (major)
+		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) |
+		       ((release & 0xf) + 0xa);
+	else
+		return 0;
+#else
+	return 0;
+#endif /* CONFIG_BOARD_LATE_INIT */
+}
+#endif /* CONFIG_REVISION_TAG */
+
+#ifdef CONFIG_SERIAL_TAG
+void get_board_serial(struct tag_serialnr *serialnr)
+{
+#ifdef CONFIG_BOARD_LATE_INIT
+	int array[8];
+	int i;
+	unsigned int serial		= 0;
+	unsigned int serial_offset	= 11;
+
+	if (config_block == NULL) {
+		serialnr->low = 0;
+		serialnr->high = 0;
+		return;
+	}
+
+	/* Get MAC address from config block */
+	memcpy(&serial, config_block + serial_offset, 3);
+	serial = ntohl(serial);
+	serial >>= 8;
+
+	/* Check validity */
+	if (serial) {
+		/* Convert to Linux serial number format (hexadecimal coded
+		   decimal) */
+		i = 7;
+		while (serial) {
+			array[i--] = serial % 10;
+			serial /= 10;
+		}
+		while (i >= 0)
+			array[i--] = 0;
+		serial = array[0];
+		for (i = 1; i < 8; i++) {
+			serial *= 16;
+			serial += array[i];
+		}
+	}
+
+	serialnr->low = serial;
+#else
+	serialnr->low = 0;
+#endif /* CONFIG_BOARD_LATE_INIT */
+	serialnr->high = 0;
+}
+#endif /* CONFIG_SERIAL_TAG */
 
 int checkboard(void)
 {

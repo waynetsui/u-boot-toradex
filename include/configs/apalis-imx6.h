@@ -217,23 +217,18 @@
 		"fbcon=map:1\0 " \
 	"setupdate=fatload mmc 1:1 ${loadaddr} flash_mmc.img; source \0 " \
 	"vidargs=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_hdmi_lvds=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
 		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666,ldb=spl1 " \
 		"video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
-	"vidargs_hdmi=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
-		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666,ldb=spl1 " \
-		"video=mxcfb2:off video=mxcfb3:off " \
+	"vidargs_hdmi_cea_only=mxc_hdmi.only_cea=1 video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
 	"vidargs_edt=video=mxcfb0:dev=lcd,EDT-WVGA,if=RGB24 " \
-		"video=mxcfb1:dev=ldb,1280x720M@60,if=RGB565,ldb=dul0 " \
-		"video=mxcfb2:dev=ldb,1280x720M@60,if=RGB565 " \
-		"video=mxcfb3:dev=off" \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off" \
 		"fbmem=32M\0 " \
-	"vidargs_all=video=mxcfb0:dev=hdmi,1280x720M@60,if=RGB24 " \
-		"video=mxcfb1:dev=ldb,1024x600M@60,if=RGB565,ldb=spl1 " \
-		"video=mxcfb2:dev=ldb,1024x600M@60,if=RGB565 " \
-		"video=mxcfb3:dev=lcd,EDT-WVGA,if=RGB24 " \
-		"fbmem=32M "
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP

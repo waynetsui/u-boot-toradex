@@ -15,8 +15,6 @@ static unsigned mfgr_fuse(void);
 unsigned mfgr_fuse(void)
 {
 	unsigned val, val6;
-	unsigned mac_hi, mac_lo;
-	uchar mac_id[6];
 
 	fuse_sense(0, 5, &val);
 	printf("Fuse 0, 5: %8x\n", val);
@@ -51,7 +49,6 @@ int do_mfgr_fuse(cmd_tbl_t *cmdtp, int flag, int argc,
 
 U_BOOT_CMD(
 	mfgr_fuse, 1, 0, do_mfgr_fuse,
-	"OTP fusing during module production\n"
-	"requires the environment variable ethaddr to be set\n",
+	"OTP fusing during module production\n",
 	""
 );

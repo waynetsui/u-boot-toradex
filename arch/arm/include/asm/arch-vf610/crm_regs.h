@@ -150,16 +150,31 @@ struct anadig_reg {
 #define CCM_CACRR_ARM_CLK_DIV_MASK		0x7
 #define CCM_CACRR_ARM_CLK_DIV(v)		((v) & 0x7)
 
+#define CCM_CSCMR1_NFC_CLK_SEL_OFFSET		12
+#define CCM_CSCMR1_NFC_CLK_SEL_MASK		(0x3 << 12)
+#define CCM_CSCMR1_NFC_CLK_SEL(v)		(((v) & 0x3) << 12)
+
 #define CCM_CSCMR1_ESDHC1_CLK_SEL_OFFSET	18
 #define CCM_CSCMR1_ESDHC1_CLK_SEL_MASK		(0x3 << 18)
 #define CCM_CSCMR1_ESDHC1_CLK_SEL(v)		(((v) & 0x3) << 18)
 
 #define CCM_CSCDR1_RMII_CLK_EN			(1 << 24)
 
+#define CCM_CSCDR2_NFC_EN			(1 << 9)
+#define CCM_CSCDR2_NFC_FRAC_DIV_EN		(1 << 13)
+#define CCM_CSCDR2_NFC_CLK_INV			(1 << 14)
+#define CCM_CSCDR2_NFC_FRAC_DIV_OFFSET		4
+#define CCM_CSCDR2_NFC_FRAC_DIV_MASK		(0xf << 4)
+#define CCM_CSCDR2_NFC_FRAC_DIV(v)		(((v) & 0xf) << 4)
+
 #define CCM_CSCDR2_ESDHC1_EN			(1 << 29)
 #define CCM_CSCDR2_ESDHC1_CLK_DIV_OFFSET	20
 #define CCM_CSCDR2_ESDHC1_CLK_DIV_MASK		(0xf << 20)
 #define CCM_CSCDR2_ESDHC1_CLK_DIV(v)		(((v) & 0xf) << 20)
+
+#define CCM_CSCDR3_NFC_PRE_DIV_OFFSET		13
+#define CCM_CSCDR3_NFC_PRE_DIV_MASK		(0x7 << 13)
+#define CCM_CSCDR3_NFC_PRE_DIV(v)		(((v) & 0x7) << 13)
 
 #define CCM_CSCMR2_RMII_CLK_SEL_OFFSET		4
 #define CCM_CSCMR2_RMII_CLK_SEL_MASK		(0x3 << 4)
@@ -186,6 +201,7 @@ struct anadig_reg {
 #define CCM_CCGR7_SDHC1_CTRL_MASK		(0x3 << 4)
 #define CCM_CCGR9_FEC0_CTRL_MASK		0x3
 #define CCM_CCGR9_FEC1_CTRL_MASK		(0x3 << 2)
+#define CCM_CCGR10_NFC_CTRL_MASK		0x3
 
 #define ANADIG_PLL5_CTRL_BYPASS                 (1 << 16)
 #define ANADIG_PLL5_CTRL_ENABLE                 (1 << 13)

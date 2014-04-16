@@ -318,6 +318,12 @@ static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 		return 0;
 	}
 
+#if (defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_COLIBRI_T20))
+	/* Hack: All 4GB Kingston or SanDisk cards I have require a short delay
+		 otherwise the next command fails. */
+	udelay(1000);
+#endif
+
 	if (mmc_set_blocklen(mmc, mmc->read_bl_len))
 		return 0;
 

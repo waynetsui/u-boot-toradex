@@ -103,7 +103,7 @@
 		panel-timings = <0 0 0 0>;
 	};
 
-	/* EHCI instance 0: USB1_DP/N -> USBOTG_P/N */
+	/* EHCI instance 0: USB1_DP/N -> USBC_P/N */
 	usb@0xc5000000 {
 		status = "ok";
 		host-mode = <1>;
@@ -120,7 +120,7 @@
 		status = "ok";
 	};
 
-	/* EHCI instance 2: USB3_DP/N -> USBH1_P/N */
+	/* EHCI instance 2: USB3_DP/N -> USBH_P/N */
 	usb@0xc5008000 {
 		status = "ok";
 		utmi = <&usbphy>;

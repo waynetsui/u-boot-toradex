@@ -34,7 +34,7 @@ SD-BOOT
 The sd sector numbers are used as follows:
 u-boot needs to find ENV and LNX to get to the environment and the kernel, the kernel needs to find the APP partition for the rootfs.
 ENV: colibri_t20_sdboot.h
-Set CONFIG_ENV_MMC_OFFSET to the byte start address of ENV, take the sector address of Partid 6 (which is in 2048 byte sectors)
+Set CONFIG_ENV_OFFSET to the byte start address of ENV, take the sector address of Partid 6 (which is in 2048 byte sectors)
 
 LNX: colibri_t20.h
 Set the u-boot environment SDBOOTCMD below, mmc read RAMloadaddr, 512byte sector start, 512byte copy length.
@@ -86,8 +86,11 @@ sector start address 6784 * 2048 -> 27137 * 512 -> GPT start sector is 27137.
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_SYS_MMC_ENV_DEV 0 /* use MMC0, slot on eval board and Iris */
-/* once the eMMC is detected the corresponding setting is taken */
-#define CONFIG_ENV_MMC_OFFSET  (gd->env_offset * 512)
+#ifdef CONFIG_ENV_OFFSET
+#undef CONFIG_ENV_OFFSET
+#endif
+/* once the SD card is detected the corresponding setting is taken */
+#define CONFIG_ENV_OFFSET  (gd->env_offset * 512)
 #endif
 
 #endif /* __CONFIG_H */

@@ -22,6 +22,7 @@ obj-$(CONFIG_CMD_SATA) += sata.o
 endif
 obj-$(CONFIG_CMD_BMODE) += cmd_bmode.o
 obj-$(CONFIG_CMD_HDMIDETECT) += cmd_hdmidet.o
+obj-$(CONFIG_CMD_WRITEBCB) += cmd_writebcb.o
 
 quiet_cmd_cpp_cfg = CFGS    $@
       cmd_cpp_cfg = $(CPP) $(cpp_flags) -x c -o $@ $<

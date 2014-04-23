@@ -218,6 +218,7 @@
 #define DDRMC_CR154_PAD_ZQ_MODE(v)			(((v) & 0x3) << 21)
 #define DDRMC_CR154_DDR_SEL_PAD_CONTR(v)		(((v) & 0x3) << 18)
 #define DDRMC_CR155_AXI0_AWCACHE			(1 << 10)
+#define DDRMC_CR155_AXI0_COBUF				(1 << 8)
 #define DDRMC_CR155_PAD_ODT_BYTE1(v)			((v) & 0x7)
 #define DDRMC_CR158_TWR(v)				((v) & 0x3f)
 

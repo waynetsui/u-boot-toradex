@@ -18,6 +18,8 @@
 #include <miiphy.h>
 #include <netdev.h>
 #include <i2c.h>
+#include <malloc.h>
+#include <nand.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -431,6 +433,125 @@ int board_early_init_f(void)
 
 	return 0;
 }
+
+unsigned char *config_block = NULL;
+
+int read_cfb(void)
+{
+	unsigned char toradex_oui[3] = { 0x00, 0x14, 0x2d };
+	unsigned char ethaddr[6];
+	unsigned char *cfb_ethaddr;
+	size_t size = 0x800;
+
+	/* Allocate RAM area for config block */
+	config_block = malloc(size);
+
+	/* Clear it */
+	memset((void *)config_block, 0, size);
+
+	/* Read production parameter config block from first NAND */
+	if (nand_read_skip_bad(&nand_info[0], CONFIG_TRDX_CFG_BLOCK_OFFSET,
+			&size, NULL, nand_info[0].size, config_block))
+		return 1;
+	cfb_ethaddr = config_block + 8;
+	if (memcmp(cfb_ethaddr, toradex_oui, 3)) {
+		memset((void *)config_block, 0, size);
+		return 2;
+	}
+
+	/*
+	 * Check if Environment contains a valid MAC address, set the one from
+	 * config block if not
+	 */
+	if (!eth_getenv_enetaddr("ethaddr", ethaddr))
+		eth_setenv_enetaddr("ethaddr", cfb_ethaddr);
+
+	return 0;
+}
+
+#ifdef CONFIG_REVISION_TAG
+u32 get_board_rev(void)
+{
+	int i;
+	unsigned short major = 0, minor = 0, release = 0;
+	size_t size = 2048;
+
+	if(config_block == NULL)
+		return 0;
+
+	/* Parse revision information in config block */
+	for (i = 0; i < (size - 8); i++) {
+		if (config_block[i] == 0x02 && config_block[i+1] == 0x40 &&
+				config_block[i+2] == 0x08) {
+			break;
+		}
+	}
+
+	/* Parse revision information in config block */
+	major = (config_block[i+3] << 8) | config_block[i+4];
+	minor = (config_block[i+5] << 8) | config_block[i+6];
+	release = (config_block[i+7] << 8) | config_block[i+8];
+
+	/* Check validity */
+	if (major)
+		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) |
+			((release & 0xf) + 0xa);
+	else
+		return 0;
+}
+#endif
+
+#ifdef CONFIG_SERIAL_TAG
+void get_board_serial(struct tag_serialnr *serialnr)
+{
+	int array[8];
+	int i;
+	unsigned int serial = 0;
+	unsigned int serial_offset = 11;
+
+	serialnr->low = 0;
+	serialnr->high = 0;
+
+	if (config_block == NULL)
+		return;
+
+	/* Get MAC address from config block */
+	memcpy(&serial, config_block + serial_offset, 3);
+	serial = ntohl(serial);
+	serial >>= 8;
+
+	/* Check validity */
+	if (serial) {
+		/* Convert to Linux serial number format (hexadecimal coded
+		 * decimal)
+		 */
+		i = 7;
+		while (serial) {
+			array[i--] = serial % 10;
+			serial /= 10;
+		}
+		while (i >= 0)
+			array[i--] = 0;
+		serial = array[0];
+		for (i = 1; i < 8; i++) {
+			serial *= 16;
+			serial += array[i];
+		}
+
+		serialnr->low = serial;
+	}
+}
+#endif
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+	if (read_cfb())
+		printf("Missing Toradex config block\n");
+
+	return 0;
+}
+#endif
 
 int board_init(void)
 {

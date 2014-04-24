@@ -283,6 +283,30 @@ static void setup_iomux_i2c(void)
 	imx_iomux_v3_setup_multiple_pads(i2c0_pads, ARRAY_SIZE(i2c0_pads));
 }
 
+#ifdef CONFIG_NAND_FSL_NFC
+static void setup_iomux_nfc(void)
+{
+	static const iomux_v3_cfg_t nfc_pads[] = {
+		VF610_PAD_PTD23__NF_IO7,
+		VF610_PAD_PTD22__NF_IO6,
+		VF610_PAD_PTD21__NF_IO5,
+		VF610_PAD_PTD20__NF_IO4,
+		VF610_PAD_PTD19__NF_IO3,
+		VF610_PAD_PTD18__NF_IO2,
+		VF610_PAD_PTD17__NF_IO1,
+		VF610_PAD_PTD16__NF_IO0,
+		VF610_PAD_PTB24__NF_WE_B,
+		VF610_PAD_PTB25__NF_CE0_B,
+		VF610_PAD_PTB27__NF_RE_B,
+		VF610_PAD_PTC26__NF_RB_B,
+		VF610_PAD_PTC27__NF_ALE,
+		VF610_PAD_PTC28__NF_CLE
+	};
+
+	imx_iomux_v3_setup_multiple_pads(nfc_pads, ARRAY_SIZE(nfc_pads));
+}
+#endif
+
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg esdhc_cfg[1] = {
 	{ESDHC1_BASE_ADDR},
@@ -338,6 +362,8 @@ static void clock_init(void)
 		CCM_CCGR7_SDHC1_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr9, CCM_REG_CTRL_MASK,
 		CCM_CCGR9_FEC0_CTRL_MASK | CCM_CCGR9_FEC1_CTRL_MASK);
+	clrsetbits_le32(&ccm->ccgr10, CCM_REG_CTRL_MASK,
+		CCM_CCGR10_NFC_CTRL_MASK);
 
 	clrsetbits_le32(&anadig->pll5_ctrl, ANADIG_PLL5_CTRL_BYPASS |
 		ANADIG_PLL5_CTRL_POWERDOWN, ANADIG_PLL5_CTRL_ENABLE |
@@ -362,11 +388,14 @@ static void clock_init(void)
 		CCM_CACRR_IPG_CLK_DIV(1) | CCM_CACRR_BUS_CLK_DIV(2) |
 		CCM_CACRR_ARM_CLK_DIV(0));
 	clrsetbits_le32(&ccm->cscmr1, CCM_REG_CTRL_MASK,
-		CCM_CSCMR1_ESDHC1_CLK_SEL(3));
+		CCM_CSCMR1_ESDHC1_CLK_SEL(3) | CCM_CSCMR1_NFC_CLK_SEL(0));
 	clrsetbits_le32(&ccm->cscdr1, CCM_REG_CTRL_MASK,
 		CCM_CSCDR1_RMII_CLK_EN);
 	clrsetbits_le32(&ccm->cscdr2, CCM_REG_CTRL_MASK,
-		CCM_CSCDR2_ESDHC1_EN | CCM_CSCDR2_ESDHC1_CLK_DIV(0));
+		CCM_CSCDR2_ESDHC1_EN | CCM_CSCDR2_ESDHC1_CLK_DIV(0) |
+		CCM_CSCDR2_NFC_EN);
+	clrsetbits_le32(&ccm->cscdr3, CCM_REG_CTRL_MASK,
+		CCM_CSCDR3_NFC_PRE_DIV(5));
 	clrsetbits_le32(&ccm->cscmr2, CCM_REG_CTRL_MASK,
 		CCM_CSCMR2_RMII_CLK_SEL(2));	/* PLL5 main clock */
 }
@@ -396,6 +425,9 @@ int board_early_init_f(void)
 	setup_iomux_uart();
 	setup_iomux_enet();
 	setup_iomux_i2c();
+#ifdef CONFIG_NAND_FSL_NFC
+	setup_iomux_nfc();
+#endif
 
 	return 0;
 }

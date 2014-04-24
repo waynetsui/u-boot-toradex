@@ -45,6 +45,25 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_BAUDRATE			115200
 
+/* NAND support */
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_WRITEBCB
+#define CONFIG_NAND_FSL_NFC
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		NFC_BASE_ADDR
+
+/* Dynamic MTD partition support */
+#define CONFIG_CMD_MTDPARTS	/* Enable 'mtdparts' command line support */
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_MTD_DEVICE	/* needed for mtdparts commands */
+#define MTDIDS_DEFAULT		"nand0=fsl_nfc"
+#define MTDPARTS_DEFAULT	"mtdparts=fsl_nfc:"		\
+				"128k(vf-bcb)ro,"		\
+				"1408k(u-boot)ro,"		\
+				"512k(u-boot-env)ro,"		\
+				"8m(kernel-ubi),"		\
+				"-(rootfs-ubi)"
+
 #undef CONFIG_CMD_IMLS
 
 #define CONFIG_MMC
@@ -211,10 +230,9 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* Environment organization */
-#define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_SYS_MMC_ENV_DEV		0
-#define CONFIG_ENV_OFFSET		(12 * 64 * 1024)
-#define CONFIG_ENV_SIZE			(8 * 1024)
+#define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_ENV_SIZE			(64 * 2048)
+#define CONFIG_ENV_OFFSET		(6 * 64 * 2048)
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMD_BOOTZ

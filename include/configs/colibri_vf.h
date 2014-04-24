@@ -21,8 +21,6 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
-#define CONFIG_MACH_TYPE		4749
-
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
 /* Enable passing of ATAGs */

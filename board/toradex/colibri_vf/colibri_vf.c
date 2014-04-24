@@ -340,10 +340,22 @@ int board_mmc_init(bd_t *bis)
 }
 #endif
 
+static inline int is_colibri_vf61(void)
+{
+	struct mscm *mscm = (struct mscm*)MSCM_BASE_ADDR;
+
+	/*
+	 * Detect board type by Level 2 Cache: VF50 don't have any
+	 * Level 2 Cache.
+	 */
+	return !!mscm->cpxcfg1;
+}
+
 static void clock_init(void)
 {
 	struct ccm_reg *ccm = (struct ccm_reg *)CCM_BASE_ADDR;
 	struct anadig_reg *anadig = (struct anadig_reg *)ANADIG_BASE_ADDR;
+	u32 pfd_clk_sel;
 
 	clrsetbits_le32(&ccm->ccgr0, CCM_REG_CTRL_MASK,
 		CCM_CCGR0_UART0_CTRL_MASK);
@@ -379,13 +391,16 @@ static void clock_init(void)
 		CCM_CCR_FIRC_EN | CCM_CCR_OSCNT(5));
 
 	/* See "Typical PLL Configuration" */
-	clrsetbits_le32(&ccm->ccsr, CCM_REG_CTRL_MASK,
-		CCM_CCSR_PLL1_PFD_CLK_SEL(1) | CCM_CCSR_PLL2_PFD4_EN |
-		CCM_CCSR_PLL2_PFD3_EN | CCM_CCSR_PLL2_PFD2_EN |
-		CCM_CCSR_PLL2_PFD1_EN | CCM_CCSR_PLL1_PFD4_EN |
-		CCM_CCSR_PLL1_PFD3_EN | CCM_CCSR_PLL1_PFD2_EN |
-		CCM_CCSR_PLL1_PFD1_EN | CCM_CCSR_DDRC_CLK_SEL(1) |
-		CCM_CCSR_FAST_CLK_SEL(1) | CCM_CCSR_SYS_CLK_SEL(4));
+	pfd_clk_sel = is_colibri_vf61() ? CCM_CCSR_PLL1_PFD_CLK_SEL(1) :
+			CCM_CCSR_PLL1_PFD_CLK_SEL(3);
+	clrsetbits_le32(&ccm->ccsr, CCM_REG_CTRL_MASK, pfd_clk_sel |
+		CCM_CCSR_PLL2_PFD4_EN | CCM_CCSR_PLL2_PFD3_EN |
+		CCM_CCSR_PLL2_PFD2_EN | CCM_CCSR_PLL2_PFD1_EN |
+		CCM_CCSR_PLL1_PFD4_EN | CCM_CCSR_PLL1_PFD3_EN |
+		CCM_CCSR_PLL1_PFD2_EN | CCM_CCSR_PLL1_PFD1_EN |
+		CCM_CCSR_DDRC_CLK_SEL(1) | CCM_CCSR_FAST_CLK_SEL(1) |
+		CCM_CCSR_SYS_CLK_SEL(4));
+
 	clrsetbits_le32(&ccm->cacrr, CCM_REG_CTRL_MASK,
 		CCM_CACRR_IPG_CLK_DIV(1) | CCM_CACRR_BUS_CLK_DIV(2) |
 		CCM_CACRR_ARM_CLK_DIV(0));
@@ -558,12 +573,20 @@ int board_init(void)
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
+	if (is_colibri_vf61())
+		gd->bd->bi_arch_number = MACH_TYPE_COLIBRI_VF61;
+	else
+		gd->bd->bi_arch_number = MACH_TYPE_COLIBRI_VF50;
+
 	return 0;
 }
 
 int checkboard(void)
 {
-	puts("Board: Colibri VF61\n");
+	if (is_colibri_vf61())
+		puts("Board: Colibri VF61\n");
+	else
+		puts("Board: Colibri VF50\n");
 
 	return 0;
 }

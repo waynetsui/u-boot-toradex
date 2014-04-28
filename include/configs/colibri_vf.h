@@ -95,7 +95,11 @@
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_MICREL
 
-#define CONFIG_BOOTDELAY		3
+#define CONFIG_IPADDR		192.168.10.2
+#define CONFIG_NETMASK		255.255.255.0
+#define CONFIG_SERVERIP		192.168.10.1
+
+#define CONFIG_BOOTDELAY		1
 
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_TRDX_CFG_BLOCK_OFFSET	0x800
@@ -105,98 +109,48 @@
 #define CONFIG_LOADADDR			0x82000000
 #define CONFIG_SYS_TEXT_BASE		0x3f408000
 
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"script=boot.scr\0" \
-	"uimage=uImage\0" \
-	"console=ttyLP0\0" \
-	"fdt_high=0xffffffff\0" \
-	"initrd_high=0xffffffff\0" \
-	"fdt_file=vf610-colibri.dtb\0" \
-	"fdt_addr=0x81000000\0" \
-	"boot_fdt=try\0" \
-	"ip_dyn=yes\0" \
-	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
-	"mmcpart=1\0" \
-	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
-	"update_sd_firmware_filename=u-boot.imx\0" \
-	"update_sd_firmware=" \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"if mmc dev ${mmcdev}; then "	\
-			"if ${get_cmd} ${update_sd_firmware_filename}; then " \
-				"setexpr fw_sz ${filesize} / 0x200; " \
-				"setexpr fw_sz ${fw_sz} + 1; "	\
-				"mmc write ${loadaddr} 0x2 ${fw_sz}; " \
-			"fi; "	\
-		"fi\0" \
-	"mmcargs=setenv bootargs console=${console},${baudrate} " \
-		"root=${mmcroot}\0" \
-	"loadbootscript=" \
-		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
-	"loaduimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"bootm ${loadaddr} - ${fdt_addr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootm; " \
-		"fi;\0" \
-	"netargs=setenv bootargs console=${console},${baudrate} " \
-		"root=/dev/nfs " \
-	"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
-		"netboot=echo Booting from net ...; " \
-		"run netargs; " \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"${get_cmd} ${uimage}; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
-				"bootm ${loadaddr} - ${fdt_addr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootm; " \
-		"fi;\0"
+#define DEFAULT_BOOTCOMMAND					\
+	"run ubiboot; run nfsboot"
 
-#define CONFIG_BOOTCOMMAND \
-	   "mmc dev ${mmcdev}; if mmc rescan; then " \
-		   "if run loadbootscript; then " \
-			   "run bootscript; " \
-		   "else " \
-			   "if run loaduimage; then " \
-				   "run mmcboot; " \
-			   "else run netboot; " \
-			   "fi; " \
-		   "fi; " \
-	   "else run netboot; fi"
+#define MMC_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
+	"echo Booting from MMC/SD card...; "			\
+	"mmc part 0; fatload mmc 0:1 ${loadaddr} uImage && bootm"
+
+#define NFS_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; " \
+	"echo Booting from NFS...; "				\
+	"dhcp && bootm"
+
+#define UBI_BOOTCMD						\
+	"run setup; "						\
+	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; " \
+	"echo Booting from NAND...; "				\
+	"ubi part kernel-ubi && ubi read ${loadaddr} kernel && bootm"
+
+#define CONFIG_BOOTCOMMAND	DEFAULT_BOOTCOMMAND
+#define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"defargs=vmalloc=64M usb_high_speed=1\0" \
+	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
+	"sdboot=" MMC_BOOTCMD "\0" \
+	"mtdparts=" MTDPARTS_DEFAULT "\0" \
+	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"setup=setenv setupargs " \
+	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
+		",${baudrate}n8 ${memargs}\0" \
+	"ubiargs=ubi.mtd=5 root=ubi0:rootfs rootfstype=ubifs\0" \
+	"ubiboot=" UBI_BOOTCMD "\0" \
+	""
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		"=> "
+#define CONFIG_SYS_PROMPT		"Colibri VFxx # "
 #undef CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 #define CONFIG_SYS_PBSIZE		\

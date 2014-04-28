@@ -426,6 +426,12 @@ static iomux_v3_cfg_t const backlight_pads[] = {
 #define VGA_PSAVE_NOT_GP IMX_GPIO_NR(6, 31)
 };
 
+static iomux_v3_cfg_t const pwr_intb_pads[] = {
+	/* the bootrom sets the iomux to vselect, potentially connecting
+	 * two outputs. Set this back to GPIO */
+	MX6_PAD_GPIO_18__GPIO_7_13 | MUX_PAD_CTRL(NO_PAD_CTRL)
+};
+
 static iomux_v3_cfg_t const rgb_pads[] = {
 	MX6_PAD_EIM_A16__IPU1_DI1_DISP_CLK,
 	MX6_PAD_EIM_DA10__IPU1_DI1_PIN15,
@@ -772,6 +778,8 @@ static void setup_display(void)
 
 int board_early_init_f(void)
 {
+	imx_iomux_v3_setup_multiple_pads(pwr_intb_pads,
+					ARRAY_SIZE(pwr_intb_pads));
 	setup_iomux_uart();
 
 #if defined(CONFIG_VIDEO_IPUV3)

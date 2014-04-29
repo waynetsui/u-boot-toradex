@@ -142,7 +142,7 @@
 	"setup=setenv setupargs " \
 	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
 		",${baudrate}n8 ${memargs}\0" \
-	"ubiargs=ubi.mtd=5 root=ubi0:rootfs rootfstype=ubifs\0" \
+	"ubiargs=ubi.mtd=rootfs-ubi root=ubi0:rootfs rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
 	""
 

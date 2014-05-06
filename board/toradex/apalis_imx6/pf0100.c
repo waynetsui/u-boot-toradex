@@ -26,7 +26,7 @@
 #define PFUZE100_I2C_ADDR 		(0x08)
 
 static iomux_v3_cfg_t const pmic_prog_pads[] = {
-	MX6_PAD_GPIO_2__GPIO_1_2 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_GPIO_2__GPIO1_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 unsigned pmic_init(void)

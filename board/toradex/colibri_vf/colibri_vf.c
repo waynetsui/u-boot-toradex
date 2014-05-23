@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Toradex, Inc.
+ * Copyright 2013-2014 Toradex, Inc.
  *
  * Based on vf610twr.c:
  * Copyright 2013 Freescale Semiconductor, Inc.
@@ -24,13 +24,15 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL	(PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED | \
-			PAD_CTL_DSE_25ohm | PAD_CTL_OBE_IBE_ENABLE)
+			 PAD_CTL_DSE_25ohm | PAD_CTL_OBE_IBE_ENABLE)
 
 #define ESDHC_PAD_CTRL	(PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_HIGH | \
-			PAD_CTL_DSE_20ohm | PAD_CTL_OBE_IBE_ENABLE)
+			 PAD_CTL_DSE_20ohm | PAD_CTL_OBE_IBE_ENABLE)
 
 #define ENET_PAD_CTRL	(PAD_CTL_PUS_47K_UP | PAD_CTL_SPEED_HIGH | \
-			PAD_CTL_DSE_50ohm | PAD_CTL_OBE_IBE_ENABLE)
+			 PAD_CTL_DSE_50ohm | PAD_CTL_OBE_IBE_ENABLE)
+
+unsigned char *config_block = NULL;
 
 void setup_iomux_ddr(void)
 {
@@ -116,7 +118,7 @@ void ddr_phy_init(void)
 	writel(DDRMC_PHY_SLAVE_CTRL, &ddrmr->phy[52]);
 
 	writel(DDRMC_PHY50_DDR3_MODE | DDRMC_PHY50_EN_SW_HALF_CYCLE,
-		&ddrmr->phy[50]);
+	       &ddrmr->phy[50]);
 }
 
 void ddr_ctrl_init(void)
@@ -130,17 +132,17 @@ void ddr_ctrl_init(void)
 	writel(DDRMC_CR11_CKE_INACTIVE(80000), &ddrmr->cr[11]);
 	writel(DDRMC_CR12_WRLAT(5) | DDRMC_CR12_CASLAT_LIN(12), &ddrmr->cr[12]);
 	writel(DDRMC_CR13_TRC(21) | DDRMC_CR13_TRRD(4) | DDRMC_CR13_TCCD(4) |
-		DDRMC_CR13_TBST_INT_INTERVAL(4), &ddrmr->cr[13]);
+	       DDRMC_CR13_TBST_INT_INTERVAL(4), &ddrmr->cr[13]);
 	writel(DDRMC_CR14_TFAW(20) | DDRMC_CR14_TRP(6) | DDRMC_CR14_TWTR(4) |
-		DDRMC_CR14_TRAS_MIN(15), &ddrmr->cr[14]);
+	       DDRMC_CR14_TRAS_MIN(15), &ddrmr->cr[14]);
 	writel(DDRMC_CR16_TMRD(4) | DDRMC_CR16_TRTP(4), &ddrmr->cr[16]);
 	writel(DDRMC_CR17_TRAS_MAX(28080) | DDRMC_CR17_TMOD(12),
-		&ddrmr->cr[17]);
+	       &ddrmr->cr[17]);
 	writel(DDRMC_CR18_TCKESR(4) | DDRMC_CR18_TCKE(3), &ddrmr->cr[18]);
 
 	writel(DDRMC_CR20_AP_EN, &ddrmr->cr[20]);
 	writel(DDRMC_CR21_TRCD_INT(6) | DDRMC_CR21_TRAS_LOCKOUT |
-		DDRMC_CR21_CCMAP_EN, &ddrmr->cr[21]);
+	       DDRMC_CR21_CCMAP_EN, &ddrmr->cr[21]);
 
 	writel(DDRMC_CR22_TDAL(11), &ddrmr->cr[22]);
 	writel(DDRMC_CR23_BSTLEN(3) | DDRMC_CR23_TDLL(512), &ddrmr->cr[23]);
@@ -158,11 +160,11 @@ void ddr_ctrl_init(void)
 
 	writel(DDRMC_CR38_FREQ_CHG_EN, &ddrmr->cr[38]);
 	writel(DDRMC_CR39_PHY_INI_COM(1024) | DDRMC_CR39_PHY_INI_STA(16) |
-		DDRMC_CR39_FRQ_CH_DLLOFF(2), &ddrmr->cr[39]);
+	       DDRMC_CR39_FRQ_CH_DLLOFF(2), &ddrmr->cr[39]);
 
 	writel(DDRMC_CR41_PHY_INI_STRT_INI_DIS, &ddrmr->cr[41]);
 	writel(DDRMC_CR48_MR1_DA_0(70) | DDRMC_CR48_MR0_DA_0(1056),
-		&ddrmr->cr[48]);
+	       &ddrmr->cr[48]);
 
 	writel(DDRMC_CR66_ZQCL(256) | DDRMC_CR66_ZQINIT(512), &ddrmr->cr[66]);
 	writel(DDRMC_CR67_ZQCS(64), &ddrmr->cr[67]);
@@ -172,23 +174,23 @@ void ddr_ctrl_init(void)
 	writel(DDRMC_CR72_ZQCS_ROTATE, &ddrmr->cr[72]);
 
 	writel(DDRMC_CR73_APREBIT(10) | DDRMC_CR73_COL_DIFF(1) |
-		DDRMC_CR73_ROW_DIFF(2), &ddrmr->cr[73]);
+	       DDRMC_CR73_ROW_DIFF(2), &ddrmr->cr[73]);
 	writel(DDRMC_CR74_BANKSPLT_EN | DDRMC_CR74_ADDR_CMP_EN |
-		DDRMC_CR74_CMD_AGE_CNT(255) | DDRMC_CR74_AGE_CNT(255),
-		&ddrmr->cr[74]);
+	       DDRMC_CR74_CMD_AGE_CNT(255) | DDRMC_CR74_AGE_CNT(255),
+	       &ddrmr->cr[74]);
 	writel(DDRMC_CR75_RW_PG_EN | DDRMC_CR75_RW_EN | DDRMC_CR75_PRI_EN |
-		DDRMC_CR75_PLEN, &ddrmr->cr[75]);
+	       DDRMC_CR75_PLEN, &ddrmr->cr[75]);
 	writel(DDRMC_CR76_NQENT_ACTDIS(3) | DDRMC_CR76_D_RW_G_BKCN(3) |
-		DDRMC_CR76_W2R_SPLT_EN | DDRMC_CR76_CS_EN, &ddrmr->cr[76]);
+	       DDRMC_CR76_W2R_SPLT_EN | DDRMC_CR76_CS_EN, &ddrmr->cr[76]);
 	writel(DDRMC_CR77_CS_MAP | DDRMC_CR77_DI_RD_INTLEAVE |
-		DDRMC_CR77_SWAP_EN, &ddrmr->cr[77]);
+	       DDRMC_CR77_SWAP_EN, &ddrmr->cr[77]);
 	writel(DDRMC_CR78_BUR_ON_FLY_BIT(12), &ddrmr->cr[78]);
 	writel(DDRMC_CR79_CTLUPD_AREF, &ddrmr->cr[79]);
 
 	writel(DDRMC_CR82_INT_MASK, &ddrmr->cr[82]);
 
 	writel(DDRMC_CR87_ODT_WR_MAPCS0 | DDRMC_CR87_ODT_RD_MAPCS0,
-		&ddrmr->cr[87]);
+	       &ddrmr->cr[87]);
 	writel(DDRMC_CR88_TODTL_CMD(4), &ddrmr->cr[88]);
 	writel(DDRMC_CR89_AODT_RWSMCS(2), &ddrmr->cr[89]);
 
@@ -200,32 +202,32 @@ void ddr_ctrl_init(void)
 	writel(DDRMC_CR114_RDLVL_GTDL_2(8224), &ddrmr->cr[114]);
 
 	writel(DDRMC_CR117_AXI0_W_PRI(1) | DDRMC_CR117_AXI0_R_PRI(1),
-		&ddrmr->cr[117]);
+	       &ddrmr->cr[117]);
 	writel(DDRMC_CR118_AXI1_W_PRI(1) | DDRMC_CR118_AXI1_R_PRI(1),
-		&ddrmr->cr[118]);
+	       &ddrmr->cr[118]);
 
 	writel(DDRMC_CR120_AXI0_PRI1_RPRI(2) | DDRMC_CR120_AXI0_PRI0_RPRI(2),
-		&ddrmr->cr[120]);
+	       &ddrmr->cr[120]);
 	writel(DDRMC_CR121_AXI0_PRI3_RPRI(2) | DDRMC_CR121_AXI0_PRI2_RPRI(2),
-		&ddrmr->cr[121]);
+	       &ddrmr->cr[121]);
 	writel(DDRMC_CR122_AXI1_PRI1_RPRI(1) | DDRMC_CR122_AXI1_PRI0_RPRI(1) |
-		DDRMC_CR122_AXI0_PRIRLX(100), &ddrmr->cr[122]);
+	       DDRMC_CR122_AXI0_PRIRLX(100), &ddrmr->cr[122]);
 	writel(DDRMC_CR123_AXI1_PRI3_RPRI(1) | DDRMC_CR123_AXI1_PRI2_RPRI(1),
-		&ddrmr->cr[123]);
+	       &ddrmr->cr[123]);
 	writel(DDRMC_CR124_AXI1_PRIRLX(100), &ddrmr->cr[124]);
 
 	writel(DDRMC_CR126_PHY_RDLAT(11), &ddrmr->cr[126]);
 	writel(DDRMC_CR132_WRLAT_ADJ(5) | DDRMC_CR132_RDLAT_ADJ(6),
-		&ddrmr->cr[132]);
+	       &ddrmr->cr[132]);
 	writel(DDRMC_CR139_PHY_WRLV_RESPLAT(4) | DDRMC_CR139_PHY_WRLV_LOAD(7) |
-		DDRMC_CR139_PHY_WRLV_DLL(3) | DDRMC_CR139_PHY_WRLV_EN(3),
-		&ddrmr->cr[139]);
+	       DDRMC_CR139_PHY_WRLV_DLL(3) | DDRMC_CR139_PHY_WRLV_EN(3),
+	       &ddrmr->cr[139]);
 
 	writel(DDRMC_CR154_PAD_ZQ_EARLY_CMP_EN_TIMER(13) |
-		DDRMC_CR154_PAD_ZQ_MODE(1) |
-		DDRMC_CR154_DDR_SEL_PAD_CONTR(3), &ddrmr->cr[154]);
+	       DDRMC_CR154_PAD_ZQ_MODE(1) |
+	       DDRMC_CR154_DDR_SEL_PAD_CONTR(3), &ddrmr->cr[154]);
 	writel(DDRMC_CR155_AXI0_COBUF | DDRMC_CR155_PAD_ODT_BYTE1(2),
-		&ddrmr->cr[155]);
+	       &ddrmr->cr[155]);
 	writel(DDRMC_CR158_TWR(6), &ddrmr->cr[158]);
 
 	ddr_phy_init();
@@ -248,10 +250,14 @@ int dram_init(void)
 static void setup_iomux_uart(void)
 {
 	static const iomux_v3_cfg_t uart_pads[] = {
-		NEW_PAD_CTRL(VF610_PAD_PTB4__UART1_TX, UART_PAD_CTRL),	/* UART_C_TXD: SCI1_TX */
-		NEW_PAD_CTRL(VF610_PAD_PTB5__UART1_RX, UART_PAD_CTRL),	/* UART_C_RXD: SCI1_RX */
-		NEW_PAD_CTRL(VF610_PAD_PTB10__UART0_TX, UART_PAD_CTRL),	/* UART_A_TXD: SCI0_TX */
-		NEW_PAD_CTRL(VF610_PAD_PTB11__UART0_RX, UART_PAD_CTRL),	/* UART_A_RXD: SCI0_RX */
+		/* UART_C_TXD: SCI1_TX */
+		NEW_PAD_CTRL(VF610_PAD_PTB4__UART1_TX, UART_PAD_CTRL),
+		/* UART_C_RXD: SCI1_RX */
+		NEW_PAD_CTRL(VF610_PAD_PTB5__UART1_RX, UART_PAD_CTRL),
+		/* UART_A_TXD: SCI0_TX */
+		NEW_PAD_CTRL(VF610_PAD_PTB10__UART0_TX, UART_PAD_CTRL),
+		/* UART_A_RXD: SCI0_RX */
+		NEW_PAD_CTRL(VF610_PAD_PTB11__UART0_RX, UART_PAD_CTRL),
 	};
 
 	imx_iomux_v3_setup_multiple_pads(uart_pads, ARRAY_SIZE(uart_pads));
@@ -307,7 +313,7 @@ static void setup_iomux_nfc(void)
 
 	imx_iomux_v3_setup_multiple_pads(nfc_pads, ARRAY_SIZE(nfc_pads));
 }
-#endif
+#endif /* CONFIG_NAND_FSL_NFC */
 
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg esdhc_cfg[1] = {
@@ -338,11 +344,11 @@ int board_mmc_init(bd_t *bis)
 
 	return fsl_esdhc_initialize(bis, &esdhc_cfg[0]);
 }
-#endif
+#endif /* CONFIG_FSL_ESDHC */
 
 static inline int is_colibri_vf61(void)
 {
-	struct mscm *mscm = (struct mscm*)MSCM_BASE_ADDR;
+	struct mscm *mscm = (struct mscm *)MSCM_BASE_ADDR;
 
 	/*
 	 * Detect board type by Level 2 Cache: VF50 don't have any
@@ -358,63 +364,64 @@ static void clock_init(void)
 	u32 pfd_clk_sel;
 
 	clrsetbits_le32(&ccm->ccgr0, CCM_REG_CTRL_MASK,
-		CCM_CCGR0_UART0_CTRL_MASK);
+			CCM_CCGR0_UART0_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr1, CCM_REG_CTRL_MASK,
-		CCM_CCGR1_PIT_CTRL_MASK | CCM_CCGR1_WDOGA5_CTRL_MASK);
+			CCM_CCGR1_PIT_CTRL_MASK | CCM_CCGR1_WDOGA5_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr2, CCM_REG_CTRL_MASK,
-		CCM_CCGR2_IOMUXC_CTRL_MASK | CCM_CCGR2_PORTA_CTRL_MASK |
-		CCM_CCGR2_PORTB_CTRL_MASK | CCM_CCGR2_PORTC_CTRL_MASK |
-		CCM_CCGR2_PORTD_CTRL_MASK | CCM_CCGR2_PORTE_CTRL_MASK);
+			CCM_CCGR2_IOMUXC_CTRL_MASK | CCM_CCGR2_PORTA_CTRL_MASK |
+			CCM_CCGR2_PORTB_CTRL_MASK | CCM_CCGR2_PORTC_CTRL_MASK |
+			CCM_CCGR2_PORTD_CTRL_MASK | CCM_CCGR2_PORTE_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr3, CCM_REG_CTRL_MASK,
-		CCM_CCGR3_ANADIG_CTRL_MASK);
+			CCM_CCGR3_ANADIG_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr4, CCM_REG_CTRL_MASK,
-		CCM_CCGR4_WKUP_CTRL_MASK | CCM_CCGR4_CCM_CTRL_MASK |
-		CCM_CCGR4_GPC_CTRL_MASK | CCM_CCGR4_I2C0_CTRL_MASK);
+			CCM_CCGR4_WKUP_CTRL_MASK | CCM_CCGR4_CCM_CTRL_MASK |
+			CCM_CCGR4_GPC_CTRL_MASK | CCM_CCGR4_I2C0_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr6, CCM_REG_CTRL_MASK,
-		CCM_CCGR6_OCOTP_CTRL_MASK | CCM_CCGR6_DDRMC_CTRL_MASK);
+			CCM_CCGR6_OCOTP_CTRL_MASK | CCM_CCGR6_DDRMC_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr7, CCM_REG_CTRL_MASK,
-		CCM_CCGR7_SDHC1_CTRL_MASK);
+			CCM_CCGR7_SDHC1_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr9, CCM_REG_CTRL_MASK,
-		CCM_CCGR9_FEC0_CTRL_MASK | CCM_CCGR9_FEC1_CTRL_MASK);
+			CCM_CCGR9_FEC0_CTRL_MASK | CCM_CCGR9_FEC1_CTRL_MASK);
 	clrsetbits_le32(&ccm->ccgr10, CCM_REG_CTRL_MASK,
-		CCM_CCGR10_NFC_CTRL_MASK);
+			CCM_CCGR10_NFC_CTRL_MASK);
 
 	clrsetbits_le32(&anadig->pll5_ctrl, ANADIG_PLL5_CTRL_BYPASS |
-		ANADIG_PLL5_CTRL_POWERDOWN, ANADIG_PLL5_CTRL_ENABLE |
-		ANADIG_PLL5_CTRL_DIV_SELECT);
+			ANADIG_PLL5_CTRL_POWERDOWN, ANADIG_PLL5_CTRL_ENABLE |
+			ANADIG_PLL5_CTRL_DIV_SELECT);
 	clrsetbits_le32(&anadig->pll2_ctrl, ANADIG_PLL2_CTRL_POWERDOWN,
-		ANADIG_PLL2_CTRL_ENABLE | ANADIG_PLL2_CTRL_DIV_SELECT);
+			ANADIG_PLL2_CTRL_ENABLE | ANADIG_PLL2_CTRL_DIV_SELECT);
 	clrsetbits_le32(&anadig->pll1_ctrl, ANADIG_PLL1_CTRL_POWERDOWN,
-		ANADIG_PLL1_CTRL_ENABLE | ANADIG_PLL1_CTRL_DIV_SELECT);
+			ANADIG_PLL1_CTRL_ENABLE | ANADIG_PLL1_CTRL_DIV_SELECT);
 
 	clrsetbits_le32(&ccm->ccr, CCM_CCR_OSCNT_MASK,
-		CCM_CCR_FIRC_EN | CCM_CCR_OSCNT(5));
+			CCM_CCR_FIRC_EN | CCM_CCR_OSCNT(5));
 
 	/* See "Typical PLL Configuration" */
 	pfd_clk_sel = is_colibri_vf61() ? CCM_CCSR_PLL1_PFD_CLK_SEL(1) :
 			CCM_CCSR_PLL1_PFD_CLK_SEL(3);
 	clrsetbits_le32(&ccm->ccsr, CCM_REG_CTRL_MASK, pfd_clk_sel |
-		CCM_CCSR_PLL2_PFD4_EN | CCM_CCSR_PLL2_PFD3_EN |
-		CCM_CCSR_PLL2_PFD2_EN | CCM_CCSR_PLL2_PFD1_EN |
-		CCM_CCSR_PLL1_PFD4_EN | CCM_CCSR_PLL1_PFD3_EN |
-		CCM_CCSR_PLL1_PFD2_EN | CCM_CCSR_PLL1_PFD1_EN |
-		CCM_CCSR_DDRC_CLK_SEL(1) | CCM_CCSR_FAST_CLK_SEL(1) |
-		CCM_CCSR_SYS_CLK_SEL(4));
+			CCM_CCSR_PLL2_PFD4_EN | CCM_CCSR_PLL2_PFD3_EN |
+			CCM_CCSR_PLL2_PFD2_EN | CCM_CCSR_PLL2_PFD1_EN |
+			CCM_CCSR_PLL1_PFD4_EN | CCM_CCSR_PLL1_PFD3_EN |
+			CCM_CCSR_PLL1_PFD2_EN | CCM_CCSR_PLL1_PFD1_EN |
+			CCM_CCSR_DDRC_CLK_SEL(1) | CCM_CCSR_FAST_CLK_SEL(1) |
+			CCM_CCSR_SYS_CLK_SEL(4));
 
 	clrsetbits_le32(&ccm->cacrr, CCM_REG_CTRL_MASK,
-		CCM_CACRR_IPG_CLK_DIV(1) | CCM_CACRR_BUS_CLK_DIV(2) |
-		CCM_CACRR_ARM_CLK_DIV(0));
+			CCM_CACRR_IPG_CLK_DIV(1) | CCM_CACRR_BUS_CLK_DIV(2) |
+			CCM_CACRR_ARM_CLK_DIV(0));
 	clrsetbits_le32(&ccm->cscmr1, CCM_REG_CTRL_MASK,
-		CCM_CSCMR1_ESDHC1_CLK_SEL(3) | CCM_CSCMR1_NFC_CLK_SEL(0));
+			CCM_CSCMR1_ESDHC1_CLK_SEL(3) |
+			CCM_CSCMR1_NFC_CLK_SEL(0));
 	clrsetbits_le32(&ccm->cscdr1, CCM_REG_CTRL_MASK,
-		CCM_CSCDR1_RMII_CLK_EN);
+			CCM_CSCDR1_RMII_CLK_EN);
 	clrsetbits_le32(&ccm->cscdr2, CCM_REG_CTRL_MASK,
-		CCM_CSCDR2_ESDHC1_EN | CCM_CSCDR2_ESDHC1_CLK_DIV(0) |
-		CCM_CSCDR2_NFC_EN);
+			CCM_CSCDR2_ESDHC1_EN | CCM_CSCDR2_ESDHC1_CLK_DIV(0) |
+			CCM_CSCDR2_NFC_EN);
 	clrsetbits_le32(&ccm->cscdr3, CCM_REG_CTRL_MASK,
-		CCM_CSCDR3_NFC_PRE_DIV(5));
+			CCM_CSCDR3_NFC_PRE_DIV(5));
 	clrsetbits_le32(&ccm->cscmr2, CCM_REG_CTRL_MASK,
-		CCM_CSCMR2_RMII_CLK_SEL(2));	/* PLL5 main clock */
+			CCM_CSCMR2_RMII_CLK_SEL(2));	/* PLL5 main clock */
 }
 
 static void mscm_init(void)
@@ -449,25 +456,30 @@ int board_early_init_f(void)
 	return 0;
 }
 
-unsigned char *config_block = NULL;
-
+/* Read config block */
 int read_cfb(void)
 {
-	unsigned char toradex_oui[3] = { 0x00, 0x14, 0x2d };
-	unsigned char ethaddr[6];
 	unsigned char *cfb_ethaddr;
+	unsigned char ethaddr[6];
 	size_t size = 0x800;
+	unsigned char toradex_oui[3] = { 0x00, 0x14, 0x2d };
 
 	/* Allocate RAM area for config block */
 	config_block = malloc(size);
+	if (!config_block) {
+		printf("Not enough malloc space available!\n");
+		return -1;
+	}
 
 	/* Clear it */
 	memset((void *)config_block, 0, size);
 
-	/* Read production parameter config block from first NAND */
+	/* Read production parameter config block from first NAND block */
 	if (nand_read_skip_bad(&nand_info[0], CONFIG_TRDX_CFG_BLOCK_OFFSET,
-			&size, NULL, nand_info[0].size, config_block))
+			       &size, NULL, nand_info[0].size, config_block))
 		return 1;
+
+	/* Check validity */
 	cfb_ethaddr = config_block + 8;
 	if (memcmp(cfb_ethaddr, toradex_oui, 3)) {
 		memset((void *)config_block, 0, size);
@@ -475,7 +487,7 @@ int read_cfb(void)
 	}
 
 	/*
-	 * Check if Environment contains a valid MAC address, set the one from
+	 * Check if environment contains a valid MAC address, set the one from
 	 * config block if not
 	 */
 	if (!eth_getenv_enetaddr("ethaddr", ethaddr))
@@ -491,13 +503,13 @@ u32 get_board_rev(void)
 	unsigned short major = 0, minor = 0, release = 0;
 	size_t size = 2048;
 
-	if(config_block == NULL)
+	if (config_block == NULL)
 		return 0;
 
 	/* Parse revision information in config block */
 	for (i = 0; i < (size - 8); i++) {
 		if (config_block[i] == 0x02 && config_block[i+1] == 0x40 &&
-				config_block[i+2] == 0x08) {
+		    config_block[i+2] == 0x08) {
 			break;
 		}
 	}
@@ -510,11 +522,11 @@ u32 get_board_rev(void)
 	/* Check validity */
 	if (major)
 		return ((major & 0xff) << 8) | ((minor & 0xf) << 4) |
-			((release & 0xf) + 0xa);
+		       ((release & 0xf) + 0xa);
 	else
 		return 0;
 }
-#endif
+#endif /* CONFIG_REVISION_TAG */
 
 #ifdef CONFIG_SERIAL_TAG
 void get_board_serial(struct tag_serialnr *serialnr)
@@ -537,7 +549,8 @@ void get_board_serial(struct tag_serialnr *serialnr)
 
 	/* Check validity */
 	if (serial) {
-		/* Convert to Linux serial number format (hexadecimal coded
+		/*
+		 * Convert to Linux serial number format (hexadecimal coded
 		 * decimal)
 		 */
 		i = 7;
@@ -556,7 +569,7 @@ void get_board_serial(struct tag_serialnr *serialnr)
 		serialnr->low = serial;
 	}
 }
-#endif
+#endif /* CONFIG_SERIAL_TAG */
 
 #ifdef CONFIG_BOARD_LATE_INIT
 int board_late_init(void)
@@ -564,29 +577,45 @@ int board_late_init(void)
 	if (read_cfb())
 		printf("Missing Toradex config block\n");
 
+	/* Default memory arguments */
+	if (!getenv("memargs")) {
+		switch (gd->ram_size) {
+		case 0x08000000:
+			/* 128 MB */
+			setenv("memargs", "mem=128M");
+			break;
+		case 0x10000000:
+			/* 256 MB */
+			setenv("memargs", "mem=256M");
+			break;
+		default:
+			printf("Failed detecting RAM size.\n");
+		}
+	}
+
 	return 0;
 }
-#endif
+#endif /* CONFIG_BOARD_LATE_INIT */
 
 int board_init(void)
 {
+	if (!is_colibri_vf61())
+		gd->bd->bi_arch_number = MACH_TYPE_COLIBRI_VF50;
+	else
+		gd->bd->bi_arch_number = MACH_TYPE_COLIBRI_VF61;
+
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-
-	if (is_colibri_vf61())
-		gd->bd->bi_arch_number = MACH_TYPE_COLIBRI_VF61;
-	else
-		gd->bd->bi_arch_number = MACH_TYPE_COLIBRI_VF50;
 
 	return 0;
 }
 
 int checkboard(void)
 {
-	if (is_colibri_vf61())
-		puts("Board: Colibri VF61\n");
-	else
+	if (!is_colibri_vf61())
 		puts("Board: Colibri VF50\n");
+	else
+		puts("Board: Colibri VF61\n");
 
 	return 0;
 }

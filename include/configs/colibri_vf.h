@@ -1,7 +1,8 @@
 /*
- * Copyright 2013 Toradex, Inc.
+ * Copyright 2013-2014 Toradex, Inc.
  *
- * Configuration settings for the Toradex VF61 module.
+ * Configuration settings for the Colibri VF50 and VF61 modules booting from
+ * NAND flash.
  *
  * Based on vf610twr.h:
  * Copyright 2013 Freescale Semiconductor, Inc.
@@ -14,6 +15,9 @@
 
 #include <asm/arch/imx-regs.h>
 #include <config_cmd_default.h>
+
+/* We now boot from the gfxRAM area of the OCRAM. */
+#define CONFIG_BOARD_SIZE_LIMIT		524288
 
 #define CONFIG_VF610
 
@@ -62,8 +66,15 @@
 				"8m(kernel-ubi),"		\
 				"-(rootfs-ubi)"
 
+#define CONFIG_CMD_ASKENV
+
 #undef CONFIG_CMD_IMLS
 
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_LOADB		/* loadb */
+#undef CONFIG_CMD_LOADS		/* loads */
+
+/* SD/MMC */
 #define CONFIG_MMC
 #define CONFIG_FSL_ESDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
@@ -73,13 +84,13 @@
 
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
+#define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 
 #define CONFIG_RBTREE
 #define CONFIG_LZO
 #define CONFIG_CMD_FS_GENERIC
-#define CONFIG_CMD_BOOTZ
 #define CONFIG_CMD_UBI
 #define CONFIG_CMD_UBIFS	/* increases size by almost 60 KB */
 
@@ -87,6 +98,10 @@
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NET
+
+#define CONFIG_VERSION_VARIABLE	/* ver environment variable */
+
+/* Network configuration */
 #define CONFIG_FEC_MXC
 #define CONFIG_MII
 #define IMX_FEC_BASE			ENET1_BASE_ADDR
@@ -99,10 +114,13 @@
 #define CONFIG_NETMASK		255.255.255.0
 #define CONFIG_SERVERIP		192.168.10.1
 
-#define CONFIG_BOOTDELAY		1
+#define CONFIG_BOOTDELAY		0
+#define CONFIG_ZERO_BOOTDELAY_CHECK
 
 #define CONFIG_BOARD_LATE_INIT
+
 #define CONFIG_TRDX_CFG_BLOCK_OFFSET	0x800
+
 #define CONFIG_REVISION_TAG
 #define CONFIG_SERIAL_TAG
 
@@ -114,19 +132,22 @@
 
 #define MMC_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
+	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} "	\
+		"${setupargs} ${vidargs}; "			\
 	"echo Booting from MMC/SD card...; "			\
 	"mmc part 0; fatload mmc 0:1 ${loadaddr} uImage && bootm"
 
 #define NFS_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; " \
-	"echo Booting from NFS...; "				\
+	"setenv bootargs ${defargs} ${mtdparts} ${nfsargs} "	\
+		"${setupargs} ${vidargs}; "			\
+	"echo Booting via DHCP/TFTP/NFS...; "			\
 	"dhcp && bootm"
 
 #define UBI_BOOTCMD						\
 	"run setup; "						\
-	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; " \
+	"setenv bootargs ${defargs} ${mtdparts} ${setupargs} "	\
+		"${ubiargs} ${vidargs}; "			\
 	"echo Booting from NAND...; "				\
 	"ubi part kernel-ubi && ubi read ${loadaddr} kernel && bootm"
 
@@ -135,15 +156,18 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"defargs=vmalloc=64M usb_high_speed=1\0" \
-	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
-	"sdboot=" MMC_BOOTCMD "\0" \
+	"mmcargs=root=/dev/mmcblk0p2 rw,noatime rootwait\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
-	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs\0" \
+	"sdboot=" MMC_BOOTCMD "\0" \
 	"setup=setenv setupargs " \
-	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
-		",${baudrate}n8 ${memargs}\0" \
-	"ubiargs=ubi.mtd=rootfs-ubi root=ubi0:rootfs rootfstype=ubifs\0" \
+		"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 " \
+		"console=ttymxc0,${baudrate}n8 ${memargs}\0" \
+	"setupdate=fatload mmc 0:1 ${loadaddr} flash_mmc.img; source\0" \
+	"ubiargs=ip=off ubi.mtd=rootfs-ubi root=ubi0:rootfs rw " \
+		"rootfstype=ubifs\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
+	"vidargs=video=dcufb:640x480-16@60\0" \
 	""
 
 /* Miscellaneous configurable options */
@@ -153,9 +177,11 @@
 #define CONFIG_SYS_PROMPT		"Colibri VFxx # "
 #undef CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
+/* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		\
 			(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS		16	/* max number of command args */
+/* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
 #define CONFIG_CMD_MEMTEST
@@ -163,6 +189,7 @@
 #define CONFIG_SYS_MEMTEST_END		0x87C00000
 
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
+
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_CMDLINE_EDITING
 
@@ -175,6 +202,7 @@
 /* Physical memory map */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM			(0x80000000)
+/* The following is only used as an upper bound in the automatic detection */
 #define PHYS_SDRAM_SIZE			(256 * 1024 * 1024)
 
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM
@@ -196,4 +224,4 @@
 
 #define CONFIG_SYS_NO_FLASH
 
-#endif
+#endif /* __CONFIG_H */

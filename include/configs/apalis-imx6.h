@@ -42,6 +42,7 @@
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
+#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
 
 /* I2C Configs */
 #define CONFIG_CMD_I2C

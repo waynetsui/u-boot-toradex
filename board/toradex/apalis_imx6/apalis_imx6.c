@@ -255,6 +255,10 @@ iomux_v3_cfg_t const usb_pads[] = {
 	MX6_PAD_GPIO_0__GPIO1_IO00  | MUX_PAD_CTRL(NO_PAD_CTRL),
 	/* USB_VBUS_DET */
 	MX6_PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	/* USBO1_ID */
+	MX6_PAD_ENET_RX_ER__USB_OTG_ID	| MUX_PAD_CTRL(WEAK_PULLUP),
+	/* USBO1_EN */
+	MX6_PAD_EIM_D22__GPIO3_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 /* if UARTs are used in DTE mode, so switch the mode on all UARTs before
@@ -293,6 +297,15 @@ int board_ehci_hcd_init(int port)
 	mdelay(100);
 
 	return 0;
+}
+
+int board_ehci_power(int port, int on)
+{
+        if (port != 0)
+                return 0;
+        /* control OTG power */
+        gpio_set_value(IMX_GPIO_NR(3, 22), on);
+        return 0;
 }
 #endif
 

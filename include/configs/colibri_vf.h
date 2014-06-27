@@ -217,7 +217,7 @@
 /* Environment organization */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_SIZE			(64 * 2048)
-#define CONFIG_ENV_OFFSET		(6 * 64 * 2048)
+#define CONFIG_ENV_OFFSET		(12 * 64 * 2048)
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMD_BOOTZ

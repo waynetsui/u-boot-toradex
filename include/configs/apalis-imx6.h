@@ -42,9 +42,9 @@
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
-#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
+//#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
 
-/* Make the HW version stuff available to in u-boot env */
+/* Make the HW version stuff available in u-boot env */
 #define CONFIG_VERSION_VARIABLE		/* ver environment variable */
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 

@@ -268,6 +268,7 @@ iomux_v3_cfg_t const usb_pads[] = {
 #define UFCR_DCEDTE	(1<<6)	/* DCE=0 */
 #define SET_DCEDTE(p)	(writel( (readl((u32 *) (p)) | UFCR_DCEDTE), (u32 *) (p)))
 
+#ifdef CONFIG_MXC_UART_DTE
 static void setup_dtemode_uart(void)
 {
 	SET_DCEDTE(UART1_BASE + UFCR);
@@ -275,6 +276,7 @@ static void setup_dtemode_uart(void)
 	SET_DCEDTE(UART4_BASE + UFCR);
 	SET_DCEDTE(UART5_BASE + UFCR);
 }
+#endif 
 
 static void setup_iomux_uart(void)
 {

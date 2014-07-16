@@ -124,7 +124,6 @@
 #define CONFIG_USB_KEYBOARD
 #ifdef CONFIG_USB_KEYBOARD
 #define CONFIG_SYS_USB_EVENT_POLL
-/* #define CONFIG_PREBOOT "usb start" */ /* put this in a failed bootcmd to save the USB enumeration? */
 #endif /* CONFIG_USB_KEYBOARD */
 
 /* Miscellaneous commands */
@@ -164,8 +163,6 @@
 #define CONFIG_IPADDR		192.168.10.2
 #undef CONFIG_SERVERIP
 #define CONFIG_SERVERIP		192.168.10.1
-
-//TODO #define CONFIG_PREBOOT		""
 
 #define CONFIG_LOADADDR			0x12000000
 #define CONFIG_SYS_TEXT_BASE		0x17800000

@@ -244,7 +244,7 @@
 		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
 	"vidargs_edt=video=mxcfb0:dev=lcd,EDT-WVGA,if=RGB24 " \
-		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off" \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
 	"vidargs_hdmi_cea_only=mxc_hdmi.only_cea=1 " \
 		"video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
@@ -255,7 +255,10 @@
 		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666 ldb=spl1 " \
 		"video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
-	"vidargs_vdac=video=mxcfb0:dev=vdac,1920x1080M@60,if=RGB565 " \
+	"vidargs_lvds=video=mxcfb0:dev=ldb,800x600M@60,if=RGB666 ldb=sin0 " \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_vdac=video=mxcfb0:dev=vdac,1280x720M@60,if=RGB565 " \
 		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off fbmem=32M"
 
 /* Miscellaneous configurable options */

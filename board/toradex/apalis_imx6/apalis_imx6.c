@@ -83,14 +83,13 @@ int dram_init(void)
 
 /* Apalis UART1 */
 iomux_v3_cfg_t const uart1_pads[] = {
+#ifndef CONFIG_MXC_UART_DTE
 	MX6_PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-};
-
-/* Apalis UART2 */
-iomux_v3_cfg_t const uart2_pads[] = {
-	MX6_PAD_SD4_DAT4__UART2_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-	MX6_PAD_SD4_DAT7__UART2_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+#else
+	MX6_PAD_CSI0_DAT10__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+	MX6_PAD_CSI0_DAT11__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
+#endif
 };
 
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
@@ -256,12 +255,35 @@ iomux_v3_cfg_t const usb_pads[] = {
 	MX6_PAD_GPIO_0__GPIO1_IO00  | MUX_PAD_CTRL(NO_PAD_CTRL),
 	/* USB_VBUS_DET */
 	MX6_PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	/* USBO1_ID */
+	MX6_PAD_ENET_RX_ER__USB_OTG_ID	| MUX_PAD_CTRL(WEAK_PULLUP),
+	/* USBO1_EN */
+	MX6_PAD_EIM_D22__GPIO3_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
+
+/* if UARTs are used in DTE mode, so switch the mode on all UARTs before
+ * any pinmuxing connects a (DCE) output to a transceiver output.
+ */
+#define UFCR		0x90	/* FIFO Control Register */
+#define UFCR_DCEDTE	(1<<6)	/* DCE=0 */
+#define SET_DCEDTE(p)	(writel( (readl((u32 *) (p)) | UFCR_DCEDTE), (u32 *) (p)))
+
+#ifdef CONFIG_MXC_UART_DTE
+static void setup_dtemode_uart(void)
+{
+	SET_DCEDTE(UART1_BASE + UFCR);
+	SET_DCEDTE(UART2_BASE + UFCR);
+	SET_DCEDTE(UART4_BASE + UFCR);
+	SET_DCEDTE(UART5_BASE + UFCR);
+}
+#endif 
 
 static void setup_iomux_uart(void)
 {
+#ifdef CONFIG_MXC_UART_DTE
+	setup_dtemode_uart();
+#endif
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
-	imx_iomux_v3_setup_multiple_pads(uart2_pads, ARRAY_SIZE(uart2_pads));
 }
 
 #ifdef CONFIG_USB_EHCI_MX6
@@ -277,6 +299,15 @@ int board_ehci_hcd_init(int port)
 	mdelay(100);
 
 	return 0;
+}
+
+int board_ehci_power(int port, int on)
+{
+        if (port != 0)
+                return 0;
+        /* control OTG power */
+        gpio_set_value(IMX_GPIO_NR(3, 22), on);
+        return 0;
 }
 #endif
 

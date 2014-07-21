@@ -42,6 +42,11 @@
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
+//#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
+
+/* Make the HW version stuff available in u-boot env */
+#define CONFIG_VERSION_VARIABLE		/* ver environment variable */
+#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
 /* I2C Configs */
 #define CONFIG_CMD_I2C
@@ -112,13 +117,13 @@
 #define CONFIG_USB_HOST_ETHER
 #define CONFIG_USB_ETHER_ASIX
 #define CONFIG_USB_ETHER_SMSC95XX
-#define CONFIG_MXC_USB_PORT	1
+#define CONFIG_USB_MAX_CONTROLLER_COUNT 2
+#define CONFIG_EHCI_HCD_INIT_AFTER_RESET	/* For OTG port */
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS	0
 #define CONFIG_USB_KEYBOARD
 #ifdef CONFIG_USB_KEYBOARD
 #define CONFIG_SYS_USB_EVENT_POLL
-/* #define CONFIG_PREBOOT "usb start" */ /* put this in a failed bootcmd to save the USB enumeration? */
 #endif /* CONFIG_USB_KEYBOARD */
 
 /* Miscellaneous commands */
@@ -159,8 +164,6 @@
 #undef CONFIG_SERVERIP
 #define CONFIG_SERVERIP		192.168.10.1
 
-//TODO #define CONFIG_PREBOOT		""
-
 #define CONFIG_LOADADDR			0x12000000
 #define CONFIG_SYS_TEXT_BASE		0x17800000
 
@@ -178,58 +181,85 @@
 
 #define CONFIG_DRIVE_TYPES CONFIG_DRIVE_SATA CONFIG_DRIVE_MMC
 
-#define EMMC_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
-		"${vidargs};"					\
-	"echo Booting from internal eMMC chip...; "		\
-	"fatload mmc 0:1 10800000 uImage && bootm 10800000"
-#define NFS_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${nfsargs} ${setupargs} "	\
-		"${vidargs}; "					\
-	"echo Booting via DHCP/TFTP/NFS...; "			\
-	"dhcp && bootm"
+#define EMMC_BOOTCMD \
+	"emmcargs=ip=off root=/dev/mmcblk0p2 rw,noatime rootfstype=ext3 " \
+		"rootwait\0" \
+	"emmcboot=run setup; " \
+		"setenv bootargs ${defargs} ${emmcargs} ${setupargs} " \
+		"${vidargs}; echo Booting from internal eMMC chip...; "	\
+		"run emmcdtbload; fatload mmc 0:1 ${kernel_addr_r} " \
+		"${boot_file} && bootm ${kernel_addr_r} ${dtbparam}\0" \
+	"emmcdtbload=setenv dtbparam; fatload mmc 0:1 ${fdt_addr_r} " \
+		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
+
+#define MEM_LAYOUT_ENV_SETTINGS \
+	"fdt_addr_r=0x12000000\0" \
+	"kernel_addr_r=0x10800000\0" \
+	"ramdisk_addr_r=0x10900000\0"
+
+#define NFS_BOOTCMD \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
+	"nfsboot=run setup; " \
+		"setenv bootargs ${defargs} ${nfsargs} ${setupargs} " \
+		"${vidargs}; echo Booting via DHCP/TFTP/NFS...; " \
+		"run nfsdtbload; dhcp ${kernel_addr_r} " \
+		"&& bootm ${kernel_addr_r} ${dtbparam}\0" \
+	"nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} ${fdt_file} " \
+		"&& setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
+
 #define SD_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${mmcargs} ${setupargs} "	\
-		"${vidargs};"					\
-	"echo Booting from SD card in 8bit slot...; "		\
-	"fatload mmc 1:1 10800000 uImage && bootm 10800000"
+	"sdargs=ip=off root=/dev/mmcblk1p2 rw,noatime rootfstype=ext3 " \
+		"rootwait\0" \
+	"sdboot=" "run setup; " \
+		"setenv bootargs ${defargs} ${sdargs} ${setupargs} " \
+		"${vidargs}; echo Booting from SD card in 8bit slot...; " \
+		"run sddtbload; fatload mmc 1:1 ${kernel_addr_r} " \
+		"${boot_file} && bootm ${kernel_addr_r} ${dtbparam}\0" \
+	"sddtbload=setenv dtbparam; fatload mmc 1:1 ${fdt_addr_r} " \
+		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootcmd=run emmcboot ; echo ; echo emmcboot failed ; " \
 		"run nfsboot ; echo ; echo nfsboot failed ; " \
 		"usb start ;" \
 		"setenv stdout serial,vga ; setenv stdin serial,usbkbd\0" \
-	"bootscript=fatload mmc 1:1 10008000 6x_bootscript && source 10008000\0" \
+	"boot_file=uImage\0" \
+	"bootscript=fatload mmc 1:1 ${kernel_addr_r} 6x_bootscript && " \
+		"source ${kernel_addr_r}\0" \
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \
-	"emmcboot=" EMMC_BOOTCMD "\0" \
-	"mmcargs=ip=off root=/dev/mmcblk0p2 rw,noatime rootfstype=ext3 " \
-		"rootwait\0" \
-	"mmc_kernel_size=0x4000\0" \
-	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
-	"nfsboot=" NFS_BOOTCMD "\0" \
-	"sdboot=" SD_BOOTCMD "\0" \
+	EMMC_BOOTCMD \
+	"fdt_file=imx6q-apalis-eval.dtb\0" \
+	MEM_LAYOUT_ENV_SETTINGS \
+	NFS_BOOTCMD \
+	SD_BOOTCMD \
 	"setup=setenv setupargs fec_mac=${ethaddr} " \
 		"consoleblank=0  no_console_suspend=1 console=tty1 " \
-		"console=ttymxc0,${baudrate}n8 " \
-		"fbcon=map:1\0 " \
-	"setupdate=fatload mmc 1:1 ${loadaddr} flash_mmc.img; source \0 " \
-	"vidargs=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
-		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
-		"fbmem=32M\0 " \
-	"vidargs_hdmi_lvds=video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
-		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666,ldb=spl1 " \
-		"video=mxcfb2:off video=mxcfb3:off " \
-		"fbmem=32M\0 " \
-	"vidargs_hdmi_cea_only=mxc_hdmi.only_cea=1 video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"console=ttymxc0,${baudrate}n8\0 " \
+	"setupdate=setenv drive 1; fatload mmc ${drive}:1 ${kernel_addr_r} " \
+		"flash_mmc.img || setenv drive 2; fatload mmc ${drive}:1 " \
+		"${kernel_addr_r} flash_mmc.img && source ${kernel_addr_r}\0" \
+	"vidargs=mxc_hdmi.only_cea=1 " \
+		"video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
 		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
 	"vidargs_edt=video=mxcfb0:dev=lcd,EDT-WVGA,if=RGB24 " \
-		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off" \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
+	"vidargs_hdmi_cea_only=mxc_hdmi.only_cea=1 " \
+		"video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_hdmi_lvds=mxc_hdmi.only_cea=1 " \
+		"video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
+		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666 ldb=spl1 " \
+		"video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_lvds=video=mxcfb0:dev=ldb,800x600M@60,if=RGB666 ldb=sin0 " \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off " \
+		"fbmem=32M\0 " \
+	"vidargs_vdac=video=mxcfb0:dev=vdac,1280x720M@60,if=RGB565 " \
+		"video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off fbmem=32M"
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP

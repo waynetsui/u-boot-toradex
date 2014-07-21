@@ -62,7 +62,7 @@
 #define MTDPARTS_DEFAULT	"mtdparts=fsl_nfc:"		\
 				"128k(vf-bcb)ro,"		\
 				"1408k(u-boot)ro,"		\
-				"512k(u-boot-env)ro,"		\
+				"512k(u-boot-env),"		\
 				"8m(kernel-ubi),"		\
 				"-(rootfs-ubi)"
 
@@ -217,6 +217,7 @@
 /* Environment organization */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_SIZE			(64 * 2048)
+#define CONFIG_ENV_RANGE		(4 * 64 * 2048)
 #define CONFIG_ENV_OFFSET		(12 * 64 * 2048)
 
 #define CONFIG_OF_LIBFDT

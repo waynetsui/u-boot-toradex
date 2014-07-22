@@ -388,10 +388,13 @@ static void clock_init(void)
 	clrsetbits_le32(&anadig->pll5_ctrl, ANADIG_PLL5_CTRL_BYPASS |
 			ANADIG_PLL5_CTRL_POWERDOWN, ANADIG_PLL5_CTRL_ENABLE |
 			ANADIG_PLL5_CTRL_DIV_SELECT);
-	clrsetbits_le32(&anadig->pll2_ctrl, ANADIG_PLL2_CTRL_POWERDOWN,
-			ANADIG_PLL2_CTRL_ENABLE | ANADIG_PLL2_CTRL_DIV_SELECT);
+	clrsetbits_le32(&anadig->pll2_ctrl, ANADIG_PLL5_CTRL_BYPASS |
+		        ANADIG_PLL2_CTRL_POWERDOWN, ANADIG_PLL2_CTRL_ENABLE |
+			ANADIG_PLL2_CTRL_DIV_SELECT);
+
 	clrsetbits_le32(&anadig->pll1_ctrl, ANADIG_PLL1_CTRL_POWERDOWN,
 			ANADIG_PLL1_CTRL_ENABLE | ANADIG_PLL1_CTRL_DIV_SELECT);
+
 
 	clrsetbits_le32(&ccm->ccr, CCM_CCR_OSCNT_MASK,
 			CCM_CCR_FIRC_EN | CCM_CCR_OSCNT(5));
@@ -399,12 +402,13 @@ static void clock_init(void)
 	/* See "Typical PLL Configuration" */
 	pfd_clk_sel = is_colibri_vf61() ? CCM_CCSR_PLL1_PFD_CLK_SEL(1) :
 			CCM_CCSR_PLL1_PFD_CLK_SEL(3);
+
 	clrsetbits_le32(&ccm->ccsr, CCM_REG_CTRL_MASK, pfd_clk_sel |
 			CCM_CCSR_PLL2_PFD4_EN | CCM_CCSR_PLL2_PFD3_EN |
 			CCM_CCSR_PLL2_PFD2_EN | CCM_CCSR_PLL2_PFD1_EN |
 			CCM_CCSR_PLL1_PFD4_EN | CCM_CCSR_PLL1_PFD3_EN |
 			CCM_CCSR_PLL1_PFD2_EN | CCM_CCSR_PLL1_PFD1_EN |
-			CCM_CCSR_DDRC_CLK_SEL(1) | CCM_CCSR_FAST_CLK_SEL(1) |
+			CCM_CCSR_FAST_CLK_SEL(1) |
 			CCM_CCSR_SYS_CLK_SEL(4));
 
 	clrsetbits_le32(&ccm->cacrr, CCM_REG_CTRL_MASK,

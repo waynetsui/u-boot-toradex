@@ -20,7 +20,7 @@
 include $(TOPDIR)/config.mk
 
 ifneq ($(OBJTREE),$(SRCTREE))
-$(shell mkdir -p $(obj)crypto)
+$(shell mkdir -p $(obj)../../nvidia/common/crypto)
 endif
 
 LIB	= $(obj)lib$(VENDOR).o

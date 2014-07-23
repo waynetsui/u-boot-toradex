@@ -123,8 +123,11 @@ static void create_fcb(nand_info_t *nand, uint8_t *buf, int fw1_start_address,
 	/* This is typically the first byte of the pages OOB area */
 	fcb->bb_marker_physical_offset = nand->writesize;
 
-	/* Disable swapping of bad block marker byte */
-	fcb->disbbm = 1;
+	/*
+	 * Enable swapping of bad block marker byte (required for boot ROM in
+	 * order to detect factory marked bad blocks)
+	 */
+	fcb->disbbm = 0;
 
 	fcb->disbbm_search = 0;
 	fcb->disbbm_search_limit = 8;

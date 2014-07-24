@@ -283,7 +283,11 @@ static char *get_reset_cause(void)
 
 int print_cpuinfo(void)
 {
-	printf("CPU:   Freescale Vybrid VF610 at %d MHz\n",
+	struct mscm *mscm = (struct mscm *)MSCM_BASE_ADDR;
+
+	printf("CPU:   Freescale Vybrid VF%c%c0 at %d MHz\n",
+		mscm->cpxcount ? '6' : '5', /* Dual Core => VF6x0 */
+		mscm->cpxcfg1 ? '1' : '0', /* L2 Cache => VFx10 */
 		mxc_get_clock(MXC_ARM_CLK) / 1000000);
 	printf("Reset cause: %s\n", get_reset_cause());
 

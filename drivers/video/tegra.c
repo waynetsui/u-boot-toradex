@@ -80,7 +80,12 @@ ushort lcd_cursor_height;
 	{PINGRP_##grp, PMUX_FUNC_##mux, PMUX_PULL_##pupd, PMUX_TRI_##tri}
 
 struct pingroup_config pinmux_cros_1[] = {
+/* The Colibri T20 uses only a subset of the LCD pins,
+ * don't touch those unused pins .
+ */
+#ifndef CONFIG_COLIBRI_T20
 	PINMUX(GPU,   PWM,        NORMAL,    NORMAL),
+#endif
 	PINMUX(LD0,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(LD1,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(LD10,  DISPA,      NORMAL,    NORMAL),
@@ -99,21 +104,29 @@ struct pingroup_config pinmux_cros_1[] = {
 	PINMUX(LD7,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(LD8,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(LD9,   DISPA,      NORMAL,    NORMAL),
+#ifndef CONFIG_COLIBRI_T20
 	PINMUX(LDI,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(LHP0,  DISPA,      NORMAL,    NORMAL),
 	PINMUX(LHP1,  DISPA,      NORMAL,    NORMAL),
 	PINMUX(LHP2,  DISPA,      NORMAL,    NORMAL),
+#endif
 	PINMUX(LHS,   DISPA,      NORMAL,    NORMAL),
+#ifndef CONFIG_COLIBRI_T20
 	PINMUX(LM0,   RSVD4,      NORMAL,    NORMAL),
 	PINMUX(LPP,   DISPA,      NORMAL,    NORMAL),
 	PINMUX(LPW0,  RSVD4,      NORMAL,    NORMAL),
 	PINMUX(LPW1,  RSVD4,      NORMAL,    TRISTATE),
 	PINMUX(LPW2,  RSVD4,      NORMAL,    NORMAL),
+#endif
 	PINMUX(LSC0,  DISPA,      NORMAL,    NORMAL),
 	PINMUX(LSPI,  DISPA,      NORMAL,    NORMAL),
+#ifndef CONFIG_COLIBRI_T20
 	PINMUX(LVP1,  DISPA,      NORMAL,    NORMAL),
+#endif
 	PINMUX(LVS,   DISPA,      NORMAL,    NORMAL),
+#ifndef CONFIG_COLIBRI_T20
 	PINMUX(SLXD,  SPDIF,      NORMAL,    NORMAL),
+#endif
 };
 #endif
 

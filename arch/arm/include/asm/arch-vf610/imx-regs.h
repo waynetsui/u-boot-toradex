@@ -227,6 +227,14 @@
 /* Slow Clock Source Controller Module (SCSC) */
 #define SCSC_SOSC_CTR_SOSC_EN				(0x1)
 
+/* System Reset Controller (SRC) */
+#define SRC_SBMR2_BMOD_MASK				(0x3 << 24)
+#define SRC_SBMR2_BMOD_SHIFT				24
+#define SRC_SBMR2_BMOD_FUSES				0x0
+#define SRC_SBMR2_BMOD_SERIAL				0x1
+#define SRC_SBMR2_BMOD_RCON				0x2
+
+
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>
 

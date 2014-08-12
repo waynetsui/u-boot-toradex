@@ -162,6 +162,7 @@ iomux_v3_cfg_t const usdhc1_pads[] = {
 	MX6_PAD_NANDF_D2__SD1_DATA6 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NANDF_D3__SD1_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_DI0_PIN4__GPIO4_IO20   | MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
+#	define GPIO_MMC_CD IMX_GPIO_NR(4, 20)
 };
 
 /* Apalis SD1 */
@@ -173,6 +174,7 @@ iomux_v3_cfg_t const usdhc2_pads[] = {
 	MX6_PAD_SD2_DAT2__SD2_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD2_DAT3__SD2_DATA3 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NANDF_CS1__GPIO6_IO14  | MUX_PAD_CTRL(NO_PAD_CTRL), /* CD */
+#	define GPIO_SD_CD IMX_GPIO_NR(6, 14)
 };
 
 /* eMMC */
@@ -237,6 +239,7 @@ iomux_v3_cfg_t const enet_pads[] = {
 	MX6_PAD_RGMII_RX_CTL__RGMII_RX_CTL	| MUX_PAD_CTRL(ENET_PAD_CTRL),
 	/* KSZ9031 PHY Reset */
 	MX6_PAD_ENET_CRS_DV__GPIO1_IO25		| MUX_PAD_CTRL(NO_PAD_CTRL),
+#	define GPIO_ENET_PHY_RESET IMX_GPIO_NR(1, 25)
 };
 
 static void setup_iomux_enet(void)
@@ -244,21 +247,24 @@ static void setup_iomux_enet(void)
 	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
 
 	/* Reset KSZ9031 PHY */
-	gpio_direction_output(IMX_GPIO_NR(1, 25) , 0);
+	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
 	mdelay(10);
-	gpio_set_value(IMX_GPIO_NR(1, 25), 1);
+	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
 }
 
 iomux_v3_cfg_t const usb_pads[] = {
 	/* TODO This pin has a dedicated USB power functionality, can we use it? */
 	/* USBH_EN */
 	MX6_PAD_GPIO_0__GPIO1_IO00  | MUX_PAD_CTRL(NO_PAD_CTRL),
+#	define GPIO_USBH_EN IMX_GPIO_NR(1, 0)
 	/* USB_VBUS_DET */
 	MX6_PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#	define GPIO_USB_VBUS_DET IMX_GPIO_NR(3, 28)
 	/* USBO1_ID */
 	MX6_PAD_ENET_RX_ER__USB_OTG_ID	| MUX_PAD_CTRL(WEAK_PULLUP),
 	/* USBO1_EN */
 	MX6_PAD_EIM_D22__GPIO3_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#	define GPIO_USBO_EN IMX_GPIO_NR(3, 22)
 };
 
 /* if UARTs are used in DTE mode, so switch the mode on all UARTs before
@@ -291,11 +297,11 @@ int board_ehci_hcd_init(int port)
 {
 	imx_iomux_v3_setup_multiple_pads(usb_pads, ARRAY_SIZE(usb_pads));
 
-	/* Set USB Hub VBUS */
-	gpio_direction_output(IMX_GPIO_NR(1, 0), 1);
-	mdelay(2);
 	/* Set MXM USBH power enable */
-	gpio_set_value(IMX_GPIO_NR(3, 28), 1);
+	gpio_direction_output(GPIO_USBH_EN, 1);
+	mdelay(2);
+	/* Set USB Hub VBUS */
+	gpio_direction_output(GPIO_USB_VBUS_DET, 1);
 	mdelay(100);
 
 	return 0;
@@ -306,7 +312,7 @@ int board_ehci_power(int port, int on)
         if (port != 0)
                 return 0;
         /* control OTG power */
-        gpio_set_value(IMX_GPIO_NR(3, 22), on);
+        gpio_set_value(GPIO_USBO_EN, on);
         return 0;
 }
 #endif
@@ -326,12 +332,12 @@ int board_mmc_getcd(struct mmc *mmc)
 
 	switch (cfg->esdhc_base) {
 	case USDHC1_BASE_ADDR:
-		gpio_direction_input(IMX_GPIO_NR(4, 20));
-		ret = !gpio_get_value(IMX_GPIO_NR(4, 20));
+		gpio_direction_input(GPIO_MMC_CD);
+		ret = !gpio_get_value(GPIO_MMC_CD);
 		break;
 	case USDHC2_BASE_ADDR:
-		gpio_direction_input(IMX_GPIO_NR(6, 14));
-		ret = !gpio_get_value(IMX_GPIO_NR(6, 14));
+		gpio_direction_input(GPIO_SD_CD);
+		ret = !gpio_get_value(GPIO_SD_CD);
 		break;
 	}
 
@@ -896,6 +902,7 @@ int board_late_init(void)
    video decoding no longer works.
    so don't interfere with the Apalis iMX6 HW Revision */
 #if 0
+#ifdef CONFIG_REVISION_TAG
 u32 get_board_rev(void)
 {
 #ifdef CONFIG_BOARD_LATE_INIT
@@ -929,6 +936,7 @@ u32 get_board_rev(void)
 #endif /* CONFIG_BOARD_LATE_INIT */
 }
 #endif /* CONFIG_REVISION_TAG */
+#endif
 
 #ifdef CONFIG_SERIAL_TAG
 void get_board_serial(struct tag_serialnr *serialnr)

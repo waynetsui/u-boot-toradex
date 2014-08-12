@@ -27,6 +27,7 @@
 
 static iomux_v3_cfg_t const pmic_prog_pads[] = {
 	MX6_PAD_GPIO_2__GPIO1_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#	define PMIC_PROG_VOLTAGE IMX_GPIO_NR(1, 2)
 };
 
 unsigned pmic_init(void)
@@ -184,7 +185,7 @@ int pf0100_prog(void)
 	}
 	/* set up gpio to manipulate vprog, initially off */
 	imx_iomux_v3_setup_multiple_pads(pmic_prog_pads, ARRAY_SIZE(pmic_prog_pads));
-	gpio_direction_output(IMX_GPIO_NR(1, 2), 0);
+	gpio_direction_output(PMIC_PROG_VOLTAGE, 0);
 
 	if(!(0 == i2c_set_bus_num(bus) && (0 == i2c_probe(PFUZE100_I2C_ADDR))))
 	{

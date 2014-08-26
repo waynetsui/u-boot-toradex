@@ -44,7 +44,11 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* 4MB  */
-#define CONFIG_SYS_MALLOC_F_LEN	(1 << 10)
+#define CONFIG_SYS_MALLOC_F_LEN	(4 << 10)
+#ifdef CONFIG_SPL_BUILD
+#define CONFIG_SYS_MALLOC_SIMPLE
+#endif
+#define CONFIG_SYS_NONCACHED_MEMORY	(1 << 20)	/* 1 MiB */
 
 /*
  * NS16550 Configuration

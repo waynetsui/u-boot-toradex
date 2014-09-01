@@ -151,25 +151,10 @@ unsigned pmic_init(void)
 		printf("PMIC: programmed\n");
 		break;
 	default:
-		printf("PMIC: undefined progamming state\n");
+		printf("PMIC: undefined programming state\n");
 		break;
 	}
 
-	/* TODO the following should be removed for production */
-	/* set VGEN1 to 1.2V */
-	val = PFUZE100_VGEN1_VAL;
-	if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_VGEN1CTL, 1, &val, 1))
-	{
-		puts("i2c write failed\n");
-		return programmed;
-	}
-
-	/* set SWBST to 5.0V */
-	val = PFUZE100_SWBST_VAL;
-	if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_SWBSTCTL, 1, &val, 1))
-	{
-		puts("i2c write failed\n");
-	}
 	return programmed;
 }
 

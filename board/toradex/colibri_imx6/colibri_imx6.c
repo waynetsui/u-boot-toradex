@@ -76,8 +76,8 @@ static unsigned char config_block[roundup(CONFIG_BLOCK_BUFFER_SIZE, ARCH_DMA_MIN
 
 int dram_init(void)
 {
-	/* FIXME make the RAM size dynamic */
-	gd->ram_size = ((ulong)CONFIG_DDR_MB * 1024 * 1024);
+	/* use the DDR controllers configured size */
+	gd->ram_size = imx_ddr_size();
 
 	return 0;
 }

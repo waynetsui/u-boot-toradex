@@ -786,3 +786,46 @@ int misc_init_r(void)
 #endif
 	return 0;
 }
+
+/* On Colibri iMX6 the DDR bus width depends on the CPU type
+ * With Solo it is 32bit, with Dual Light 64 bit.
+ * U-Boot is configured to use 32bit on both models which works.
+ * This commands patches this so that on subsequent boots a DL
+ * will use 64bit and thus all stuffed memory
+ */
+int do_patch_ddr_size(cmd_tbl_t *cmdtp, int flag, int argc,
+		char * const argv[])
+{
+	char *ivt;
+	struct mmc *mmc;
+	int ret = 0;
+
+	ivt = memalign(ARCH_DMA_MINALIGN, 1024);
+	if (ivt != NULL) {
+		/* read IVT */
+		mmc = find_mmc_device(0);
+		ret = mmc->block_dev.block_read(0, 2, 2, ivt);
+
+		/* FIXME: Parse IVT to find DCD, parse DCD to find correct write addr */
+		if(ret == 2) {
+
+
+			if(is_cpu_type(MXC_CPU_MX6DL) && (ivt[0x215] == 0x19)) {
+				ivt[0x215] = 0x1a;
+				ret = mmc->block_dev.block_write(0, 2, 2, ivt);
+				puts("patched, ");
+			}
+		}
+	}
+	if(ret == 2)
+		puts("done.\n");
+	else
+		puts("failed.\n");
+	return 0;
+}
+
+U_BOOT_CMD(
+	patch_ddr_size, 1, 0, do_patch_ddr_size,
+	"Patch the DCD table to the right ddr size depending on CPU type\n",
+	""
+);

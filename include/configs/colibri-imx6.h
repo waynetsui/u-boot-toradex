@@ -203,7 +203,7 @@
 		"setenv stdout serial,vga ; setenv stdin serial,usbkbd\0" \
 	"boot_file=uImage\0" \
 	"console=ttymxc0\0" \
-	"defargs=enable_wait_mode=off vmalloc=400M\0" \
+	"defargs=enable_wait_mode=off galcore.contiguousSize=50331648\0" \
 	EMMC_BOOTCMD \
 	"fdt_file=imx6dl-colibri-eval-v3.dtb\0" \
 	MEM_LAYOUT_ENV_SETTINGS \

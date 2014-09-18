@@ -252,7 +252,7 @@
 		"fbmem=32M\0 " \
 	"vidargs_hdmi_lvds=mxc_hdmi.only_cea=1 " \
 		"video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 " \
-		"video=mxcfb1:dev=ldb,LDB-LG_LP156WF1,if=RGB666 ldb=spl1 " \
+		"video=mxcfb1:dev=ldb,LDB-LG-LP156WF1,if=RGB666 ldb=spl1 " \
 		"video=mxcfb2:off video=mxcfb3:off " \
 		"fbmem=32M\0 " \
 	"vidargs_lvds=video=mxcfb0:dev=ldb,800x600M@60,if=RGB666 ldb=sin0 " \

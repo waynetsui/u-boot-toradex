@@ -55,7 +55,8 @@
 #define CONFIG_USB_ETHER_ASIX
 
 /* PCI host support */
-#undef CONFIG_PCI	/* just define once Tegra PCIe support got merged */
+#define CONFIG_PCI
+#undef CONFIG_PCI_SCAN_SHOW
 #define CONFIG_PCI_TEGRA
 #define CONFIG_PCI_PNP
 #define CONFIG_CMD_PCI
@@ -63,7 +64,7 @@
 
 /* PCI networking support */
 #define CONFIG_E1000
-#undef CONFIG_E1000_NO_NVM	/* just define once E1000 driver got fixed */
+#define CONFIG_E1000_NO_NVM
 
 /* General networking support */
 #define CONFIG_CMD_NET

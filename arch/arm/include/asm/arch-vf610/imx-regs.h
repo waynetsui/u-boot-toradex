@@ -100,6 +100,8 @@
 #define MSCM_IRSPRC_CP0_EN				1
 #define MSCM_IRSPRC_NUM					112
 
+#define MSCM_CP0CFG1		(MSCM_BASE_ADDR + 0x000000014)
+
 /* DDRMC */
 #define DDRMC_PHY_DQ_TIMING				0x00002613
 #define DDRMC_PHY_DQS_TIMING				0x00002615
@@ -438,6 +440,18 @@ struct mscm_ir {
 	u32 rsvd2[23];
 	u16 irsprc[112];
 	u16 rsvd3[848];
+};
+
+/* MSCM */
+struct mscm {
+	u32 cpxtype;
+	u32 cpxnum;
+	u32 cpxmaster;
+	u32 cpxcount;
+	u32 cpxcfg0;
+	u32 cpxcfg1;
+	u32 cpxcfg2;
+	u32 cpxcfg3;
 };
 
 #endif	/* __ASSEMBLER__*/

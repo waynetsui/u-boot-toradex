@@ -1108,6 +1108,8 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_KZM9G                4140
 #define MACH_TYPE_COLIBRI_T30          4493
 #define MACH_TYPE_APALIS_T30           4513
+#define MACH_TYPE_COLIBRI_VF50         4749
+#define MACH_TYPE_COLIBRI_VF61         4750
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -14259,6 +14261,30 @@ extern unsigned int __machine_arch_type;
 # define machine_is_apalis_t30()	(machine_arch_type == MACH_TYPE_APALIS_T30)
 #else
 # define machine_is_apalis_t30()	(0)
+#endif
+
+#ifdef CONFIG_MACH_COLIBRI_VF50
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type __machine_arch_type
+# else
+#  define machine_arch_type MACH_TYPE_COLIBRI_VF50
+# endif
+# define machine_is_colibri_vf50()	(machine_arch_type == MACH_TYPE_COLIBRI_VF50)
+#else
+# define machine_is_colibri_vf50()	(0)
+#endif
+
+#ifdef CONFIG_MACH_COLIBRI_VF61
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type __machine_arch_type
+# else
+#  define machine_arch_type MACH_TYPE_COLIBRI_VF61
+# endif
+# define machine_is_colibri_vf61()	(machine_arch_type == MACH_TYPE_COLIBRI_VF61)
+#else
+# define machine_is_colibri_vf61()	(0)
 #endif
 
 /*

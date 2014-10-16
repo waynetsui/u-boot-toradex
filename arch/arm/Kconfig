@@ -456,6 +456,9 @@ config TARGET_U8500_HREF
 config TARGET_VF610TWR
 	bool "Support vf610twr"
 
+config TARGET_COLIBRI_VF
+	bool "Support Colibri VF50/VF61"
+
 config ZYNQ
 	bool "Xilinx Zynq Platform"
 
@@ -689,6 +692,7 @@ source "board/ti/ti816x/Kconfig"
 source "board/ti/tnetv107xevm/Kconfig"
 source "board/timll/devkit3250/Kconfig"
 source "board/toradex/colibri_pxa270/Kconfig"
+source "board/toradex/colibri_vf/Kconfig"
 source "board/tqc/tqma6/Kconfig"
 source "board/trizepsiv/Kconfig"
 source "board/ttcontrol/vision2/Kconfig"

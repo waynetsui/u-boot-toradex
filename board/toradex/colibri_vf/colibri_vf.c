@@ -252,6 +252,8 @@ int board_early_init_f(void)
 #ifdef CONFIG_BOARD_LATE_INIT
 int board_late_init(void)
 {
+	struct src *src = (struct src *)SRC_BASE_ADDR;
+
 	/* Default memory arguments */
 	if (!getenv("memargs")) {
 		switch (gd->ram_size) {
@@ -266,6 +268,12 @@ int board_late_init(void)
 		default:
 			printf("Failed detecting RAM size.\n");
 		}
+	}
+
+	if (((src->sbmr2 & SRC_SBMR2_BMOD_MASK) >> SRC_SBMR2_BMOD_SHIFT)
+			== SRC_SBMR2_BMOD_SERIAL) {
+		printf("Serial Downloader recovery mode, disable autoboot\n");
+		setenv("bootdelay", "-1");
 	}
 
 	return 0;

@@ -18,6 +18,7 @@
 #define CONFIG_VF610
 
 #define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_ARCH_MISC_INIT
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
@@ -41,6 +42,7 @@
 
 /* Allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
+#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE			115200
 
@@ -61,9 +63,8 @@
 #define MTDPARTS_DEFAULT	"mtdparts=fsl_nfc:"		\
 				"128k(vf-bcb)ro,"		\
 				"1408k(u-boot)ro,"		\
-				"512k(u-boot-env)ro,"		\
-				"8m(kernel-ubi),"		\
-				"-(rootfs-ubi)"
+				"512k(u-boot-env),"		\
+				"-(ubi)"
 
 #undef CONFIG_CMD_IMLS
 
@@ -84,7 +85,8 @@
 #define CONFIG_CMD_FS_GENERIC
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_CMD_UBI
-#define CONFIG_CMD_UBIFS	/* increases size by almost 60 KB */	
+#define CONFIG_MTD_UBI_FASTMAP
+#define CONFIG_CMD_UBIFS	/* increases size by almost 60 KB */
 
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
@@ -103,10 +105,10 @@
 #define CONFIG_SERVERIP		192.168.10.1
 
 #define CONFIG_BOOTDELAY		1
-
 #define CONFIG_BOARD_LATE_INIT
 
-#define CONFIG_LOADADDR			0x82000000
+#define CONFIG_LOADADDR			0x80008000
+#define CONFIG_FDTADDR			0x84000000
 #define CONFIG_SYS_TEXT_BASE		0x3f408000
 
 #define DEFAULT_BOOTCOMMAND					\
@@ -116,7 +118,7 @@
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
 	"echo Booting from MMC/SD card...; "			\
-	"mmc part 0; fatload mmc 0:1 ${loadaddr} uImage && bootm"
+	"mmc part 0; fatload mmc 0:1 ${kernel_addr_r} uImage && bootm"
 
 #define NFS_BOOTCMD						\
 	"run setup; "						\
@@ -124,27 +126,40 @@
 	"echo Booting from NFS...; "				\
 	"dhcp && bootm"
 
+#define UBI_LOADCMD						\
+	"ubi part ubi && ubifsmount ubi0:rootfs && " 		\
+	"ubifsload ${kernel_addr_r} /boot/${kernel_file} && "	\
+	"if printenv fdt_board; "				\
+	"then ubifsload ${fdt_addr_r} /boot/${soc}-colibri-${fdt_board}.dtb;" \
+	"else setenv fdt_addr_r; fi"
+
 #define UBI_BOOTCMD						\
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; " \
 	"echo Booting from NAND...; "				\
-	"ubi part kernel-ubi && ubi read ${loadaddr} kernel && bootm"
+	"run ubiload && bootz ${kernel_addr_r} - ${fdt_addr_r}"
 
 #define CONFIG_BOOTCOMMAND	DEFAULT_BOOTCOMMAND
 #define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"defargs=vmalloc=64M usb_high_speed=1\0" \
+	"kernel_addr_r=0x82000000\0" \
+	"fdt_addr_r=0x84000000\0" \
+	"kernel_file=zImage\0" \
+	"fdt_file=${soc}-colibri-${fdt_board}.dtb\0" \
+	"defargs=no_console_suspend=1\0" \
 	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
 	"sdboot=" MMC_BOOTCMD "\0" \
 	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
 	"setup=setenv setupargs " \
-	"fec_mac=${ethaddr} no_console_suspend=1 console=tty1 console=ttymxc0" \
+		"fec_mac=${ethaddr} console=tty1 console=ttymxc0" \
 		",${baudrate}n8 ${memargs}\0" \
 	"setupdate=fatload mmc 0:1 ${loadaddr} flash_mmc.img && " \
 		"source ${loadaddr}\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
-	"ubiargs=ubi.mtd=rootfs-ubi root=ubi0:rootfs rootfstype=ubifs\0" \
+	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rootfstype=ubifs " \
+		"ubi.fm_autoconvert=1\0" \
+	"ubiload=" UBI_LOADCMD "\0" \
 	"ubiboot=" UBI_BOOTCMD "\0" \
 	""
 

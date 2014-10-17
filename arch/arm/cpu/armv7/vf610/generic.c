@@ -295,6 +295,20 @@ int print_cpuinfo(void)
 }
 #endif
 
+#ifdef	CONFIG_ARCH_MISC_INIT
+int arch_misc_init(void)
+{
+	struct mscm *mscm = (struct mscm *)MSCM_BASE_ADDR;
+	char soc[6];
+
+	snprintf(soc, ARRAY_SIZE(info), "vf%c%c0", mscm->cpxcount ? '6' : '5',
+		 mscm->cpxcfg1 ? '1' : '0');
+	setenv("soc", soc);
+
+	return 0;
+}
+#endif
+
 int cpu_eth_init(bd_t *bis)
 {
 	int rc = -ENODEV;

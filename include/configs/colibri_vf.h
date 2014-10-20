@@ -43,8 +43,10 @@
 /* Allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+#define CONFIG_VERSION_VARIABLE
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE			115200
+#define CONFIG_CMD_ASKENV
 
 /* NAND support */
 #define CONFIG_CMD_WRITEBCB
@@ -78,6 +80,8 @@
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_CMD_FAT
+#define CONFIG_CMD_EXT3
+#define CONFIG_CMD_EXT4
 #define CONFIG_DOS_PARTITION
 
 #define CONFIG_RBTREE
@@ -109,7 +113,10 @@
 
 #define CONFIG_LOADADDR			0x80008000
 #define CONFIG_FDTADDR			0x84000000
+
+/* We boot from the gfxRAM area of the OCRAM. */
 #define CONFIG_SYS_TEXT_BASE		0x3f408000
+#define CONFIG_BOARD_SIZE_LIMIT		524288
 
 #define DEFAULT_BOOTCOMMAND					\
 	"run ubiboot; run nfsboot"
@@ -118,13 +125,13 @@
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
 	"echo Booting from MMC/SD card...; "			\
-	"mmc part 0; fatload mmc 0:1 ${kernel_addr_r} uImage && bootm"
+	"load mmc 0:2 ${kernel_addr_r} /boot/zImage && bootz ${kernel_addr_r}"
 
 #define NFS_BOOTCMD						\
 	"run setup; "						\
 	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; " \
 	"echo Booting from NFS...; "				\
-	"dhcp && bootm"
+	"dhcp ${kernel_addr_r} && bootz"
 
 #define UBI_LOADCMD						\
 	"ubi part ubi && ubifsmount ubi0:rootfs && " 		\
@@ -223,4 +230,4 @@
 
 #define CONFIG_SYS_NO_FLASH
 
-#endif
+#endif /* __CONFIG_H */

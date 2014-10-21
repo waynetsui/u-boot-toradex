@@ -1,7 +1,7 @@
 /*
  * Copyright 2013 Toradex, Inc.
  *
- * Configuration settings for the Toradex VF61 module.
+ * Configuration settings for the Toradex VF50/VF61 module.
  *
  * Based on vf610twr.h:
  * Copyright 2013 Freescale Semiconductor, Inc.
@@ -118,57 +118,57 @@
 #define CONFIG_SYS_TEXT_BASE		0x3f408000
 #define CONFIG_BOARD_SIZE_LIMIT		524288
 
-#define DEFAULT_BOOTCOMMAND					\
-	"run ubiboot; run nfsboot"
+#define SD_BOOTCMD							\
+	"sdargs=root=/dev/mmcblk0p2 rw rootwait\0"			\
+	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} ${mtdparts} " \
+		"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
+		"load mmc 0:2 ${kernel_addr_r} /boot/${kernel_file} && " \
+		"run sddtbload; bootz ${kernel_addr_r} - ${dtbparam}\0"	\
+	"sddtbload=setenv dtbparam; load mmc 0:2 ${fdt_addr_r} "	\
+		"${soc}-colibri-${fdt_board}.dtb && "			\
+		"setenv dtbparam ${fdt_addr_r}\0"
 
-#define MMC_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${mmcargs} ${mtdparts} ${setupargs}; " \
-	"echo Booting from MMC/SD card...; "			\
-	"load mmc 0:2 ${kernel_addr_r} /boot/zImage && bootz ${kernel_addr_r}"
+#define NFS_BOOTCMD							\
+	"nfsargs=ip=:::::eth0: root=/dev/nfs\0"				\
+	"nfsboot=run setup; setenv bootargs ${defargs} ${nfsargs} ${mtdparts} "\
+		"${setupargs} ${vidargs}; echo Booting from NFS...;"	\
+		"dhcp ${kernel_addr_r} && run nfsdtbload; "		\
+		"bootz ${kernel_addr_r} - ${dtbparam}\0"		\
+	"nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} "		\
+		"${soc}-colibri-${fdt_board}.dtb && "			\
+		"setenv dtbparam ${fdt_addr_r}\0"
 
-#define NFS_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${nfsargs} ${mtdparts} ${setupargs}; " \
-	"echo Booting from NFS...; "				\
-	"dhcp ${kernel_addr_r} && bootz"
+#define UBI_BOOTCMD							\
+	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rootfstype=ubifs "	\
+		"ubi.fm_autoconvert=1\0"				\
+	"ubiboot=run setup; setenv bootargs ${defargs} ${ubiargs} ${mtdparts} "\
+		"${setupargs} ${vidargs}; echo Booting from NAND...; "	\
+		"ubi part ubi && ubifsmount ubi0:rootfs && " 		\
+		"ubifsload ${kernel_addr_r} /boot/${kernel_file} && "	\
+		"run ubidtbload; bootz ${kernel_addr_r} - ${dtbparam}\0"\
+	"ubidtbload=setenv dtbparam; ubifsload ${fdt_addr_r} "		\
+		"/boot/${soc}-colibri-${fdt_board}.dtb && "		\
+		"setenv dtbparam ${fdt_addr_r}\0"
 
-#define UBI_LOADCMD						\
-	"ubi part ubi && ubifsmount ubi0:rootfs && " 		\
-	"ubifsload ${kernel_addr_r} /boot/${kernel_file} && "	\
-	"if printenv fdt_board; "				\
-	"then ubifsload ${fdt_addr_r} /boot/${soc}-colibri-${fdt_board}.dtb;" \
-	"else setenv fdt_addr_r; fi"
-
-#define UBI_BOOTCMD						\
-	"run setup; "						\
-	"setenv bootargs ${defargs} ${ubiargs} ${mtdparts} ${setupargs}; " \
-	"echo Booting from NAND...; "				\
-	"run ubiload && bootz ${kernel_addr_r} - ${fdt_addr_r}"
-
-#define CONFIG_BOOTCOMMAND	DEFAULT_BOOTCOMMAND
-#define CONFIG_NFSBOOTCOMMAND	NFS_BOOTCMD
+#define CONFIG_BOOTCOMMAND "run ubiboot; run sdboot; run nfsboot"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"kernel_addr_r=0x82000000\0" \
 	"fdt_addr_r=0x84000000\0" \
 	"kernel_file=zImage\0" \
 	"fdt_file=${soc}-colibri-${fdt_board}.dtb\0" \
+	"fdt_board=eval-v3\0" \
 	"defargs=no_console_suspend=1\0" \
-	"mmcargs=root=/dev/mmcblk0p2 rw rootwait\0" \
-	"sdboot=" MMC_BOOTCMD "\0" \
-	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"console=ttymxc0\0" \
 	"setup=setenv setupargs " \
-		"fec_mac=${ethaddr} console=tty1 console=ttymxc0" \
+		"fec_mac=${ethaddr} console=tty1 console=${console}" \
 		",${baudrate}n8 ${memargs}\0" \
 	"setupdate=fatload mmc 0:1 ${loadaddr} flash_mmc.img && " \
 		"source ${loadaddr}\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
-	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rootfstype=ubifs " \
-		"ubi.fm_autoconvert=1\0" \
-	"ubiload=" UBI_LOADCMD "\0" \
-	"ubiboot=" UBI_BOOTCMD "\0" \
-	""
+	SD_BOOTCMD \
+	NFS_BOOTCMD \
+	UBI_BOOTCMD
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */

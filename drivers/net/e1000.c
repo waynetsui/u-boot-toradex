@@ -1131,9 +1131,7 @@ e1000_swfw_sync_acquire(struct e1000_hw *hw, uint16_t mask)
 
 	if (!timeout) {
 		DEBUGOUT("Driver can't access resource, SW_FW_SYNC timeout.\n");
-//hack to avoid the following error for now
-//e1000: e1000#0: ERROR: Hardware Initialization Failed
-//		return -E1000_ERR_SWFW_SYNC;
+		return -E1000_ERR_SWFW_SYNC;
 	}
 
 	swfw_sync |= swmask;
@@ -4383,7 +4381,7 @@ e1000_get_phy_cfg_done(struct e1000_hw *hw)
 		if (!timeout) {
 			DEBUGOUT("MNG configuration cycle has not "
 					"completed.\n");
-//hack to avoid the following error for now
+//hack to avoid the following error on unprogrammed i210 for now
 //e1000: e1000#0: ERROR: Hardware Initialization Failed
 //			return -E1000_ERR_RESET;
 		}

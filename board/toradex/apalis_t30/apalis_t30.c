@@ -1,6 +1,5 @@
 /*
- *  (C) Copyright 2014
- *  Marcel Ziswiler <marcel@ziswiler.com>
+ * Copyright (c) 2012-2014 Toradex, Inc.
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -14,9 +13,41 @@
 #include <netdev.h>
 
 #include "pinmux-config-apalis_t30.h"
+#include "../common/configblock.h"
+
+DECLARE_GLOBAL_DATA_PTR;
 
 #define PMU_I2C_ADDRESS		0x2D
 #define MAX_I2C_RETRY		3
+
+int arch_misc_init(void)
+{
+	/* Default memory arguments */
+	if (!getenv("memargs")) {
+		switch (gd->ram_size) {
+		case 0x40000000:
+			/* 1 GB */
+			setenv("memargs", "vmalloc=128M mem=1012M@2048M "
+					  "fbmem=12M@3060M");
+			break;
+		case 0x7ff00000:
+		case 0x80000000:
+			/* 2 GB */
+			setenv("memargs", "vmalloc=256M mem=2035M@2048M "
+					  "fbmem=12M@4083M");
+			break;
+		default:
+			printf("Failed detecting RAM size.\n");
+		}
+	}
+
+#ifdef CONFIG_TRDX_CFG_BLOCK
+	if (read_trdx_cfg_block())
+		printf("Missing Apalis config block\n");
+#endif
+
+	return 0;
+}
 
 /*
  * Routine: pinmux_init

@@ -1,16 +1,28 @@
 /*
- *  (C) Copyright 2014
- *  Stefan Agner <stefan@agner.ch>
+ * Copyright (c) 2012-2014 Toradex, Inc.
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
-#include <asm/arch/pinmux.h>
+
 #include <asm/arch/gp_padctrl.h>
-#include "pinmux-config-colibri_t30.h"
-#include <i2c.h>
+#include <asm/arch/pinmux.h>
 #include <asm/gpio.h>
+#include <i2c.h>
+
+#include "pinmux-config-colibri_t30.h"
+#include "../common/configblock.h"
+
+int arch_misc_init(void)
+{
+#ifdef CONFIG_TRDX_CFG_BLOCK
+	if (read_trdx_cfg_block())
+		printf("Missing Colibri config block\n");
+#endif
+
+	return 0;
+}
 
 /*
  * Routine: pinmux_init

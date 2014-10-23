@@ -5,3 +5,4 @@
 #
 
 obj-y	:= colibri_vf.o
+obj-y	+= ../common/configblock.o

@@ -8,6 +8,7 @@
 
 #include <malloc.h>
 #include <mmc.h>
+#include <nand.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -141,6 +142,12 @@ int read_trdx_cfg_block(void)
 	/* Switch back to regular eMMC user partition */
 	mmc_switch_part(0, 0);
 #endif /* CONFIG_TRDX_CFG_BLOCK_IS_IN_MMC */
+#ifdef CONFIG_TRDX_CFG_BLOCK_IS_IN_NAND
+	/* Read production parameter config block from first NAND block */
+	if (nand_read_skip_bad(&nand_info[0], CONFIG_TRDX_CFG_BLOCK_OFFSET,
+			       &size, NULL, nand_info[0].size, config_block))
+		return 1;
+#endif
 
 	/* Check validity */
 	cfg_block_ethaddr = config_block + 8;

@@ -20,6 +20,8 @@
 #include <netdev.h>
 #include <i2c.h>
 
+#include "../common/configblock.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL	(PAD_CTL_PUS_100K_UP | PAD_CTL_SPEED_MED | \
@@ -275,6 +277,11 @@ int board_late_init(void)
 		printf("Serial Downloader recovery mode, disable autoboot\n");
 		setenv("bootdelay", "-1");
 	}
+
+#ifdef CONFIG_TRDX_CFG_BLOCK
+	if (read_trdx_cfg_block())
+		printf("Missing Colibri config block\n");
+#endif
 
 	return 0;
 }

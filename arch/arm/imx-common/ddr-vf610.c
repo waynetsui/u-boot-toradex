@@ -105,7 +105,7 @@ void ddr_ctrl_init(int tref, int trfc, int col_diff, int row_diff)
 	struct ddrmr_regs *ddrmr = (struct ddrmr_regs *)DDR_BASE_ADDR;
 
 	writel(DDRMC_CR00_DRAM_CLASS_DDR3, &ddrmr->cr[0]);
-	writel(DDRMC_CR02_DRAM_TINIT(32), &ddrmr->cr[2]);
+	writel(DDRMC_CR02_DRAM_TINIT(5), &ddrmr->cr[2]);
 	writel(DDRMC_CR10_TRST_PWRON(80000), &ddrmr->cr[10]);
 
 	writel(DDRMC_CR11_CKE_INACTIVE(200000), &ddrmr->cr[11]);
@@ -237,6 +237,6 @@ void ddr_ctrl_init(int tref, int trfc, int col_diff, int row_diff)
 
 	writel(DDRMC_CR00_DRAM_CLASS_DDR3 | DDRMC_CR00_START, &ddrmr->cr[0]);
 
-	udelay(200);
+	while (!(readl(&ddrmr->cr[80]) && 0x100))
+		udelay(10);
 }
-

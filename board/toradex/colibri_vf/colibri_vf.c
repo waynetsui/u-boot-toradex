@@ -37,7 +37,7 @@ int dram_init(void)
 {
 	setup_iomux_ddr();
 
-	ddr_ctrl_init(3120, 64, 1, 2);
+	ddr_ctrl_init(3120, 64, 1, 2, NULL);
 	gd->ram_size = get_ram_size((void *)PHYS_SDRAM, PHYS_SDRAM_SIZE);
 
 	return 0;

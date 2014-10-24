@@ -30,9 +30,21 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int dram_init(void)
 {
+	struct ddr_lvl_info lvl = {
+		.wrlvl_reg_en = 1,
+		.wrlvl_dl_0 = 0,
+		.wrlvl_dl_1 = 0,
+		.rdlvl_gt_reg_en = 1,
+		.rdlvl_gt_dl_0 = 4,
+		.rdlvl_gt_dl_1 = 4,
+		.rdlvl_reg_en = 1,
+		.rdlvl_dl_0 = 0,
+		.rdlvl_dl_1 = 0,
+	};
+
 	setup_iomux_ddr();
 
-	ddr_ctrl_init(3120, 44, 1, 3);
+	ddr_ctrl_init(3120, 44, 1, 3, &lvl);
 	gd->ram_size = get_ram_size((void *)PHYS_SDRAM, PHYS_SDRAM_SIZE);
 
 	return 0;

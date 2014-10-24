@@ -10,6 +10,7 @@
 #include <asm/io.h>
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/iomux-vf610.h>
+#include <asm/arch/ddr-vf610.h>
 
 void setup_iomux_ddr(void)
 {
@@ -100,7 +101,37 @@ void ddr_phy_init(void)
 	writel(DDRMC_PHY_PROC_PAD_ODT, &ddrmr->phy[52]);
 }
 
-void ddr_ctrl_init(int tref, int trfc, int col_diff, int row_diff)
+static void ddr_ctrl_lvl_init(struct ddr_lvl_info *lvl)
+{
+	struct ddrmr_regs *ddrmr = (struct ddrmr_regs *)DDR_BASE_ADDR;
+	u32 cr102 = 0, cr105 = 0, cr106 = 0, cr110 = 0;
+
+	if (lvl->wrlvl_reg_en) {
+		writel(DDRMC_CR97_WRLVL_EN, &ddrmr->cr[97]);
+		writel(DDRMC_CR98_WRLVL_DL_0(lvl->wrlvl_dl_0), &ddrmr->cr[98]);
+		writel(DDRMC_CR99_WRLVL_DL_1(lvl->wrlvl_dl_1), &ddrmr->cr[99]);
+	}
+
+	if (lvl->rdlvl_reg_en) {
+		cr102 |= DDRMC_CR102_RDLVL_REG_EN;
+		cr105 |= DDRMC_CR105_RDLVL_DL_0(lvl->rdlvl_dl_0);
+		cr110 |= DDRMC_CR110_RDLVL_DL_1(lvl->rdlvl_dl_1);
+	}
+
+	if (lvl->rdlvl_gt_reg_en ) {
+		cr102 |= DDRMC_CR102_RDLVL_GT_REGEN;
+		cr106 |= DDRMC_CR106_RDLVL_GTDL_0(lvl->rdlvl_gt_dl_0);
+		cr110 |= DDRMC_CR110_RDLVL_GTDL_1(lvl->rdlvl_gt_dl_1);
+	}
+
+	writel(cr102, &ddrmr->cr[102]);
+	writel(cr105, &ddrmr->cr[105]);
+	writel(cr106, &ddrmr->cr[106]);
+	writel(cr110, &ddrmr->cr[110]);
+}
+
+void ddr_ctrl_init(int tref, int trfc, int col_diff, int row_diff,
+		   struct ddr_lvl_info *lvl)
 {
 	struct ddrmr_regs *ddrmr = (struct ddrmr_regs *)DDR_BASE_ADDR;
 
@@ -174,18 +205,9 @@ void ddr_ctrl_init(int tref, int trfc, int col_diff, int row_diff)
 
 	writel(DDRMC_CR91_R2W_SMCSDL(2), &ddrmr->cr[91]);
 	writel(DDRMC_CR96_WLMRD(40) | DDRMC_CR96_WLDQSEN(25), &ddrmr->cr[96]);
-	writel(DDRMC_CR97_WRLVL_EN, &ddrmr->cr[97]);
-	writel(DDRMC_CR98_WRLVL_DL_0, &ddrmr->cr[98]);
-	writel(DDRMC_CR99_WRLVL_DL_1, &ddrmr->cr[99]);
 
-	writel(DDRMC_CR102_RDLVL_GT_REGEN | DDRMC_CR102_RDLVL_REG_EN,
-		&ddrmr->cr[102]);
-
-	writel(DDRMC_CR105_RDLVL_DL_0(0), &ddrmr->cr[105]);
-	writel(DDRMC_CR106_RDLVL_GTDL_0(4), &ddrmr->cr[106]);
-	writel(DDRMC_CR110_RDLVL_GTDL_1(4), &ddrmr->cr[110]);
-	writel(DDRMC_CR114_RDLVL_GTDL_2(0), &ddrmr->cr[114]);
-	writel(DDRMC_CR115_RDLVL_GTDL_2(0), &ddrmr->cr[115]);
+	if (lvl != NULL)
+		ddr_ctrl_lvl_init(lvl);
 
 	writel(DDRMC_CR117_AXI0_W_PRI(0) | DDRMC_CR117_AXI0_R_PRI(0),
 		&ddrmr->cr[117]);

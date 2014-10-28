@@ -29,8 +29,6 @@ unsigned mfgr_fuse(void)
 		puts("BT_FUSE_SEL already fused, will do nothing\n");
 		return 1;
 	}
-	puts("BT_FUSE_SEL FIXME rethink the correct value first, will do nothing\n");
-	return 1;
 	/* boot cfg */
 	fuse_prog(0, 5, 0x00005062);
 	/* BT_FUSE_SEL */

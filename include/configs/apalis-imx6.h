@@ -76,6 +76,7 @@
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
+#define CONFIG_FAT_WRITE
 #define CONFIG_DOS_PARTITION
 
 #ifdef CONFIG_MX6Q
@@ -109,14 +110,10 @@
 
 /* USB Configs */
 #define CONFIG_CMD_USB
-#define CONFIG_CMD_FAT
-#define CONFIG_FAT_WRITE
 #define CONFIG_USB_EHCI
 #define CONFIG_USB_EHCI_MX6
 #define CONFIG_USB_STORAGE
 #define CONFIG_USB_HOST_ETHER
-#define CONFIG_USB_ETHER_ASIX
-#define CONFIG_USB_ETHER_SMSC95XX
 #define CONFIG_USB_MAX_CONTROLLER_COUNT 2
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET	/* For OTG port */
 #define CONFIG_MXC_USB_PORTSC	(PORT_PTS_UTMI | PORT_PTS_PTW)
@@ -195,7 +192,7 @@
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"fdt_addr_r=0x12000000\0" \
 	"kernel_addr_r=0x10800000\0" \
-	"ramdisk_addr_r=0x10900000\0"
+	"ramdisk_addr_r=0x12100000\0"
 
 #define NFS_BOOTCMD \
 	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
@@ -224,8 +221,6 @@
 		"usb start ;" \
 		"setenv stdout serial,vga ; setenv stdin serial,usbkbd\0" \
 	"boot_file=uImage\0" \
-	"bootscript=fatload mmc 1:1 ${kernel_addr_r} 6x_bootscript && " \
-		"source ${kernel_addr_r}\0" \
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \
 	EMMC_BOOTCMD \
@@ -235,7 +230,7 @@
 	SD_BOOTCMD \
 	"setup=setenv setupargs fec_mac=${ethaddr} " \
 		"consoleblank=0  no_console_suspend=1 console=tty1 " \
-		"console=ttymxc0,${baudrate}n8\0 " \
+		"console=${console},${baudrate}n8\0 " \
 	"setupdate=setenv drive 1; fatload mmc ${drive}:1 ${kernel_addr_r} " \
 		"flash_mmc.img || setenv drive 2; fatload mmc ${drive}:1 " \
 		"${kernel_addr_r} flash_mmc.img && source ${kernel_addr_r}\0" \
@@ -312,7 +307,6 @@
 #define CONFIG_TRDX_CFG_BLOCK_OFFSET	(640 * 1024)
 
 #define CONFIG_OF_LIBFDT
-#define CONFIG_CMD_BOOTZ
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 #define CONFIG_CMD_CACHE

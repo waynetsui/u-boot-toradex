@@ -867,7 +867,7 @@ int board_late_init(void)
 	}
 
 	if (!valid) {
-		printf("Missing Colibri config block\n");
+		printf("Missing Apalis config block\n");
 		memset((void *)config_block, 0, size);
 	} else {
 		/* Get MAC address from environment */

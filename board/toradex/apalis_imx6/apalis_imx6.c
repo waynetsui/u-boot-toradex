@@ -247,11 +247,16 @@ iomux_v3_cfg_t const enet_pads[] = {
 static void setup_iomux_enet(void)
 {
 	imx_iomux_v3_setup_multiple_pads(enet_pads, ARRAY_SIZE(enet_pads));
+}
 
+static int reset_enet_phy (struct mii_dev *bus)
+{
 	/* Reset KSZ9031 PHY */
 	gpio_direction_output(GPIO_ENET_PHY_RESET, 0);
 	mdelay(10);
 	gpio_set_value(GPIO_ENET_PHY_RESET, 1);
+
+	return 0;
 }
 
 iomux_v3_cfg_t const usb_pads[] = {
@@ -409,6 +414,7 @@ int board_eth_init(bd_t *bis)
 	bus = fec_get_miibus(base, -1);
 	if (!bus)
 		return 0;
+	bus->reset = reset_enet_phy;
 	/* scan phy 4,5,6,7 */
 	phydev = phy_find_by_mask(bus, (0xf << 4), PHY_INTERFACE_MODE_RGMII);
 	if (!phydev) {

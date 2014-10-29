@@ -76,7 +76,9 @@ static unsigned char config_block[roundup(CONFIG_BLOCK_BUFFER_SIZE, ARCH_DMA_MIN
 
 int dram_init(void)
 {
-	gd->ram_size = ((ulong)CONFIG_DDR_MB * 1024 * 1024);
+	/* use the DDR controllers configured size */
+	gd->ram_size = get_ram_size((void *)CONFIG_SYS_SDRAM_BASE,
+				    (ulong)imx_ddr_size());
 
 	return 0;
 }

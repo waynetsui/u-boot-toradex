@@ -77,7 +77,8 @@ static unsigned char config_block[roundup(CONFIG_BLOCK_BUFFER_SIZE, ARCH_DMA_MIN
 int dram_init(void)
 {
 	/* use the DDR controllers configured size */
-	gd->ram_size = imx_ddr_size();
+	gd->ram_size = get_ram_size((void *)CONFIG_SYS_SDRAM_BASE,
+				    (ulong)imx_ddr_size());
 
 	return 0;
 }
@@ -805,11 +806,8 @@ int do_patch_ddr_size(cmd_tbl_t *cmdtp, int flag, int argc,
 		/* read IVT */
 		mmc = find_mmc_device(0);
 		ret = mmc->block_dev.block_read(0, 2, 2, ivt);
-
 		/* FIXME: Parse IVT to find DCD, parse DCD to find correct write addr */
 		if(ret == 2) {
-
-
 			if(is_cpu_type(MXC_CPU_MX6DL) && (ivt[0x215] == 0x19)) {
 				ivt[0x215] = 0x1a;
 				ret = mmc->block_dev.block_write(0, 2, 2, ivt);

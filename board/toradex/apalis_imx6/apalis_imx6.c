@@ -274,7 +274,7 @@ iomux_v3_cfg_t const usb_pads[] = {
 #	define GPIO_USBO_EN IMX_GPIO_NR(3, 22)
 };
 
-/* if UARTs are used in DTE mode, so switch the mode on all UARTs before
+/* if UARTs are used in DTE mode, switch the mode on all UARTs before
  * any pinmuxing connects a (DCE) output to a transceiver output.
  */
 #define UFCR		0x90	/* FIFO Control Register */
@@ -303,24 +303,29 @@ static void setup_iomux_uart(void)
 int board_ehci_hcd_init(int port)
 {
 	imx_iomux_v3_setup_multiple_pads(usb_pads, ARRAY_SIZE(usb_pads));
-
-	/* Set MXM USBH power enable */
-	gpio_direction_output(GPIO_USBH_EN, 1);
-	mdelay(2);
-	/* Set USB Hub VBUS */
-	gpio_direction_output(GPIO_USB_VBUS_DET, 1);
-	mdelay(100);
-
 	return 0;
 }
 
 int board_ehci_power(int port, int on)
 {
-        if (port != 0)
-                return 0;
-        /* control OTG power */
-        gpio_set_value(GPIO_USBO_EN, on);
-        return 0;
+	switch (port) {
+	case 0:
+		/* control OTG power */
+		gpio_direction_output(GPIO_USBO_EN, on);
+		mdelay(100);
+		break;
+	case 1:
+		/* Control MXM USBH */
+		gpio_direction_output(GPIO_USBH_EN, on);
+		mdelay(2);
+		/* Control onboard USB Hub VBUS */
+		gpio_direction_output(GPIO_USB_VBUS_DET, on);
+		mdelay(100);
+		break;
+	default:
+		break;
+	}
+	return 0;
 }
 #endif
 

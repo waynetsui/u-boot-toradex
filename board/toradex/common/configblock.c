@@ -163,6 +163,17 @@ int read_trdx_cfg_block(void)
 	if (!eth_getenv_enetaddr("ethaddr", ethaddr))
 		eth_setenv_enetaddr("ethaddr", cfg_block_ethaddr);
 
+#ifdef CONFIG_TRDX_CFG_BLOCK_2ND_ETHADDR
+	if (!eth_getenv_enetaddr("eth1addr", ethaddr)) {
+		/*
+		 * Secondary MAC address is allocated from a block
+		 * 0x100000 higher then the first MAC address
+		 */
+		cfg_block_ethaddr[3] += 0x10;
+		eth_setenv_enetaddr("eth1addr", cfg_block_ethaddr);
+	}
+#endif
+
 	return 0;
 }
 #endif /* CONFIG_TRDX_CFG_BLOCK */

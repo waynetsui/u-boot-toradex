@@ -72,6 +72,8 @@ static unsigned char config_block[roundup(CONFIG_BLOCK_BUFFER_SIZE, ARCH_DMA_MIN
 	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm |			\
 	PAD_CTL_HYS | PAD_CTL_SRE_SLOW)
 
+#define TRISTATE	(PAD_CTL_HYS | PAD_CTL_SPEED_MED)
+
 #define OUTPUT_40OHM (PAD_CTL_SPEED_MED|PAD_CTL_DSE_40ohm)
 
 int dram_init(void)
@@ -445,8 +447,14 @@ static iomux_v3_cfg_t const backlight_pads[] = {
 	MX6_PAD_EIM_DA13__GPIO3_IO13 | MUX_PAD_CTRL(NO_PAD_CTRL),
 #define RGB_BACKLIGHT_GP IMX_GPIO_NR(3, 13)
 /* TODO PWM not GPIO */
-	MX6_PAD_EIM_DA14__GPIO3_IO14 | MUX_PAD_CTRL(NO_PAD_CTRL),
-#define RGB_BACKLIGHTPWM_GP IMX_GPIO_NR(3, 14)
+	/* additional CPU pin on BKL_PWM, keep in tristate */
+	MX6_PAD_EIM_DA14__GPIO3_IO14 | MUX_PAD_CTRL(TRISTATE),
+	/* PWM4 pin */
+	MX6_PAD_SD4_DAT2__GPIO2_IO10 | MUX_PAD_CTRL(NO_PAD_CTRL),
+#define RGB_BACKLIGHTPWM_GP IMX_GPIO_NR(2, 10)
+	/* buffer output enable 0: buffer enabled*/
+	MX6_PAD_EIM_A25__GPIO5_IO02 | MUX_PAD_CTRL(WEAK_PULLUP),
+#define RGB_BACKLIGHTPWM_OE IMX_GPIO_NR(5, 2)
 	/* PSAVE# integrated VDAC */
 	MX6_PAD_EIM_BCLK__GPIO6_IO31 | MUX_PAD_CTRL(NO_PAD_CTRL),
 #define VGA_PSAVE_NOT_GP IMX_GPIO_NR(6, 31)
@@ -573,6 +581,7 @@ static void enable_lvds(struct display_info_t const *dev)
 	writel(reg, &iomux->gpr[2]);
 	gpio_direction_output(RGB_BACKLIGHT_GP, 1);
 	gpio_direction_output(RGB_BACKLIGHTPWM_GP, 0);
+	gpio_direction_output(RGB_BACKLIGHTPWM_OE, 0);
 }
 
 static void enable_rgb(struct display_info_t const *dev)
@@ -582,6 +591,7 @@ static void enable_rgb(struct display_info_t const *dev)
 		ARRAY_SIZE(rgb_pads));
 	gpio_direction_output(RGB_BACKLIGHT_GP, 1);
 	gpio_direction_output(RGB_BACKLIGHTPWM_GP, 0);
+	gpio_direction_output(RGB_BACKLIGHTPWM_OE, 0);
 }
 
 static void enable_vga(struct display_info_t const *dev)
@@ -798,6 +808,7 @@ static void setup_display(void)
 					 ARRAY_SIZE(backlight_pads));
 	/* use 0 for EDT 7", use 1 for LG fullHD panel */
 	gpio_direction_output(RGB_BACKLIGHTPWM_GP, 0);
+	gpio_direction_output(RGB_BACKLIGHTPWM_OE, 0);
 	gpio_direction_output(RGB_BACKLIGHT_GP, 1);
 }
 #endif /* defined(CONFIG_VIDEO_IPUV3) */

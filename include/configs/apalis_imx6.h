@@ -42,7 +42,7 @@
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
-//#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
+#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
 
 /* Make the HW version stuff available in u-boot env */
 #define CONFIG_VERSION_VARIABLE		/* ver environment variable */
@@ -268,6 +268,8 @@
 #define CONFIG_SYS_MAXARGS		32
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
 
+#define CONFIG_SYS_ALT_MEMTEST
+#define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_MEMTEST_START	0x10000000
 #define CONFIG_SYS_MEMTEST_END		0x10010000
 #define CONFIG_SYS_MEMTEST_SCRATCH	0x10800000
@@ -315,7 +317,6 @@
 #define CONFIG_CMD_BMP
 
 #define CONFIG_CMD_TIME
-#define CONFIG_SYS_ALT_MEMTEST
 
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_SUPPORT_RAW_INITRD

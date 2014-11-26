@@ -43,13 +43,11 @@ unsigned pmic_init(void)
 		return 0;
 	}
 	/* get device ident */
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_DEVICEID, 1, &devid, 1) < 0)
-	{
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_DEVICEID, 1, &devid, 1) < 0) {
 		puts("i2c pmic devid read failed\n");
 		return 0;
 	}
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_REVID, 1, &revid, 1) < 0)
-	{
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_REVID, 1, &revid, 1) < 0) {
 		puts("i2c pmic revid read failed\n");
 		return 0;
 	}
@@ -74,8 +72,8 @@ unsigned pmic_init(void)
 		printf("\nEXT Page 1");
 
 		val = PFUZE100_PAGE_REGISTER_PAGE1;
-		if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_PAGE_REGISTER, 1, &val, 1))
-		{
+		if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_PAGE_REGISTER, 1,
+		    &val, 1)) {
 			puts("i2c write failed\n");
 			return 0;
 		}
@@ -93,8 +91,8 @@ unsigned pmic_init(void)
 		printf("\nEXT Page 2");
 
 		val = PFUZE100_PAGE_REGISTER_PAGE2;
-		if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_PAGE_REGISTER, 1, &val, 1))
-		{
+		if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_PAGE_REGISTER, 1,
+		    &val, 1)) {
 			puts("i2c write failed\n");
 			return 0;
 		}
@@ -119,24 +117,21 @@ unsigned pmic_init(void)
 		puts("i2c write failed\n");
 		return 0;
 	}
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_FUSE_POR1, 1, &val, 1) < 0)
-	{
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_FUSE_POR1, 1, &val, 1) < 0) {
 		puts("i2c fuse_por read failed\n");
 		return 0;
 	}
 	if(val & PFUZE100_FUSE_POR_M)
 		programmed++;
 
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_FUSE_POR2, 1, &val, 1) < 0)
-	{
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_FUSE_POR2, 1, &val, 1) < 0) {
 		puts("i2c fuse_por read failed\n");
 		return programmed;
 	}
 	if(val & PFUZE100_FUSE_POR_M)
 		programmed++;
 
-	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_FUSE_POR3, 1, &val, 1) < 0)
-	{
+	if( i2c_read(PFUZE100_I2C_ADDR, PFUZE100_FUSE_POR3, 1, &val, 1) < 0) {
 		puts("i2c fuse_por read failed\n");
 		return programmed;
 	}
@@ -155,6 +150,23 @@ unsigned pmic_init(void)
 		break;
 	}
 
+	/* The following is needed during production */
+	if (programmed != 3) {
+		/* set VGEN1 to 1.2V */
+		val = PFUZE100_VGEN1_VAL;
+		if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_VGEN1CTL, 1,
+		    &val, 1)) {
+			puts("i2c write failed\n");
+			return programmed;
+		}
+
+		/* set SWBST to 5.0V */
+		val = PFUZE100_SWBST_VAL;
+		if( i2c_write(PFUZE100_I2C_ADDR, PFUZE100_SWBSTCTL, 1,
+		    &val, 1)) {
+			puts("i2c write failed\n");
+		}
+	}
 	return programmed;
 }
 
@@ -169,7 +181,8 @@ int pf0100_prog(void)
 		return 1;
 	}
 	/* set up gpio to manipulate vprog, initially off */
-	imx_iomux_v3_setup_multiple_pads(pmic_prog_pads, ARRAY_SIZE(pmic_prog_pads));
+	imx_iomux_v3_setup_multiple_pads(pmic_prog_pads, 
+		ARRAY_SIZE(pmic_prog_pads));
 	gpio_direction_output(PMIC_PROG_VOLTAGE, 0);
 
 	if(!(0 == i2c_set_bus_num(bus) && (0 == i2c_probe(PFUZE100_I2C_ADDR))))
@@ -183,10 +196,9 @@ int pf0100_prog(void)
 		case pmic_i2c:
 			val = (unsigned char) (pmic_otp_prog[i].value & 0xff);
 			if( i2c_write(PFUZE100_I2C_ADDR, pmic_otp_prog[i].reg,
-					1, &val, 1))
-			{
-				printf("i2c write failed, reg 0x%2x, value0x%2x\n",
-						pmic_otp_prog[i].reg, val);
+					1, &val, 1)) {
+				printf("i2c write failed, reg 0x%2x, value"
+					"0x%2x\n", pmic_otp_prog[i].reg, val);
 				return 1;
 			}
 			break;
@@ -194,7 +206,8 @@ int pf0100_prog(void)
 			udelay(pmic_otp_prog[i].value * 1000);
 			break;
 		case pmic_vpgm:
-			gpio_direction_output(IMX_GPIO_NR(2, 4) , pmic_otp_prog[i].value);
+			gpio_direction_output(IMX_GPIO_NR(2, 4),
+				 pmic_otp_prog[i].value);
 			break;
 		case pmic_pwr:
 			/* TODO */

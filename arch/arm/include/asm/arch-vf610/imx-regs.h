@@ -270,6 +270,13 @@
 #define SRC_SBMR2_BMOD_SERIAL				0x1
 #define SRC_SBMR2_BMOD_RCON				0x2
 
+#define SRC_SRSR_SW_RST					(0x1 << 18)
+#define SRC_SRSR_RESETB					(0x1 << 7)
+#define SRC_SRSR_JTAG_RST				(0x1 << 5)
+#define SRC_SRSR_WDOG_M4				(0x1 << 4)
+#define SRC_SRSR_WDOG_A5				(0x1 << 3)
+#define SRC_SRSR_POR_RST				(0x1 << 0)
+
 
 #if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
 #include <asm/types.h>

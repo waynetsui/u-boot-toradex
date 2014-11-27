@@ -16,7 +16,6 @@
 #include <config_cmd_default.h>
 
 #define CONFIG_VF610
-
 #define CONFIG_SYS_THUMB_BUILD
 #define CONFIG_USE_ARCH_MEMCPY
 #define CONFIG_USE_ARCH_MEMSET
@@ -235,7 +234,7 @@
 
 #ifdef CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_SIZE			(64 * 2048)
-#define CONFIG_ENV_SECT_SIZE		(64 * 2048)
+#define CONFIG_ENV_RANGE		(4 * 64 * 2048)
 #define CONFIG_ENV_OFFSET		(12 * 64 * 2048)
 #endif
 

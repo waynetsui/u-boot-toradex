@@ -220,7 +220,7 @@ struct anadig_reg {
 #define ANADIG_PLL7_CTRL_BYPASS         (1 << 16)
 #define ANADIG_PLL7_CTRL_ENABLE         (1 << 13)
 #define ANADIG_PLL7_CTRL_POWERDOWN      (1 << 12)
-#define ANADIG_PLL7_CTRL_DIV_SELECT		1
+#define ANADIG_PLL7_CTRL_DIV_SELECT		(1 << 1)
 #define ANADIG_PLL5_CTRL_BYPASS                 (1 << 16)
 #define ANADIG_PLL5_CTRL_ENABLE                 (1 << 13)
 #define ANADIG_PLL5_CTRL_POWERDOWN              (1 << 12)
@@ -228,7 +228,7 @@ struct anadig_reg {
 #define ANADIG_PLL3_CTRL_BYPASS         (1 << 16)
 #define ANADIG_PLL3_CTRL_ENABLE         (1 << 13)
 #define ANADIG_PLL3_CTRL_POWERDOWN      (1 << 12)
-#define ANADIG_PLL3_CTRL_DIV_SELECT		1
+#define ANADIG_PLL3_CTRL_DIV_SELECT		(1 << 1)
 #define ANADIG_PLL2_CTRL_ENABLE			(1 << 13)
 #define ANADIG_PLL2_CTRL_POWERDOWN		(1 << 12)
 #define ANADIG_PLL2_CTRL_DIV_SELECT		1

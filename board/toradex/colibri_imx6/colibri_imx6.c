@@ -85,13 +85,8 @@ int dram_init(void)
 
 /* Colibri UARTA */
 iomux_v3_cfg_t const uart1_pads[] = {
-#ifndef CONFIG_MXC_UART_DTE
-	MX6_PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-	MX6_PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-#else
 	MX6_PAD_CSI0_DAT10__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT11__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-#endif
 };
 
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
@@ -180,27 +175,23 @@ iomux_v3_cfg_t const usb_pads[] = {
 #endif
 };
 
-/* if UARTs are used in DTE mode, so switch the mode on all UARTs before
+/* UARTs are used in DTE mode, switch the mode on all UARTs before
  * any pinmuxing connects a (DCE) output to a transceiver output.
  */
 #define UFCR		0x90	/* FIFO Control Register */
 #define UFCR_DCEDTE	(1<<6)	/* DCE=0 */
 #define SET_DCEDTE(p)	(writel( (readl((u32 *) (p)) | UFCR_DCEDTE), (u32 *) (p)))
 
-#ifdef CONFIG_MXC_UART_DTE
 static void setup_dtemode_uart(void)
 {
 	SET_DCEDTE(UART1_BASE + UFCR);
 	SET_DCEDTE(UART2_BASE + UFCR);
 	SET_DCEDTE(UART3_BASE + UFCR);
 }
-#endif 
 
 static void setup_iomux_uart(void)
 {
-#ifdef CONFIG_MXC_UART_DTE
 	setup_dtemode_uart();
-#endif
 	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
 }
 

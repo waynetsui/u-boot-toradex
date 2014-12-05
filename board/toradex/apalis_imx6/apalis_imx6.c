@@ -81,7 +81,6 @@ int dram_init(void)
 	/* use the DDR controllers configured size */
 	gd->ram_size = get_ram_size((void *)CONFIG_SYS_SDRAM_BASE,
 				    (ulong)imx_ddr_size());
-
 	return 0;
 }
 
@@ -193,7 +192,7 @@ iomux_v3_cfg_t const usdhc3_pads[] = {
 	MX6_PAD_SD3_DAT5__SD3_DATA5 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD3_DAT6__SD3_DATA6 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD3_DAT7__SD3_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	MX6_PAD_SD3_RST__SD3_RESET  | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	MX6_PAD_SD3_RST__GPIO7_IO08 | MUX_PAD_CTRL(WEAK_PULLUP),
 };
 
 int mx6_rgmii_rework(struct phy_device *phydev)

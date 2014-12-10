@@ -43,6 +43,7 @@
 
 /* Make the HW version stuff available in u-boot env */
 #define CONFIG_VERSION_VARIABLE		/* ver environment variable */
+#define CONFIG_ENV_VARS_UBOOT_CONFIG
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
 /* I2C Configs */
@@ -190,6 +191,7 @@
 	"sddtbload=setenv dtbparam; fatload mmc 1:1 ${fdt_addr_r} " \
 		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
+#define FDT_FILE "imx6dl-colibri-eval-v3.dtb"
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootcmd=run emmcboot ; echo ; echo emmcboot failed ; " \
 		"run nfsboot ; echo ; echo nfsboot failed ; " \
@@ -199,7 +201,7 @@
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off galcore.contiguousSize=50331648\0" \
 	EMMC_BOOTCMD \
-	"fdt_file=imx6dl-colibri-eval-v3.dtb\0" \
+	"fdt_file=" FDT_FILE "\0" \
 	MEM_LAYOUT_ENV_SETTINGS \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
@@ -229,6 +231,7 @@
 #define CONFIG_SYS_MAXARGS		32
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
 
+#define CONFIG_SYS_ALT_MEMTEST
 #define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_MEMTEST_START	0x10000000
 #define CONFIG_SYS_MEMTEST_END		0x10010000
@@ -277,7 +280,6 @@
 #define CONFIG_CMD_BMP
 
 #define CONFIG_CMD_TIME
-#define CONFIG_SYS_ALT_MEMTEST
 
 #define CONFIG_CMD_BOOTZ
 #define CONFIG_SUPPORT_RAW_INITRD

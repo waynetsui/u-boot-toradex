@@ -35,6 +35,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static u32 get_board_rev_local(void);
+
 #if defined(CONFIG_BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
 		defined(CONFIG_SERIAL_TAG))
 /* buffer suitable for DMA */
@@ -180,13 +182,12 @@ iomux_v3_cfg_t const usb_pads[] = {
  */
 #define UFCR		0x90	/* FIFO Control Register */
 #define UFCR_DCEDTE	(1<<6)	/* DCE=0 */
-#define SET_DCEDTE(p)	(writel( (readl((u32 *) (p)) | UFCR_DCEDTE), (u32 *) (p)))
 
 static void setup_dtemode_uart(void)
 {
-	SET_DCEDTE(UART1_BASE + UFCR);
-	SET_DCEDTE(UART2_BASE + UFCR);
-	SET_DCEDTE(UART3_BASE + UFCR);
+	setbits_le32((u32 *)(UART1_BASE + UFCR), UFCR_DCEDTE);
+	setbits_le32((u32 *)(UART2_BASE + UFCR), UFCR_DCEDTE);
+	setbits_le32((u32 *)(UART3_BASE + UFCR), UFCR_DCEDTE);
 }
 
 static void setup_iomux_uart(void)
@@ -617,6 +618,7 @@ int board_late_init(void)
 	char env_str[256];
 
 	int i;
+	u32 rev;
 	unsigned size = 0;
 
 	char *addr_str, *end;
@@ -676,15 +678,19 @@ int board_late_init(void)
 		}
 	}
 #endif /* CONFIG_TRDX_CFG_BLOCK */
+
+	rev = get_board_rev_local();
+
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	snprintf(env_str, ARRAY_SIZE(env_str), "%.4x", rev);
+	setenv("board_rev", env_str);
+#endif
+
 	return 0;
 }
 #endif /* CONFIG_BOARD_LATE_INIT */
 
-/* i.MX6 uses the 'standard' board revision for things, i.e.
-   video decoding no longer works.
-   so don't interfere with the Apalis iMX6 HW Revision */
-#ifdef CONFIG_REVISION_TAG
-u32 get_board_rev(void)
+u32 get_board_rev_local(void)
 {
 #ifdef CONFIG_BOARD_LATE_INIT
 	int i;
@@ -716,7 +722,18 @@ u32 get_board_rev(void)
 	return 0;
 #endif /* CONFIG_BOARD_LATE_INIT */
 }
+
+/* i.MX6 Kernel/Userspace 3.0.35 uses the 'standard' board revision for
+   things, i.e. video decoding no longer works,
+   so don't interfere with the Apalis iMX6 HW Revision */
+#if 0
+#ifdef CONFIG_REVISION_TAG
+u32 get_board_rev(void)
+{
+	return get_board_rev_local();
+}
 #endif /* CONFIG_REVISION_TAG */
+#endif
 
 #ifdef CONFIG_SERIAL_TAG
 void get_board_serial(struct tag_serialnr *serialnr)

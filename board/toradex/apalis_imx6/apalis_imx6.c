@@ -35,6 +35,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static u32 get_board_rev_local(void);
+
 #if defined(CONFIG_BOARD_LATE_INIT) && (defined(CONFIG_TRDX_CFG_BLOCK) || \
 		defined(CONFIG_SERIAL_TAG))
 /* buffer suitable for DMA */
@@ -85,14 +87,13 @@ int dram_init(void)
 }
 
 /* Apalis UART1 */
-iomux_v3_cfg_t const uart1_pads[] = {
-#ifndef CONFIG_MXC_UART_DTE
+iomux_v3_cfg_t const uart1_pads_dce[] = {
 	MX6_PAD_CSI0_DAT10__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-#else
+};
+iomux_v3_cfg_t const uart1_pads_dte[] = {
 	MX6_PAD_CSI0_DAT10__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
 	MX6_PAD_CSI0_DAT11__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL),
-#endif
 };
 
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
@@ -280,24 +281,32 @@ iomux_v3_cfg_t const usb_pads[] = {
  */
 #define UFCR		0x90	/* FIFO Control Register */
 #define UFCR_DCEDTE	(1<<6)	/* DCE=0 */
-#define SET_DCEDTE(p)	(writel( (readl((u32 *) (p)) | UFCR_DCEDTE), (u32 *) (p)))
 
-#ifdef CONFIG_MXC_UART_DTE
 static void setup_dtemode_uart(void)
 {
-	SET_DCEDTE(UART1_BASE + UFCR);
-	SET_DCEDTE(UART2_BASE + UFCR);
-	SET_DCEDTE(UART4_BASE + UFCR);
-	SET_DCEDTE(UART5_BASE + UFCR);
+	setbits_le32((u32 *)(UART1_BASE + UFCR), UFCR_DCEDTE);
+	setbits_le32((u32 *)(UART2_BASE + UFCR), UFCR_DCEDTE);
+	setbits_le32((u32 *)(UART4_BASE + UFCR), UFCR_DCEDTE);
+	setbits_le32((u32 *)(UART5_BASE + UFCR), UFCR_DCEDTE);
 }
-#endif 
-
-static void setup_iomux_uart(void)
+static void setup_dcemode_uart(void)
 {
-#ifdef CONFIG_MXC_UART_DTE
+	clrbits_le32((u32 *)(UART1_BASE + UFCR), UFCR_DCEDTE);
+	clrbits_le32((u32 *)(UART2_BASE + UFCR), UFCR_DCEDTE);
+	clrbits_le32((u32 *)(UART4_BASE + UFCR), UFCR_DCEDTE);
+	clrbits_le32((u32 *)(UART5_BASE + UFCR), UFCR_DCEDTE);
+}
+
+static void setup_iomux_dte_uart(void)
+{
 	setup_dtemode_uart();
-#endif
-	imx_iomux_v3_setup_multiple_pads(uart1_pads, ARRAY_SIZE(uart1_pads));
+	imx_iomux_v3_setup_multiple_pads(uart1_pads_dte, ARRAY_SIZE(uart1_pads_dte));
+}
+
+static void setup_iomux_dce_uart(void)
+{
+	setup_dcemode_uart();
+	imx_iomux_v3_setup_multiple_pads(uart1_pads_dce, ARRAY_SIZE(uart1_pads_dce));
 }
 
 #ifdef CONFIG_USB_EHCI_MX6
@@ -816,7 +825,11 @@ int board_early_init_f(void)
 {
 	imx_iomux_v3_setup_multiple_pads(pwr_intb_pads,
 					ARRAY_SIZE(pwr_intb_pads));
-	setup_iomux_uart();
+#ifndef CONFIG_APALIS_IMX6_V1_0
+	setup_iomux_dte_uart();
+#else
+	setup_iomux_dce_uart();
+#endif
 
 #if defined(CONFIG_VIDEO_IPUV3)
 	setup_display();
@@ -858,6 +871,7 @@ int board_late_init(void)
 	char env_str[256];
 
 	int i;
+	u32 rev;
 	unsigned size = 0;
 
 	char *addr_str, *end;
@@ -917,16 +931,38 @@ int board_late_init(void)
 		}
 	}
 #endif /* CONFIG_TRDX_CFG_BLOCK */
+
+	rev = get_board_rev_local();
+
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	snprintf(env_str, ARRAY_SIZE(env_str), "%.4x", rev);
+	setenv("board_rev", env_str);
+#endif
+
+#ifndef CONFIG_APALIS_IMX6_V1_0
+	if((rev & 0xfff0) == 0x0100) {
+		char* fdt_env;
+
+		/* reconfigure the UART to DCE mode dynamically if on V1.0 HW */
+		setup_iomux_dce_uart();
+
+		/* if using the default device tree, use version for V1.0 HW */
+		fdt_env = getenv("fdt_file");
+		if((fdt_env != NULL) && (strcmp(FDT_FILE, fdt_env) == 0)) {
+			setenv("fdt_file", FDT_FILE_V1_0);
+			printf("patching fdt_file to " FDT_FILE_V1_0 "\n");
+#ifndef CONFIG_ENV_IS_NOWHERE
+			saveenv();
+#endif
+		}
+	}
+#endif
+
 	return 0;
 }
 #endif /* CONFIG_BOARD_LATE_INIT */
 
-/* i.MX6 uses the 'standard' board revision for things, i.e.
-   video decoding no longer works.
-   so don't interfere with the Apalis iMX6 HW Revision */
-#if 0
-#ifdef CONFIG_REVISION_TAG
-u32 get_board_rev(void)
+u32 get_board_rev_local(void)
 {
 #ifdef CONFIG_BOARD_LATE_INIT
 	int i;
@@ -957,6 +993,16 @@ u32 get_board_rev(void)
 #else
 	return 0;
 #endif /* CONFIG_BOARD_LATE_INIT */
+}
+
+/* i.MX6 Kernel/Userspace 3.0.35 uses the 'standard' board revision for
+   things, i.e. video decoding no longer works,
+   so don't interfere with the Apalis iMX6 HW Revision */
+#if 0
+#ifdef CONFIG_REVISION_TAG
+u32 get_board_rev(void)
+{
+	return get_board_rev_local();
 }
 #endif /* CONFIG_REVISION_TAG */
 #endif

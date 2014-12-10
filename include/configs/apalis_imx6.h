@@ -16,6 +16,11 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
+/* Define CONFIG_APALIS_IMX6_V1_0 to use the UARTS in DCE mode unconditionally.
+   Otherwise U-Boot uses the Configblock to fall back to DCE on V1.0 HW */
+/* #define CONFIG_APALIS_IMX6_V1_0 */
+
+
 #define CONFIG_MACH_TYPE	4886
 
 #include <asm/arch/imx-regs.h>
@@ -42,10 +47,10 @@
 
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE
-#define CONFIG_MXC_UART_DTE 		/* use the uart in DTE mode */
 
 /* Make the HW version stuff available in u-boot env */
 #define CONFIG_VERSION_VARIABLE		/* ver environment variable */
+#define CONFIG_ENV_VARS_UBOOT_CONFIG
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
 /* I2C Configs */
@@ -217,6 +222,12 @@
 	"sddtbload=setenv dtbparam; fatload mmc 1:1 ${fdt_addr_r} " \
 		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
+#ifndef CONFIG_APALIS_IMX6_V1_0
+#define FDT_FILE "imx6q-apalis-eval.dtb"
+#define FDT_FILE_V1_0 "imx6q-apalis-eval_v1_0.dtb"
+#else
+#define FDT_FILE "imx6q-apalis-eval_v1_0.dtb"
+#endif
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootcmd=run emmcboot ; echo ; echo emmcboot failed ; " \
 		"run nfsboot ; echo ; echo nfsboot failed ; " \
@@ -226,7 +237,7 @@
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \
 	EMMC_BOOTCMD \
-	"fdt_file=imx6q-apalis-eval.dtb\0" \
+	"fdt_file=" FDT_FILE "\0" \
 	MEM_LAYOUT_ENV_SETTINGS \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \

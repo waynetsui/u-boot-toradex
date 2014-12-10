@@ -194,12 +194,8 @@ static int mxc_serial_init(void)
 
 	__REG(UART_PHYS + UTS) = 0x0;
 
-	__REG(UART_PHYS + UFCR) =
-#ifdef CONFIG_MXC_UART_DTE
-			UFCR_DCEDTE;
-#else
-			0;
-#endif
+	/* keep the DCE DTE setting */
+	__REG(UART_PHYS + UFCR) = __REG(UART_PHYS + UFCR) & UFCR_DCEDTE;
 
 	serial_setbrg();
 

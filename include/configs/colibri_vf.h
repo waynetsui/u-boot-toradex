@@ -170,8 +170,8 @@
 	"kernel_file=zImage\0" \
 	"fdt_file=${soc}-colibri-${fdt_board}.dtb\0" \
 	"fdt_board=eval-v3\0" \
-	"defargs=no_console_suspend=1\0" \
-	"console=ttymxc0\0" \
+	"defargs=\0" \
+	"console=ttyLP0\0" \
 	"setup=setenv setupargs " \
 		"fec_mac=${ethaddr} console=tty1 console=${console}" \
 		",${baudrate}n8 ${memargs}\0" \

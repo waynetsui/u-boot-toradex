@@ -19,6 +19,7 @@
 #include <miiphy.h>
 #include <netdev.h>
 #include <i2c.h>
+#include <g_dnl.h>
 
 #include "../common/configblock.h"
 
@@ -333,6 +334,46 @@ int checkboard(void)
 		puts("Board: Colibri VF61\n");
 	else
 		puts("Board: Colibri VF50\n");
+
+	return 0;
+}
+
+int g_dnl_bind_fixup(struct usb_device_descriptor *dev, const char *name)
+{
+	char serialnr[64];
+	unsigned short prodnr;
+	unsigned short usb_pid;
+
+#ifdef CONFIG_TRDX_CFG_BLOCK
+	get_board_serial_char(serialnr);
+	get_board_product_number(&prodnr);
+#endif
+
+	put_unaligned(CONFIG_TRDX_VID, &dev->idVendor);
+
+	switch (prodnr) {
+	case 10:
+		usb_pid = CONFIG_TRDX_PID_COLIBRI_VF50;
+		break;
+	case 11:
+		usb_pid = CONFIG_TRDX_PID_COLIBRI_VF61;
+		break;
+	case 12:
+		usb_pid = CONFIG_TRDX_PID_COLIBRI_VF61IT;
+		break;
+	case 13:
+		usb_pid = CONFIG_TRDX_PID_COLIBRI_VF50IT;
+		break;
+	default:
+		if (is_colibri_vf61())
+			usb_pid = CONFIG_TRDX_PID_COLIBRI_VF61IT;
+		else
+			usb_pid = CONFIG_TRDX_PID_COLIBRI_VF50;
+		break;
+	}
+
+	put_unaligned(usb_pid, &dev->idProduct);
+	g_dnl_set_serialnumber((char *)serialnr);
 
 	return 0;
 }

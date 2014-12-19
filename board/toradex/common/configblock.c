@@ -186,4 +186,33 @@ err:
 	config_block = NULL;
 	return err;
 }
+
+void get_board_serial_char(char *serialnr)
+{
+	unsigned int serial = 0;
+	unsigned int serial_offset = 11;
+
+	if (config_block == NULL) {
+		strcpy(serialnr, "UNKNOWN");
+		return;
+	}
+
+	/* Get MAC address from config block */
+	memcpy(&serial, config_block + serial_offset, 3);
+	serial = ntohl(serial);
+	serial >>= 8;
+
+	sprintf(serialnr, "%u", serial);
+}
+
+void get_board_product_number(unsigned short *prodnr)
+{
+	unsigned int prodnr_offset = 25;
+
+	if (config_block == NULL)
+		return;
+
+	memcpy(prodnr, config_block + prodnr_offset, 2);
+	*prodnr = ntohs(*prodnr);
+}
 #endif /* CONFIG_TRDX_CFG_BLOCK */

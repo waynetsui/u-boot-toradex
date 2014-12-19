@@ -210,7 +210,7 @@
 		"console=${console},${baudrate}n8\0 " \
 	"setupdate=setenv drive 1; fatload mmc ${drive}:1 ${kernel_addr_r} " \
 		"flash_mmc.img && source ${kernel_addr_r}\0" \
-	"vidargs=video=mxcfb0:dev=640x480@M60,if=RGB666 " \
+	"vidargs=video=mxcfb0:dev=lcd,640x480M@60,if=RGB666 " \
 		"video=mxcfb1:off fbmem=8M\0 " \
 	"vidargs_edt=video=mxcfb0:dev=lcd,EDT-WVGA,if=RGB666 " \
 		"video=mxcfb1:off fbmem=8M\0 " \

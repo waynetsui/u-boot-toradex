@@ -172,7 +172,7 @@
 	"fdt_board=eval-v3\0" \
 	"defargs=\0" \
 	"console=ttyLP0\0" \
-	"setup=setenv setupargs fec_mac=${ethaddr} " \
+	"setup=setenv setupargs fec_mac=${ethaddr} consoleblank=0 " \
 		"console=tty1 console=${console},${baudrate}n8 ${memargs}\0" \
 	"setsdupdate=mmc rescan && set interface mmc && " \
 		"fatload ${interface} 0:1 ${loadaddr} flash_blk.img && " \
@@ -244,6 +244,8 @@
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMD_BOOTZ
+#define CONFIG_SUPPORT_RAW_INITRD
+#define CONFIG_SYS_BOOT_RAMDISK_HIGH
 
 #define CONFIG_SYS_NO_FLASH
 
@@ -282,7 +284,5 @@
 #define CONFIG_USB_STORAGE
 #define CONFIG_USB_GADGET_MASS_STORAGE
 #define CONFIG_CMD_USB_MASS_STORAGE
-
-#define CONFIG_SYS_THUMB_BUILD
 
 #endif /* __CONFIG_H */

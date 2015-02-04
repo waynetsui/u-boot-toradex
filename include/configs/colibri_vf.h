@@ -135,7 +135,7 @@
 		"load mmc 0:2 ${kernel_addr_r} /boot/${kernel_file} && " \
 		"run sddtbload; bootz ${kernel_addr_r} - ${dtbparam}\0"	\
 	"sddtbload=setenv dtbparam; load mmc 0:2 ${fdt_addr_r} "	\
-		"${soc}-colibri-${fdt_board}.dtb && "			\
+		"/boot/${soc}-colibri-${fdt_board}.dtb && "		\
 		"setenv dtbparam ${fdt_addr_r}\0"
 
 #define NFS_BOOTCMD							\

@@ -108,6 +108,21 @@ static void setup_iomux_nfc(void)
 }
 #endif
 
+#ifdef CONFIG_VYBRID_GPIO
+static void setup_iomux_gpio(void)
+{
+	static const iomux_v3_cfg_t gpio_pads[] = {
+		VF610_PAD_PTA17__GPIO_7,
+		VF610_PAD_PTA20__GPIO_10,
+		VF610_PAD_PTA21__GPIO_11,
+		VF610_PAD_PTA30__GPIO_20,
+		VF610_PAD_PTA31__GPIO_21,
+	};
+
+	imx_iomux_v3_setup_multiple_pads(gpio_pads, ARRAY_SIZE(gpio_pads));
+}
+#endif
+
 #ifdef CONFIG_FSL_ESDHC
 struct fsl_esdhc_cfg esdhc_cfg[1] = {
 	{ESDHC1_BASE_ADDR},
@@ -264,6 +279,10 @@ int board_early_init_f(void)
 	setup_iomux_i2c();
 #ifdef CONFIG_NAND_VF610_NFC
 	setup_iomux_nfc();
+#endif
+
+#ifdef CONFIG_VYBRID_GPIO
+	setup_iomux_gpio();
 #endif
 
 	return 0;

@@ -77,3 +77,22 @@ void imx_iomux_v3_setup_multiple_pads(iomux_v3_cfg_t const *pad_list,
 		p += stride;
 	}
 }
+
+#ifdef CONFIG_IOMUX_SHARE_CONF_REG
+void imx_iomux_gpio_set_direction(unsigned int gpio,
+				unsigned int direction)
+{
+	u32 reg;
+	/*
+	* Only on Vybrid the input/output buffer enable flags
+	* are part of the shared mux/conf register.
+	*/
+	reg = readl(base + (gpio << 2));
+	if (direction)
+		reg |= 0x2;
+	else
+		reg &= ~0x2;
+
+	writel(reg, (base + (gpio << 2)));
+}
+#endif

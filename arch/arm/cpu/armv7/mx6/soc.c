@@ -521,7 +521,7 @@ int board_postclk_init(void)
 }
 
 #ifdef CONFIG_SERIAL_TAG
-#if CONFIG_TRDX_CFG_BLOCK!=1
+#ifndef CONFIG_SERIAL_TAG_BOARD
 void get_board_serial(struct tag_serialnr *serialnr)
 {
 	struct ocotp_regs *ocotp = (struct ocotp_regs *)OCOTP_BASE_ADDR;

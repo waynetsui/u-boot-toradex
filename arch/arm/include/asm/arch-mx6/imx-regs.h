@@ -413,6 +413,12 @@ extern void imx_get_mac_from_fuse(int dev_id, unsigned char *mac);
 #define SRC_SCR_CORE_3_ENABLE_OFFSET    24
 #define SRC_SCR_CORE_3_ENABLE_MASK      (1<<SRC_SCR_CORE_3_ENABLE_OFFSET)
 
+#define SRC_SBMR2_BMOD_MASK             (0x3 << 24)
+#define SRC_SBMR2_BMOD_SHIFT            24
+#define SRC_SBMR2_BMOD_FUSES            0x0
+#define SRC_SBMR2_BMOD_SERIAL           0x1
+#define SRC_SBMR2_BMOD_RCON             0x2
+
 /* WEIM registers */
 struct weim {
 	u32 cs0gcr1;

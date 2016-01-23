@@ -605,6 +605,19 @@ int board_early_init_f(void)
 	return 0;
 }
 
+int should_load_env(void)
+{
+	struct src *src = (struct src *)SRC_BASE_ADDR;
+
+	/* Do not load environment from eMMC in case environment is hostile */
+	if (((src->sbmr2 & SRC_SBMR2_BMOD_MASK) >> SRC_SBMR2_BMOD_SHIFT)
+			== SRC_SBMR2_BMOD_SERIAL) {
+		puts("Serial Downloader recovery mode, do not load environment\n");
+		return 0;
+	}
+
+	return 0;
+}
 /*
  * Do not overwrite the console
  * Use always serial for U-Boot console

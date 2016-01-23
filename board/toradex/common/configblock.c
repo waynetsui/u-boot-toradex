@@ -99,6 +99,10 @@ static int trdx_cfg_block_mmc_storage(u8 *config_block, int write)
 		ret = -ENODEV;
 		goto out;
 	}
+	if (mmc_init(mmc)) {
+		puts("MMC init failed\n");
+		return -EINVAL;
+	}
 	if (part != mmc->part_num) {
 		if (mmc_switch_part(dev, part)) {
 			puts("MMC partition switch failed\n");

@@ -507,7 +507,7 @@ config TARGET_COLIBRI_IMX6
 	select CPU_V7
 
 config TARGET_COLIBRI_IMX7
-	bool "Support Colibri iMX6 board"
+	bool "Support Colibri iMX7 board"
 	select CPU_V7
 
 config TARGET_CGTQMX6EVAL

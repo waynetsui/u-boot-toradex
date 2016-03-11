@@ -12,6 +12,7 @@
 #include <env_flags.h>
 #include <fcntl.h>
 #include <linux/stringify.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -34,8 +35,6 @@
 #include <aes.h>
 
 #define DIV_ROUND_UP(n, d)	(((n) + (d) - 1) / (d))
-
-#define WHITESPACE(c) ((c == '\t') || (c == ' '))
 
 #define min(x, y) ({				\
 	typeof(x) _min1 = (x);			\
@@ -142,8 +141,8 @@ static char *fw_string_blank(char *s, int noblank)
 	int len = strlen(s);
 
 	for (i = 0; i < len; i++, s++) {
-		if ((noblank && !WHITESPACE(*s)) ||
-			(!noblank && WHITESPACE(*s)))
+		if ((noblank && !isblank(*s)) ||
+		    (!noblank && isblank(*s)))
 			break;
 	}
 	if (i == len)

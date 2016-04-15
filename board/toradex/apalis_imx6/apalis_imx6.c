@@ -389,6 +389,7 @@ int board_mmc_getcd(struct mmc *mmc)
 
 int board_mmc_init(bd_t *bis)
 {
+#ifndef CONFIG_SPL_BUILD
 	s32 status = 0;
 	u32 index = 0;
 
@@ -425,6 +426,46 @@ int board_mmc_init(bd_t *bis)
 	}
 
 	return status;
+#else
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+	unsigned reg = readl(&psrc->sbmr1) >> 11;
+	/*
+	 * Upon reading BOOT_CFG register the following map is done:
+	 * Bit 11 and 12 of BOOT_CFG register can determine the current
+	 * mmc port
+	 * 0x1                  SD1
+	 * 0x2                  SD2
+	 * 0x3                  SD4
+	 */
+
+	switch (reg & 0x3) {
+	case 0x0:
+		imx_iomux_v3_setup_multiple_pads(
+			usdhc2_pads, ARRAY_SIZE(usdhc1_pads));
+		usdhc_cfg[0].esdhc_base = USDHC1_BASE_ADDR;
+		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC_CLK);
+		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
+		break;
+	case 0x1:
+		imx_iomux_v3_setup_multiple_pads(
+			usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
+		usdhc_cfg[0].esdhc_base = USDHC2_BASE_ADDR;
+		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
+		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
+		break;
+	case 0x2:
+		imx_iomux_v3_setup_multiple_pads(
+			usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+		usdhc_cfg[0].esdhc_base = USDHC3_BASE_ADDR;
+		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
+		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
+		break;
+	default:
+		puts("MMC boot device not available");
+	}
+
+	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
+#endif
 }
 #endif
 
@@ -900,4 +941,65 @@ void ldo_mode_set(int ldo_bypass)
 {
 	return;
 }
+#endif
+
+#ifdef CONFIG_SPL_BUILD
+#include <spl.h>
+#include <libfdt.h>
+
+static void ccgr_init(void)
+{
+	struct mxc_ccm_reg *ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+
+	writel(0x00C03F3F, &ccm->CCGR0);
+	writel(0x0030FC03, &ccm->CCGR1);
+	writel(0x0FFFFFF3, &ccm->CCGR2);
+	writel(0x3FF0300F, &ccm->CCGR3);
+	writel(0x00FFF300, &ccm->CCGR4);
+	writel(0x0F0000F3, &ccm->CCGR5);
+	writel(0x000003FF, &ccm->CCGR6);
+}
+
+static void gpr_init(void)
+{
+	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
+
+	/* enable AXI cache for VDOA/VPU/IPU */
+	writel(0xF00000CF, &iomux->gpr[4]);
+	/* set IPU AXI-id0 Qos=0xf(bypass) AXI-id1 Qos=0x7 */
+	writel(0x007F007F, &iomux->gpr[6]);
+	writel(0x007F007F, &iomux->gpr[7]);
+}
+
+void board_init_f(ulong dummy)
+{
+	/* setup AIPS and disable watchdog */
+	arch_cpu_init();
+
+	ccgr_init();
+	gpr_init();
+
+	/* iomux and setup of i2c */
+	board_early_init_f();
+
+	/* setup GP timer */
+	timer_init();
+
+	/* UART clocks enabled and gd valid - init serial console */
+	preloader_console_init();
+
+	/* DDR initialization */
+	/*spl_dram_init();*/
+
+	/* Clear the BSS. */
+	memset(__bss_start, 0, __bss_end - __bss_start);
+
+	/* load/boot image from boot device */
+	board_init_r(NULL, 0);
+}
+
+void reset_cpu(ulong addr)
+{
+}
+
 #endif

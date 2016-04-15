@@ -31,6 +31,12 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/imx-common/gpio.h>
 
+#ifdef CONFIG_SPL
+#define CONFIG_SPL_LIBCOMMON_SUPPORT
+#define CONFIG_SPL_MMC_SUPPORT
+#include "imx6_spl.h"
+#endif
+
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
@@ -199,7 +205,9 @@
 #define CONFIG_SERVERIP			192.168.10.1
 
 #define CONFIG_LOADADDR			0x12000000
+#ifndef CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_TEXT_BASE		0x17800000
+#endif
 
 #ifdef CONFIG_CMD_SATA
 #define CONFIG_DRIVE_SATA "sata "

@@ -159,7 +159,7 @@ void spl_mmc_load_image(void)
 		if (part == 7)
 			part = 0;
 
-		if (mmc_switch_part(0, part)) {
+		if (mmc_switch_part(0, 0)) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 			puts("MMC partition switch failed\n");
 #endif

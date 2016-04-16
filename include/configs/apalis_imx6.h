@@ -35,6 +35,7 @@
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_MMC_SUPPORT
 #include "imx6_spl.h"
+#undef CONFIG_SYS_SPL_MALLOC_START
 #endif
 
 #define CONFIG_CMDLINE_TAG

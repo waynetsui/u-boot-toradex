@@ -96,6 +96,53 @@ int tegra_pcie_board_init(void)
 	/* Reset I210 Gigabit Ethernet Controller */
 	gpio_request(LAN_RESET_N, "LAN_RESET_N");
 	gpio_direction_output(LAN_RESET_N, 0);
+
+	/*
+	 * Make sure we don't get any back feeding from LAN_WAKE_N resp.
+	 * DEV_OFF_N
+	 */
+	gpio_request(GPIO_PO5, "LAN_WAKE_N");
+	gpio_direction_output(GPIO_PO5, 0);
+
+	gpio_request(GPIO_PO6, "LAN_DEV_OFF_N");
+	gpio_direction_output(GPIO_PO6, 0);
+
+	/* Make sure LDO9 and LDO10 are initially enabled @ 0V */
+	err = as3722_ldo_enable(pmic, 9);
+	if (err < 0) {
+		error("failed to enable LDO9: %d\n", err);
+		return err;
+	}
+	err = as3722_ldo_enable(pmic, 10);
+	if (err < 0) {
+		error("failed to enable LDO10: %d\n", err);
+		return err;
+	}
+	err = as3722_ldo_set_voltage(pmic, 9, 0x80);
+	if (err < 0) {
+		error("failed to set LDO9 voltage: %d\n", err);
+		return err;
+	}
+	err = as3722_ldo_set_voltage(pmic, 10, 0x80);
+	if (err < 0) {
+		error("failed to set LDO10 voltage: %d\n", err);
+		return err;
+	}
+
+	mdelay(100);
+
+	/* Enable LDO9 and LDO10 for +V3.3_ETH on patched prototypes */
+	err = as3722_ldo_set_voltage(pmic, 9, 0xff);
+	if (err < 0) {
+		error("failed to set LDO9 voltage: %d\n", err);
+		return err;
+	}
+	err = as3722_ldo_set_voltage(pmic, 10, 0xff);
+	if (err < 0) {
+		error("failed to set LDO10 voltage: %d\n", err);
+		return err;
+	}
+
 	mdelay(100);
 	gpio_set_value(LAN_RESET_N, 1);
 

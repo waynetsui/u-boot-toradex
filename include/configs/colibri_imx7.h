@@ -186,6 +186,7 @@
 
 #define CONFIG_SYS_AUXCORE_BOOTDATA 0x60000000 /* Set to QSPI1 A flash at default */
 #define CONFIG_CMD_BOOTAUX /* Boot M4 */
+#define CONFIG_MXC_RDC /* Enable RDC to isolate the peripherals for A7 and M4 */
 #define CONFIG_CMD_SETEXPR
 
 #define SD_BOOTCMD \

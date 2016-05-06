@@ -633,6 +633,10 @@ int board_ehci_hcd_init(int port)
 #endif
 		break;
 	case 1:
+		/* i.MX 7Solo only has one USB instance... */
+		if (is_cpu_type(MXC_CPU_MX7S))
+			return -ENODEV;
+
 		imx_iomux_v3_setup_multiple_pads(usb_otg2_pads,
 						 ARRAY_SIZE(usb_otg2_pads));
 		gpio_direction_output(USBH_PWR , 1);

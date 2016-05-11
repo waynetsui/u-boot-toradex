@@ -73,6 +73,7 @@
 #define CONFIG_PCI_PNP
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_PCI_ENUM
+#undef APALIS_T30_PCIE_EVALBOARD_INIT
 
 /* PCI networking support */
 #define CONFIG_E1000

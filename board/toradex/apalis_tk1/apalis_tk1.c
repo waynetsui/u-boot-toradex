@@ -131,6 +131,9 @@ int tegra_pcie_board_init(void)
 
 	mdelay(100);
 
+	/* Make sure controller gets enabled by disabling DEV_OFF_N */
+	gpio_set_value(GPIO_PO6, 1);
+
 	/* Enable LDO9 and LDO10 for +V3.3_ETH on patched prototypes */
 	err = as3722_ldo_set_voltage(pmic, 9, 0xff);
 	if (err < 0) {

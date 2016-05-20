@@ -171,11 +171,13 @@
 		"ubi.fm_autoconvert=1\0" \
 	"ubiboot=run setup; setenv bootargs ${defargs} ${ubiargs} ${mtdparts}" \
 		" ${setupargs} ${vidargs}; echo Booting from NAND...; " \
-		"ubi part ubi && ubifsmount ubi0:rootfs && run ubidtbload; " \
-		"ubifsload ${kernel_addr_r} /boot/${boot_file} && " \
-		"bootz ${kernel_addr_r} - ${dtbparam}\0" \
-	"ubidtbload=setenv dtbparam; ubifsload ${fdt_addr_r} " \
-		"/boot/${soc}-colibri-${fdt_board}.dtb && " \
+		"ubi part ubi && " \
+        "ubi read ${kernel_addr_r} kernel &&" \
+        "run ubidtbload; " \
+		"bootz ${kernel_addr_r} - ${dtbparam}; " \
+		"bootz ${kernel_addr_r} - \0" \
+	"ubidtbload=setenv dtbparam; " \
+		"ubi read ${fdt_addr_r} dtb && " \
 		"setenv dtbparam ${fdt_addr_r}\0"
 
 #define USB_BOOTCMD \

@@ -409,6 +409,11 @@ int genphy_config(struct phy_device *phydev)
 
 	phydev->supported = features;
 	phydev->advertising = features;
+	if (getenv("disable_giga")) {
+		phydev->advertising &= ~(SUPPORTED_1000baseT_Full |
+			SUPPORTED_1000baseT_Half | SUPPORTED_1000baseX_Full |
+			SUPPORTED_1000baseX_Half);
+	}
 
 	genphy_config_aneg(phydev);
 

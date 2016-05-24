@@ -287,6 +287,7 @@
 	"console=ttymxc0\0" \
 	"defargs=enable_wait_mode=off vmalloc=400M\0" \
 	"dfu_alt_info=" DFU_ALT_EMMC_INFO "\0" \
+	"disable_giga=1\0" \
 	EMMC_BOOTCMD \
 	"fdt_file=" FDT_FILE "\0" \
 	MEM_LAYOUT_ENV_SETTINGS \

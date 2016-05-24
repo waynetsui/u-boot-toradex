@@ -200,14 +200,6 @@ iomux_v3_cfg_t const usdhc3_pads[] = {
 
 int mx6_rgmii_rework(struct phy_device *phydev)
 {
-	/*
-	 * Bug: Apparently Apalis iMX6 does not works with Gigabit switches...
-	 * Limiting speed to 10/100Mbps, and setting master mode, seems to
-	 * be the only way to have a successful PHY auto negotiation.
-	 * How to fix: Understand why Linux kernel do not have this issue.
-	 */
-	phy_write(phydev, MDIO_DEVAD_NONE, MII_CTRL1000, 0x1c00);
-
 	/* control data pad skew - devaddr = 0x02, register = 0x04 */
 	ksz9031_phy_extended_write(phydev, 0x02,
 				   MII_KSZ9031_EXT_RGMII_CTRL_SIG_SKEW,

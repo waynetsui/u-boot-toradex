@@ -259,6 +259,18 @@ int arch_cpu_init(void)
 	return 0;
 }
 
+#ifdef CONFIG_ARCH_MISC_INIT
+int arch_misc_init(void)
+{
+	if (is_mx7d())
+		setenv("soc", "imx7d");
+	else
+		setenv("soc", "imx7s");
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_BOARD_POSTCLK_INIT
 int board_postclk_init(void)
 {

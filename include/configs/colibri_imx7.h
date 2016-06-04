@@ -23,6 +23,7 @@
 #define CONFIG_COLIBRI_IMX7
 #define CONFIG_ROM_UNIFIED_SECTIONS
 #define CONFIG_SYS_GENERIC_BOARD
+#define CONFIG_ARCH_MISC_INIT
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO_LATE
 
@@ -195,7 +196,7 @@
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
 	"load mmc 0:1 ${kernel_addr_r} ${kernel_file} && " \
-	"load mmc 0:1 ${fdt_addr_r} ${fdt_file} && " \
+	"load mmc 0:1 ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
 	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define NFS_BOOTCMD \
@@ -204,7 +205,7 @@
 		"setenv bootargs ${defargs} ${nfsargs} " \
 		"${setupargs} ${vidargs}; echo Booting from NFS...;" \
 		"dhcp ${kernel_addr_r} && "	\
-		"tftp ${fdt_addr_r} ${fdt_file} && " \
+		"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define UBI_BOOTCMD	\
@@ -215,7 +216,7 @@
 		"${setupargs} ${vidargs}; echo Booting from NAND...; " \
 		"ubi part ubi && ubifsmount ubi0:rootfs && " \
 		"ubifsload ${kernel_addr_r} /boot/${kernel_file} && " \
-		"ubifsload ${fdt_addr_r} /boot/${fdt_file} && " \
+		"ubifsload ${fdt_addr_r} /boot/${soc}-colibri-${fdt_board}.dtb && "\
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define CONFIG_BOOTCOMMAND "run ubiboot; run sdboot; run nfsboot"
@@ -251,7 +252,7 @@
 	"defargs=\0" \
 	"fdt_addr=0x83000000\0" \
 	"fdt_addr_r=0x83000000\0" \
-	"fdt_file=imx7d-colibri.dtb\0" \
+	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
 	"fdt_high=0xffffffff\0" \
 	"image=zImage\0" \

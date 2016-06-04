@@ -598,6 +598,16 @@ int power_init_board(void)
 
 	return 0;
 }
+
+void reset_cpu(ulong addr)
+{
+	struct pmic *p;
+	p = pmic_get("RN5T567");
+
+	/* Use PMIC to reset, set REPWRTIM to 0 and REPWRON to 1 */
+	pmic_reg_write(p, RN5T567_REPCNT, 0x1);
+	pmic_reg_write(p, RN5T567_SLPCNT, 0x1);
+}
 #endif
 
 int board_late_init(void)

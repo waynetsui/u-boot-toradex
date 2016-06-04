@@ -51,6 +51,7 @@ void hw_watchdog_init(void)
 }
 #endif
 
+#ifndef CONFIG_TARGET_COLIBRI_IMX7
 void reset_cpu(ulong addr)
 {
 	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
@@ -68,3 +69,4 @@ void reset_cpu(ulong addr)
 		 */
 	}
 }
+#endif

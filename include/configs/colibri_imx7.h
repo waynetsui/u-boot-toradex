@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Freescale Semiconductor, Inc.
- *               2015 Toradex AG
+ *               2015-2016 Toradex AG
  *
  * Configuration settings for the Colibri iMX7 module.
  *
@@ -58,7 +58,7 @@
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_IPS_BASE_ADDR
 
-/* Make the HW version stuff available in u-boot env */
+/* Make the HW version stuff available in U-Boot env */
 #define CONFIG_VERSION_VARIABLE		/* ver environment variable */
 #define CONFIG_ENV_VARS_UBOOT_CONFIG
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
@@ -186,7 +186,6 @@
 #define CONFIG_LOADADDR			0x80800000
 #define CONFIG_SYS_TEXT_BASE		0x87800000
 
-#define CONFIG_SYS_AUXCORE_BOOTDATA 0x60000000 /* Set to QSPI1 A flash at default */
 #define CONFIG_CMD_BOOTAUX /* Boot M4 */
 #define CONFIG_MXC_RDC /* Enable RDC to isolate the peripherals for A7 and M4 */
 #define CONFIG_CMD_SETEXPR
@@ -221,30 +220,9 @@
 
 #define CONFIG_BOOTCOMMAND "run ubiboot; run sdboot; run nfsboot"
 
-
-#ifdef CONFIG_CMD_BOOTAUX
-#define UPDATE_M4_ENV \
-	"m4image=m4_qspi.bin\0" \
-	"loadm4image=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${m4image}\0" \
-	"update_m4_from_sd=" \
-		"if sf probe 0:0; then " \
-			"if run loadm4image; then " \
-				"setexpr fw_sz ${filesize} + 0xffff; " \
-				"setexpr fw_sz ${fw_sz} / 0x10000; "	\
-				"setexpr fw_sz ${fw_sz} * 0x10000; "	\
-				"sf erase 0x0 ${fw_sz}; " \
-				"sf write ${loadaddr} 0x0 ${filesize}; " \
-			"fi; " \
-		"fi\0" \
-	"m4boot=sf probe 0:0; bootaux "__stringify(CONFIG_SYS_AUXCORE_BOOTDATA)"\0"
-#else
-#define UPDATE_M4_ENV ""
-#endif
-
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	UPDATE_M4_ENV \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
 	UBI_BOOTCMD \
@@ -317,10 +295,7 @@
 
 #define CONFIG_ENV_SIZE			SZ_8K
 
-#ifdef CONFIG_SYS_BOOT_QSPI
-#define CONFIG_SYS_USE_QSPI
-#define CONFIG_ENV_IS_IN_SPI_FLASH
-#elif defined CONFIG_SYS_BOOT_NAND
+#ifdef CONFIG_SYS_BOOT_NAND
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_ENV_IS_IN_NAND
 #else
@@ -365,30 +340,8 @@
 #define CONFIG_APBH_DMA_BURST8
 #endif
 
-#ifdef CONFIG_SYS_USE_QSPI
-#define CONFIG_FSL_QSPI    /* enable the QUADSPI driver */
-#define CONFIG_QSPI_BASE		QSPI1_IPS_BASE_ADDR
-#define CONFIG_QSPI_MEMMAP_BASE		QSPI0_ARB_BASE_ADDR
-
-#define CONFIG_CMD_SF
-#define	CONFIG_SPI_FLASH
-#define	CONFIG_SPI_FLASH_MACRONIX
-#define	CONFIG_SPI_FLASH_BAR
-#define	CONFIG_SF_DEFAULT_BUS		0
-#define	CONFIG_SF_DEFAULT_CS		0
-#define	CONFIG_SF_DEFAULT_SPEED		40000000
-#define	CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
-#endif
-
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(8 * SZ_64K)
-#elif defined(CONFIG_ENV_IS_IN_SPI_FLASH)
-#define CONFIG_ENV_OFFSET		(768 * 1024)
-#define CONFIG_ENV_SECT_SIZE		(64 * 1024)
-#define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
-#define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
-#define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
-#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 #undef CONFIG_ENV_SIZE
 #define CONFIG_ENV_OFFSET		(4 * 1024 * 1024)
@@ -427,10 +380,6 @@
 #endif
 
 #define CONFIG_IMX_THERMAL
-
-#if defined(CONFIG_MXC_EPDC) && defined(CONFIG_SYS_USE_QSPI)
-#error "EPDC Pins conflicts QSPI, Either EPDC or QSPI can be enabled!"
-#endif
 
 #if defined(CONFIG_ANDROID_SUPPORT)
 #error "not yet implemented, compare with mx7dsabresdandroid.h"

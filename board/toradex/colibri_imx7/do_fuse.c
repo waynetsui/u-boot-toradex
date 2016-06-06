@@ -13,7 +13,7 @@
 
 static int mfgr_fuse(void)
 {
-	unsigned val, val6;
+	unsigned val;
 
 	fuse_sense(1, 3, &val);
 	printf("Fuse 1, 3: %8x\n", val);

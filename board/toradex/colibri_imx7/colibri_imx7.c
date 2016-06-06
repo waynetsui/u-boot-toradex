@@ -161,7 +161,6 @@ static void setup_gpmi_nand(void)
 	/*
 	 * NAND_USDHC_BUS_CLK is set in rom
 	 */
-
 	set_clk_nand();
 
 	/*
@@ -211,7 +210,7 @@ static iomux_v3_cfg_t const backlight_pads[] = {
 	MX7D_PAD_SD1_WP__GPIO5_IO1 | MUX_PAD_CTRL(NO_PAD_CTRL),
 #define RGB_BACKLIGHT_GP IMX_GPIO_NR(5, 1)
 /* TODO PWM not GPIO */
-	MX7D_PAD_GPIO1_IO08__GPIO1_IO8  | MUX_PAD_CTRL(NO_PULLUP),
+	MX7D_PAD_GPIO1_IO08__GPIO1_IO8   | MUX_PAD_CTRL(NO_PULLUP),
 	MX7D_PAD_ECSPI2_MOSI__GPIO4_IO21 | MUX_PAD_CTRL(NO_PAD_CTRL),
 #define RGB_BACKLIGHTPWM_GP IMX_GPIO_NR(1, 8)
 };
@@ -289,7 +288,7 @@ int board_video_skip(void)
 	}
 	if (i < ARRAY_SIZE(displays)) {
 		ret = mxs_lcd_panel_setup(displays[i].mode, displays[i].depth,
-				    displays[i].lcdif_base_addr);
+					  displays[i].lcdif_base_addr);
 		if (!ret) {
 			if (displays[i].enable)
 				displays[i].enable(displays+i);
@@ -565,7 +564,7 @@ static const struct boot_mode board_boot_modes[] = {
 	/* 4 bit bus width */
 	{"nand", MAKE_CFGVAL(0x40, 0x34, 0x00, 0x00)},
 	{"sd1", MAKE_CFGVAL(0x10, 0x10, 0x00, 0x00)},
-	{NULL,   0},
+	{NULL, 0},
 };
 #endif
 
@@ -589,7 +588,7 @@ int power_init_board(void)
 
 	pmic_reg_read(p, RN5T567_LSIVER, &ver);
 	pmic_reg_read(p, RN5T567_OTPVER, &reg);
-	printf("PMIC:  RN5T567 LSIVER=0x%x OTPVER=0x%x\n", ver, reg);
+	printf("PMIC: RN5T567 LSIVER=0x%x OTPVER=0x%x\n", ver, reg);
 
 	/* set jduge and press timer of N_OE to minimal values */
 	pmic_reg_read(p, RN5T567_NOETIMSETCNT, &reg);

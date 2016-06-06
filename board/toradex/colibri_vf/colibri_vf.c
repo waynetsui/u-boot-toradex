@@ -40,7 +40,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define ENET_PAD_CTRL	(PAD_CTL_PUS_47K_UP | PAD_CTL_SPEED_HIGH | \
 			PAD_CTL_DSE_50ohm | PAD_CTL_OBE_IBE_ENABLE)
 
-#define USB_PEN_GPIO    83
+#define USB_PEN_GPIO	83
 
 static const iomux_v3_cfg_t usb_pads[] = {
 	VF610_PAD_PTD4__GPIO_83,
@@ -421,7 +421,7 @@ int board_early_init_f(void)
 static const struct boot_mode board_boot_modes[] = {
 	{"nand",	MAKE_CFGVAL(0x80, 0x02, 0x00, 0x00)},
 	{"mmc",		MAKE_CFGVAL(0x60, 0x28, 0x00, 0x00)},
-	{NULL,	 0},
+	{NULL,		0},
 };
 #endif
 
@@ -498,7 +498,7 @@ int ft_board_setup(void *blob, bd_t *bd)
 	int ret = 0;
 #ifdef CONFIG_FDT_FIXUP_PARTITIONS
 	static struct node_info nodes[] = {
-		{ "fsl,vf610-nfc",  MTD_DEV_TYPE_NAND, }, /* NAND flash */
+		{ "fsl,vf610-nfc", MTD_DEV_TYPE_NAND, }, /* NAND flash */
 	};
 
 	/* Update partition nodes using info from mtdparts env var */

@@ -398,7 +398,7 @@ int board_eth_init(bd_t *bis)
 	}
 	phy_reset(phydev);
 	printf("using PHY at %d\n", phydev->addr);
-	ret  = fec_probe(bis, -1, base, bus, phydev);
+	ret = fec_probe(bis, -1, base, bus, phydev);
 	if (ret) {
 		printf("FEC MXC: %s:failed\n", __func__);
 		free(phydev);
@@ -546,7 +546,7 @@ static void setup_display(void)
 /* FIXME disable whatever LVDS stuff is initialized here */
 	/* Turn on LDB0,IPU,IPU DI0 clocks */
 	reg = __raw_readl(&mxc_ccm->CCGR3);
-	reg |=  MXC_CCM_CCGR3_LDB_DI0_MASK;
+	reg |= MXC_CCM_CCGR3_LDB_DI0_MASK;
 	writel(reg, &mxc_ccm->CCGR3);
 
 	/* set LDB0, LDB1 clk select to 011/011 */
@@ -701,7 +701,7 @@ int do_patch_ddr_size(cmd_tbl_t *cmdtp, int flag, int argc,
 		goto fail;
 	if (is_cpu_type(MXC_CPU_MX6DL)) {
 		start_dcd = (unsigned *)(ivt + *(unsigned*)(&ivt[0xc]) -
-		                               *(unsigned*)(&ivt[0x14]));
+					       *(unsigned*)(&ivt[0x14]));
 		if ((*start_dcd & 0xfe0000ff) == 0x400000d2) {
 			len = (*start_dcd & 0xffff00) >> 8;
 			/* search register value for addr 0x21b0000 */
@@ -721,7 +721,7 @@ int do_patch_ddr_size(cmd_tbl_t *cmdtp, int flag, int argc,
 				ret = mmc->block_dev.block_write(0, 2, 2, ivt);
 				puts("patched, ");
 			}
-                } else
+		} else
 			puts("reg/val pair not found, ");
 	}
 	/* Switch back to regular eMMC user partition */

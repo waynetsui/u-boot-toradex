@@ -72,7 +72,7 @@ int do_updt_fuse(cmd_tbl_t *cmdtp, int flag, int argc,
 				"         Updating to fast boot mode prevents easy\n"
 				"         downgrading to previous BSP versions.\n"
 				"\nReally perform this fuse programming? <y/N>\n");
-	        if (!confirm_yesno())
+		if (!confirm_yesno())
 			return CMD_RET_FAILURE;
 	}
 	puts("Fusing fast boot mode...\n");

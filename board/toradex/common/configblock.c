@@ -252,7 +252,7 @@ static int get_cfgblock_interactive(void)
 				trdx_hw_tag.prodid = COLIBRI_IMX6DL_IT;
 			else
 				trdx_hw_tag.prodid = COLIBRI_IMX6S_IT;
-                else
+		else
 			if (is_cpu_type(MXC_CPU_MX6DL))
 				trdx_hw_tag.prodid = COLIBRI_IMX6DL;
 			else
@@ -392,7 +392,7 @@ static int do_cfgblock_create(cmd_tbl_t *cmdtp, int flag, int argc,
 #endif
 	}
 
-	/* Parse new Toradex config  block data... */
+	/* Parse new Toradex config block data... */
 	if (argc < 3)
 		err = get_cfgblock_interactive();
 	else

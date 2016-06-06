@@ -276,7 +276,7 @@ static void setup_iomux_gpio(void)
 iomux_v3_cfg_t const usb_pads[] = {
 	/* TODO This pin has a dedicated USB power functionality, can we use it? */
 	/* USBH_EN */
-	MX6_PAD_GPIO_0__GPIO1_IO00  | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_GPIO_0__GPIO1_IO00 | MUX_PAD_CTRL(NO_PAD_CTRL),
 #	define GPIO_USBH_EN IMX_GPIO_NR(1, 0)
 	/* USB_VBUS_DET */
 	MX6_PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL),
@@ -451,7 +451,7 @@ int board_eth_init(bd_t *bis)
 		return 0;
 	}
 	printf("using PHY at %d\n", phydev->addr);
-	ret  = fec_probe(bis, -1, base, bus, phydev);
+	ret = fec_probe(bis, -1, base, bus, phydev);
 	if (ret) {
 		printf("FEC MXC: %s:failed\n", __func__);
 		free(phydev);
@@ -731,7 +731,7 @@ static void setup_display(void)
 	imx_setup_hdmi();
 	/* Turn on LDB0,IPU,IPU DI0 clocks */
 	reg = __raw_readl(&mxc_ccm->CCGR3);
-	reg |=  MXC_CCM_CCGR3_LDB_DI0_MASK;
+	reg |= MXC_CCM_CCGR3_LDB_DI0_MASK;
 	writel(reg, &mxc_ccm->CCGR3);
 
 	/* set LDB0, LDB1 clk select to 011/011 */

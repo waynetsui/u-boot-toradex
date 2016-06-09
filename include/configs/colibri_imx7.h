@@ -190,6 +190,13 @@
 #define CONFIG_MXC_RDC /* Enable RDC to isolate the peripherals for A7 and M4 */
 #define CONFIG_CMD_SETEXPR
 
+#define MEM_LAYOUT_ENV_SETTINGS \
+	"fdt_addr_r=0x82000000\0" \
+	"fdt_high=0xffffffff\0" \
+	"initrd_high=0xffffffff\0" \
+	"kernel_addr_r=0x81000000\0" \
+	"ramdisk_addr_r=0x82100000\0"
+
 #define SD_BOOTCMD \
 	"sdargs=root=/dev/mmcblk0p2 rw rootwait\0"	\
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
@@ -223,20 +230,15 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	MEM_LAYOUT_ENV_SETTINGS \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
 	UBI_BOOTCMD \
 	"console=ttymxc0\0" \
 	"defargs=\0" \
-	"fdt_addr=0x83000000\0" \
-	"fdt_addr_r=0x83000000\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
-	"fdt_high=0xffffffff\0" \
-	"image=zImage\0" \
-	"initrd_high=0xffffffff\0" \
 	"ip_dyn=yes\0" \
-	"kernel_addr_r=80800000\0" \
 	"kernel_file=zImage\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	"setethupdate=if env exists ethaddr; then; else setenv ethaddr " \
@@ -356,6 +358,7 @@
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMD_BOOTZ
+#define CONFIG_SUPPORT_RAW_INITRD
 
 #define CONFIG_CMD_BMODE
 
@@ -381,8 +384,4 @@
 
 #define CONFIG_IMX_THERMAL
 
-#if defined(CONFIG_ANDROID_SUPPORT)
-#error "not yet implemented, compare with mx7dsabresdandroid.h"
-#include "colibri_imx7_android.h"
-#endif
 #endif	/* __CONFIG_H */

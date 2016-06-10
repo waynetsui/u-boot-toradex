@@ -201,6 +201,7 @@
 	"sdargs=root=/dev/mmcblk0p2 rw rootwait\0"	\
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
+	"run m4boot && " \
 	"load mmc 0:1 ${kernel_addr_r} ${kernel_file} && " \
 	"load mmc 0:1 ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
 	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
@@ -220,7 +221,7 @@
 	"ubiboot=run setup; " \
 		"setenv bootargs ${defargs} ${ubiargs} " \
 		"${setupargs} ${vidargs}; echo Booting from NAND...; " \
-		"ubi part ubi && " \
+		"ubi part ubi && run m4boot && " \
 		"ubi read ${kernel_addr_r} kernel && " \
 		"ubi read ${fdt_addr_r} dtb && " \
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
@@ -238,6 +239,7 @@
 	"defargs=\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
+	"m4boot=;\0" \
 	"ip_dyn=yes\0" \
 	"kernel_file=zImage\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \

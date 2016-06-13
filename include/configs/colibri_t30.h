@@ -165,19 +165,19 @@
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
 	"setethupdate=if env exists ethaddr; then; else setenv ethaddr " \
-		"00:14:2d:00:00:00; fi; usb start && tftpboot " \
-		"${kernel_addr_r} flash_eth.img\0" \
+		"00:14:2d:00:00:00; fi; usb start && tftpboot ${loadaddr} " \
+		"flash_eth.img && source ${loadaddr}\0" \
 	"setsdupdate=setenv interface mmc; setenv drive 1; mmc rescan; load " \
-		"${interface} ${drive}:1 ${kernel_addr_r} flash_blk.img\0" \
+		"${interface} ${drive}:1 ${loadaddr} flash_blk.img && " \
+		"source ${loadaddr}\0" \
 	"setup=setenv setupargs asix_mac=${ethaddr} " \
 		"consoleblank=0 no_console_suspend=1 console=tty1 " \
 		"console=${console},${baudrate}n8 debug_uartport=lsport,0 " \
 		"vmalloc=128M mem=1012M@2048M fbmem=12M@3060M\0" \
+	"setupdate=run setsdupdate || run setusbupdate || run setethupdate\0" \
 	"setusbupdate=usb start && setenv interface usb; setenv drive 0; " \
-		"load ${interface} ${drive}:1 ${kernel_addr_r} " \
-		"flash_blk.img\0" \
-	"setupdate=run setsdupdate || run setusbupdate || run setethupdate;" \
-		" source ${kernel_addr_r}\0" \
+		"load ${interface} ${drive}:1 ${loadaddr} flash_blk.img && " \
+		"source ${loadaddr}\0" \
 	USB_BOOTCMD \
 	"vidargs=video=tegrafb0:640x480-16@60\0"
 

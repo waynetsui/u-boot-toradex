@@ -259,18 +259,18 @@
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
 	"setethupdate=if env exists ethaddr; then; else setenv ethaddr " \
-		"00:14:2d:00:00:00; fi; tftpboot ${kernel_addr_r} " \
-		"flash_eth.img\0" \
-	"setsdupdate=setenv interface mmc; setenv drive 1; mmc rescan; " \
-		"load ${interface} ${drive}:1 ${kernel_addr_r} flash_blk.img\0" \
+		"00:14:2d:00:00:00; fi; tftpboot ${loadaddr} " \
+		"flash_eth.img && source ${loadaddr}\0" \
+	"setsdupdate=setenv interface mmc; setenv drive 1; mmc rescan; load " \
+		"${interface} ${drive}:1 ${loadaddr} flash_blk.img && " \
+		"source ${loadaddr}\0" \
 	"setup=setenv setupargs fec_mac=${ethaddr} " \
-		"consoleblank=0  no_console_suspend=1 console=tty1 " \
+		"consoleblank=0 no_console_suspend=1 console=tty1 " \
 		"console=${console},${baudrate}n8\0 " \
-	"setupdate=run setsdupdate || run setusbupdate || run setethupdate;" \
-		" source ${kernel_addr_r}\0" \
+	"setupdate=run setsdupdate || run setusbupdate || run setethupdate\0" \
 	"setusbupdate=usb start && setenv interface usb; setenv drive 0; " \
-		"load ${interface} ${drive}:1 ${kernel_addr_r} " \
-		"flash_blk.img\0" \
+		"load ${interface} ${drive}:1 ${loadaddr} flash_blk.img && " \
+		"source ${loadaddr}\0" \
 	"splashpos=m,m\0" \
 	"vidargs=video=mxcfb0:dev=lcd,640x480M@60,if=RGB666 " \
 		"video=mxcfb1:off fbmem=8M\0 "

@@ -732,6 +732,9 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #ifdef CONFIG_CMD_NAND_TORTURE
 	if (strcmp(cmd, "torture") == 0) {
+		loff_t endoff;
+		unsigned int failed = 0, passed = 0;
+
 		if (argc < 3)
 			goto usage;
 
@@ -740,12 +743,37 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			return 1;
 		}
 
-		printf("\nNAND torture: device %d offset 0x%llx size 0x%x\n",
-			dev, off, nand->erasesize);
-		ret = nand_torture(nand, off);
-		printf(" %s\n", ret ? "Failed" : "Passed");
+		size = nand->erasesize;
+		if (argc > 3) {
+			if (!str2off(argv[3], &size)) {
+				puts("Size is not a valid number\n");
+				return 1;
+			}
+		}
 
-		return ret == 0 ? 0 : 1;
+		endoff = off + size;
+		if (endoff > nand->size) {
+			puts("Arguments beyond end of NAND\n");
+			return 1;
+		}
+
+		off = round_down(off, nand->erasesize);
+		endoff = round_up(endoff, nand->erasesize);
+		size = endoff - off;
+		printf("\nNAND torture: device %d offset 0x%llx size 0x%llx (block size 0x%x)\n",
+		       dev, off, size, nand->erasesize);
+		while (off < endoff) {
+			ret = nand_torture(nand, off);
+			if (ret) {
+				failed++;
+				printf("  block at 0x%llx failed\n", off);
+			} else {
+				passed++;
+			}
+			off += nand->erasesize;
+		}
+		printf(" Passed: %u, failed: %u\n", passed, failed);
+		return failed != 0;
 	}
 #endif
 
@@ -856,7 +884,8 @@ static char nand_help_text[] =
 	"nand bad - show bad blocks\n"
 	"nand dump[.oob] off - dump page\n"
 #ifdef CONFIG_CMD_NAND_TORTURE
-	"nand torture off - torture block at offset\n"
+	"nand torture off - torture one block at offset\n"
+	"nand torture off [size] - torture blocks from off to off+size\n"
 #endif
 	"nand scrub [-y] off size | scrub.part partition | scrub.chip\n"
 	"    really clean NAND erasing bad blocks (UNSAFE)\n"

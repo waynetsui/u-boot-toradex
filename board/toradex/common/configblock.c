@@ -258,11 +258,10 @@ static int get_cfgblock_interactive(void)
 			else
 				trdx_hw_tag.prodid = COLIBRI_IMX6S;
 #endif /* CONFIG_MACH_TYPE */
-	} else if (!strcmp("mx7", soc)) {
-			if (gd->ram_size == 0x20000000)
-				trdx_hw_tag.prodid = COLIBRI_IMX7D;
-			else
-				trdx_hw_tag.prodid = COLIBRI_IMX7S;
+	} else if (!strcmp("imx7d", soc)) {
+		trdx_hw_tag.prodid = COLIBRI_IMX7D;
+	} else if (!strcmp("imx7s", soc)) {
+		trdx_hw_tag.prodid = COLIBRI_IMX7S;
 	} else if (!strcmp("tegra20", soc)) {
 		if (it == 'y' || it == 'Y')
 			if (gd->ram_size == 0x10000000)

@@ -15,6 +15,7 @@
 #include <asm/arch/sys_proto.h>
 #include <malloc.h>
 #include <asm/arch/mx6-pins.h>
+#include <asm/arch/mx6-ddr.h>
 #include <asm/errno.h>
 #include <asm/gpio.h>
 #include <asm/imx-common/iomux-v3.h>
@@ -30,6 +31,7 @@
 #include <asm/arch/crm_regs.h>
 #include <asm/arch/mxc_hdmi.h>
 #include <i2c.h>
+#include <imx_thermal.h>
 
 #include "../common/configblock.h"
 #ifdef CONFIG_TRDX_CMD_IMX_MFGR
@@ -964,6 +966,144 @@ static void gpr_init(void)
 	writel(0x007F007F, &iomux->gpr[6]);
 	writel(0x007F007F, &iomux->gpr[7]);
 }
+/*
+ * Driving strength:
+ *   0x30 == 40 Ohm
+ *   0x28 == 48 Ohm
+ */
+
+#define IMX6DQ_DRIVE_STRENGTH		0x30
+#define IMX6SDL_DRIVE_STRENGTH		0x28
+
+/* configure MX6Q/DUAL mmdc DDR io registers */
+static struct mx6dq_iomux_ddr_regs mx6dq_ddr_ioregs = {
+	.dram_sdclk_0 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdclk_1 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_cas = IMX6DQ_DRIVE_STRENGTH,
+	.dram_ras = IMX6DQ_DRIVE_STRENGTH,
+	.dram_reset = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdcke0 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdcke1 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdba2 = 0x00000000,
+	.dram_sdodt0 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdodt1 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs0 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs1 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs2 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs3 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs4 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs5 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs6 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_sdqs7 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm0 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm1 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm2 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm3 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm4 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm5 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm6 = IMX6DQ_DRIVE_STRENGTH,
+	.dram_dqm7 = IMX6DQ_DRIVE_STRENGTH,
+};
+
+/* configure MX6Q/DUAL mmdc GRP io registers */
+static struct mx6dq_iomux_grp_regs mx6dq_grp_ioregs = {
+	.grp_ddr_type = 0x000c0000,
+	.grp_ddrmode_ctl = 0x00020000,
+	.grp_ddrpke = 0x00000000,
+	.grp_addds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_ctlds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_ddrmode = 0x00020000,
+	.grp_b0ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b1ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b2ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b3ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b4ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b5ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b6ds = IMX6DQ_DRIVE_STRENGTH,
+	.grp_b7ds = IMX6DQ_DRIVE_STRENGTH,
+};
+
+/* DDR 64bit 2GB */
+static struct mx6_ddr_sysinfo mem_q = {
+	.dsize		= 2,
+	.cs1_mirror	= 0,
+	/* config for full 4GB range so that get_mem_size() works */
+	.cs_density	= 32,
+	.ncs		= 1,
+	.bi_on		= 1,
+	.rtt_nom	= 1,
+	.rtt_wr		= 0,
+	.ralat		= 5,
+	.walat		= 0,
+	.mif3_mode	= 3,
+	.rst_to_cke	= 0x23,
+	.sde_to_rst	= 0x10,
+};
+
+/* 2Gb NT5CC128M16IP-DI */
+static struct mx6_ddr3_cfg nt5cc128m16ip = {
+	.mem_speed = 1600,
+	.density = 4,
+	.width = 16,
+	.banks = 8,
+	.rowaddr = 15,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1375,
+	.trcmin = 4875,
+	.trasmin = 3500,
+};
+
+/* 4Gb IM4G16D3EABG-125I */
+static struct mx6_ddr3_cfg im4g16d3eabg = {
+	.mem_speed = 1600,
+	.density = 4,
+	.width = 16,
+	.banks = 8,
+	.rowaddr = 15,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1100,
+	.trcmin = 3900,
+	.trasmin = 3500,
+};
+
+static struct mx6_mmdc_calibration mx6q_apalis_mmdc_calib = {
+	.p0_mpwldectrl0 = 0x0009000e,
+	.p0_mpwldectrl1 = 0x0018000b,
+	.p1_mpwldectrl0 = 0x00060015,
+	.p1_mpwldectrl1 = 0x0006000e,
+
+	.p0_mpdgctrl0 = 0x432a0338,
+	.p0_mpdgctrl1 = 0x03260324,
+	.p1_mpdgctrl0 = 0x43340344,
+	.p1_mpdgctrl1 = 0x031e027c,
+
+	.p0_mprddlctl = 0x33272d2e,
+	.p1_mprddlctl = 0x2f312b37,
+	.p0_mpwrdlctl = 0x3a35433c,
+	.p1_mpwrdlctl = 0x4336453f,
+};
+
+static void spl_dram_init(void)
+{
+	int minc, maxc;
+
+	mx6dq_dram_iocfg(64, &mx6dq_ddr_ioregs, &mx6dq_grp_ioregs);
+	switch (get_cpu_temp_grade(&minc, &maxc)) {
+	case TEMP_AUTOMOTIVE:
+	case TEMP_INDUSTRIAL:
+		puts("Industrial temperature grade DDR3 timings.\n");
+		mx6_dram_cfg(&mem_q, &mx6q_apalis_mmdc_calib, &im4g16d3eabg);
+		break;
+	case TEMP_EXTCOMMERCIAL:
+	default:
+		puts("Commercial temperature grade DDR3 timings.\n");
+		mx6_dram_cfg(&mem_q, &mx6q_apalis_mmdc_calib, &nt5cc128m16ip);
+		break;
+	};
+	udelay(100);
+}
 
 void board_init_f(ulong dummy)
 {
@@ -983,7 +1123,7 @@ void board_init_f(ulong dummy)
 	preloader_console_init();
 
 	/* DDR initialization */
-	/*spl_dram_init();*/
+	spl_dram_init();
 
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);

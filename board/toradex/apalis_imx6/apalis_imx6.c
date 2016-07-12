@@ -1040,10 +1040,10 @@ static struct mx6_ddr_sysinfo mem_q = {
 	.sde_to_rst	= 0x10,
 };
 
-/* 2Gb NT5CC128M16IP-DI */
+/* 2Gb NT5CC128M16IP-DI/NT5CB128M16FP-DI */
 static struct mx6_ddr3_cfg nt5cc128m16ip = {
 	.mem_speed = 1600,
-	.density = 4,
+	.density = 2,
 	.width = 16,
 	.banks = 8,
 	.rowaddr = 15,
@@ -1051,6 +1051,20 @@ static struct mx6_ddr3_cfg nt5cc128m16ip = {
 	.pagesz = 2,
 	.trcd = 1375,
 	.trcmin = 4875,
+	.trasmin = 3500,
+};
+
+/* 1Gb NT5CB64M16FP-DH */
+static struct mx6_ddr3_cfg nt5cb64m16fp = {
+	.mem_speed = 1600,
+	.density = 1,
+	.width = 16,
+	.banks = 8,
+	.rowaddr = 13,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1250,
+	.trcmin = 4750,
 	.trasmin = 3500,
 };
 
@@ -1099,7 +1113,10 @@ static void spl_dram_init(void)
 	case TEMP_EXTCOMMERCIAL:
 	default:
 		puts("Commercial temperature grade DDR3 timings.\n");
-		mx6_dram_cfg(&mem_q, &mx6q_apalis_mmdc_calib, &nt5cc128m16ip);
+		if (is_cpu_type(MXC_CPU_MX6D))
+			mx6_dram_cfg(&mem_q, &mx6q_apalis_mmdc_calib, &nt5cb64m16fp);
+		else
+			mx6_dram_cfg(&mem_q, &mx6q_apalis_mmdc_calib, &nt5cc128m16ip);
 		break;
 	};
 	udelay(100);

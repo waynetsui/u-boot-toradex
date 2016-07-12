@@ -15,6 +15,7 @@
 #include <asm/arch/sys_proto.h>
 #include <malloc.h>
 #include <asm/arch/mx6-pins.h>
+#include <asm/arch/mx6-ddr.h>
 #include <asm/errno.h>
 #include <asm/gpio.h>
 #include <asm/imx-common/iomux-v3.h>
@@ -30,6 +31,7 @@
 #include <asm/arch/crm_regs.h>
 #include <asm/arch/mxc_hdmi.h>
 #include <i2c.h>
+#include <imx_thermal.h>
 
 #include "../common/configblock.h"
 #ifdef CONFIG_TRDX_CMD_IMX_MFGR
@@ -327,6 +329,7 @@ int board_mmc_getcd(struct mmc *mmc)
 
 int board_mmc_init(bd_t *bis)
 {
+#ifndef CONFIG_SPL_BUILD
 	s32 status = 0;
 	u32 index = 0;
 
@@ -357,6 +360,39 @@ int board_mmc_init(bd_t *bis)
 	}
 
 	return status;
+#else
+	struct src *psrc = (struct src *)SRC_BASE_ADDR;
+	unsigned reg = readl(&psrc->sbmr1) >> 11;
+	/*
+	 * Upon reading BOOT_CFG register the following map is done:
+	 * Bit 11 and 12 of BOOT_CFG register can determine the current
+	 * mmc port
+	 * 0x1                  SD1
+	 * 0x2                  SD2
+	 * 0x3                  SD4
+	 */
+
+	switch (reg & 0x3) {
+	case 0x0:
+		imx_iomux_v3_setup_multiple_pads(
+			usdhc1_pads, ARRAY_SIZE(usdhc1_pads));
+		usdhc_cfg[0].esdhc_base = USDHC1_BASE_ADDR;
+		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC_CLK);
+		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
+		break;
+	case 0x2:
+		imx_iomux_v3_setup_multiple_pads(
+			usdhc3_pads, ARRAY_SIZE(usdhc3_pads));
+		usdhc_cfg[0].esdhc_base = USDHC3_BASE_ADDR;
+		usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
+		gd->arch.sdhc_clk = usdhc_cfg[0].sdhc_clk;
+		break;
+	default:
+		puts("MMC boot device not available");
+	}
+
+	return fsl_esdhc_initialize(bis, &usdhc_cfg[0]);
+#endif
 }
 #endif
 
@@ -747,4 +783,230 @@ void ldo_mode_set(int ldo_bypass)
 {
 	return;
 }
+#endif
+
+#ifdef CONFIG_SPL_BUILD
+#include <spl.h>
+#include <libfdt.h>
+
+static void ccgr_init(void)
+{
+	struct mxc_ccm_reg *ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+
+	writel(0x00C03F3F, &ccm->CCGR0);
+	writel(0x0030FC03, &ccm->CCGR1);
+	writel(0x0FFFFFF3, &ccm->CCGR2);
+	writel(0x3FF0300F, &ccm->CCGR3);
+	writel(0x00FFF300, &ccm->CCGR4);
+	writel(0x0F0000F3, &ccm->CCGR5);
+	writel(0x000003FF, &ccm->CCGR6);
+}
+
+static void gpr_init(void)
+{
+	struct iomuxc *iomux = (struct iomuxc *)IOMUXC_BASE_ADDR;
+
+	/* enable AXI cache for VDOA/VPU/IPU */
+	writel(0xF00000CF, &iomux->gpr[4]);
+	/* set IPU AXI-id0 Qos=0xf(bypass) AXI-id1 Qos=0x7 */
+	writel(0x007F007F, &iomux->gpr[6]);
+	writel(0x007F007F, &iomux->gpr[7]);
+}
+
+/*
+ * Driving strength:
+ *   0x30 == 40 Ohm
+ *   0x28 == 48 Ohm
+ */
+
+#define IMX6DQ_DRIVE_STRENGTH		0x30
+#define IMX6SDL_DRIVE_STRENGTH		0x28
+
+/* configure MX6SOLO/DUALLITE mmdc DDR io registers */
+static const struct mx6sdl_iomux_ddr_regs mx6sdl_ddr_ioregs = {
+	.dram_sdclk_0 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdclk_1 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_cas = IMX6SDL_DRIVE_STRENGTH,
+	.dram_ras = IMX6SDL_DRIVE_STRENGTH,
+	.dram_reset = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdcke0 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdcke1 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdba2 = 0x00000000,
+	.dram_sdodt0 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdodt1 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs0 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs1 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs2 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs3 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs4 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs5 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs6 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_sdqs7 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm0 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm1 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm2 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm3 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm4 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm5 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm6 = IMX6SDL_DRIVE_STRENGTH,
+	.dram_dqm7 = IMX6SDL_DRIVE_STRENGTH,
+};
+
+/* configure MX6SOLO/DUALLITE mmdc GRP io registers */
+static const struct mx6sdl_iomux_grp_regs mx6sdl_grp_ioregs = {
+	.grp_ddr_type = 0x000c0000,
+	.grp_ddrmode_ctl = 0x00020000,
+	.grp_ddrpke = 0x00000000,
+	.grp_addds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_ctlds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_ddrmode = 0x00020000,
+	.grp_b0ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b1ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b2ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b3ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b4ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b5ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b6ds = IMX6SDL_DRIVE_STRENGTH,
+	.grp_b7ds = IMX6SDL_DRIVE_STRENGTH,
+};
+
+/* DDR 64bit */
+static const struct mx6_ddr_sysinfo mem_dl = {
+	.dsize		= 2,
+	.cs1_mirror	= 0,
+	/* config for full 4GB range so that get_mem_size() works */
+	.cs_density	= 32,
+	.ncs		= 1,
+	.bi_on		= 1,
+	.rtt_nom	= 1,
+	.rtt_wr		= 0,
+	.ralat		= 5,
+	.walat		= 0,
+	.mif3_mode	= 3,
+	.rst_to_cke	= 0x23,
+	.sde_to_rst	= 0x10,
+};
+
+/* DDR 32bit */
+static const struct mx6_ddr_sysinfo mem_s = {
+	.dsize		= 1,
+	.cs1_mirror	= 0,
+	/* config for full 4GB range so that get_mem_size() works */
+	.cs_density	= 32,
+	.ncs		= 1,
+	.bi_on		= 1,
+	.rtt_nom	= 1,
+	.rtt_wr		= 0,
+	.ralat		= 5,
+	.walat		= 0,
+	.mif3_mode	= 3,
+	.rst_to_cke	= 0x23,
+	.sde_to_rst	= 0x10,
+};
+
+/* 1Gb NT5CB64M16FP-DH */
+static const struct mx6_ddr3_cfg nt5cb64m16fp_dh = {
+	.mem_speed = 1600,
+	.density = 1,
+	.width = 16,
+	.banks = 8,
+	.rowaddr = 13,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1250,
+	.trcmin = 4750,
+	.trasmin = 3500,
+};
+
+/* 1Gb NT5CB64M16FP-DII */
+static const struct mx6_ddr3_cfg nt5cb64m16fp_dii = {
+	.mem_speed = 1600,
+	.density = 1,
+	.width = 16,
+	.banks = 8,
+	.rowaddr = 13,
+	.coladdr = 10,
+	.pagesz = 2,
+	.trcd = 1375,
+	.trcmin = 4875,
+	.trasmin = 3500,
+};
+
+static const struct mx6_mmdc_calibration mx6dl_colibri_mmdc_calib = {
+	.p0_mpwldectrl0 = 0x00340039,
+	.p0_mpwldectrl1 = 0x002C002D,
+	.p1_mpwldectrl0 = 0x00120019,
+	.p1_mpwldectrl1 = 0x0012002D,
+
+	.p0_mpdgctrl0 = 0x42360232,
+	.p0_mpdgctrl1 = 0x021f022a,
+	.p1_mpdgctrl0 = 0x421e0224,
+	.p1_mpdgctrl1 = 0x02110218,
+
+	.p0_mprddlctl = 0x41434344,
+	.p1_mprddlctl = 0x4345423e,
+	.p0_mpwrdlctl = 0x39383339,
+	.p1_mpwrdlctl = 0x3e363930,
+};
+
+static void spl_dram_init(void)
+{
+	int minc, maxc;
+	const struct mx6_ddr_sysinfo* mem_sysinfo;
+	const struct mx6_ddr3_cfg* ddr3_chip;
+
+	mx6sdl_dram_iocfg(64, &mx6sdl_ddr_ioregs, &mx6sdl_grp_ioregs);
+
+	if (is_cpu_type(MXC_CPU_MX6DL))
+		mem_sysinfo = &mem_dl;
+	else
+		mem_sysinfo = &mem_s;
+
+	switch (get_cpu_temp_grade(&minc, &maxc)) {
+	case TEMP_AUTOMOTIVE:
+	case TEMP_INDUSTRIAL:
+		puts("Industrial temperature grade DDR3 timings.\n");
+		ddr3_chip = &nt5cb64m16fp_dii;
+		break;
+	case TEMP_EXTCOMMERCIAL:
+	default:
+		puts("Commercial temperature grade DDR3 timings.\n");
+		ddr3_chip = &nt5cb64m16fp_dh;
+		break;
+	};
+	mx6_dram_cfg(mem_sysinfo, &mx6dl_colibri_mmdc_calib, ddr3_chip);
+	udelay(100);
+}
+
+void board_init_f(ulong dummy)
+{
+	/* setup AIPS and disable watchdog */
+	arch_cpu_init();
+
+	ccgr_init();
+	gpr_init();
+
+	/* iomux and setup of i2c */
+	board_early_init_f();
+
+	/* setup GP timer */
+	timer_init();
+
+	/* UART clocks enabled and gd valid - init serial console */
+	preloader_console_init();
+
+	/* DDR initialization */
+	spl_dram_init();
+
+	/* Clear the BSS. */
+	memset(__bss_start, 0, __bss_end - __bss_start);
+
+	/* load/boot image from boot device */
+	board_init_r(NULL, 0);
+}
+
+void reset_cpu(ulong addr)
+{
+}
+
 #endif

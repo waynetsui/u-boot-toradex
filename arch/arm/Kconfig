@@ -506,6 +506,7 @@ config TARGET_APALIS_IMX6
 config TARGET_COLIBRI_IMX6
 	bool "Toradex Colibri iMX6 board"
 	select CPU_V7
+	select SUPPORT_SPL
 
 config TARGET_COLIBRI_IMX7
 	bool "Support Colibri iMX7 board"

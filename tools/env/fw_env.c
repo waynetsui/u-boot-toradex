@@ -1052,41 +1052,10 @@ static int flash_write (int fd_current, int fd_target, int dev_target)
 
 static int flash_read (int fd)
 {
-	struct mtd_info_user mtdinfo;
-	struct stat st;
 	int rc;
 
-	rc = fstat(fd, &st);
-	if (rc < 0) {
-		fprintf(stderr, "Cannot stat the file %s\n",
-			DEVNAME(dev_current));
-		return -1;
-	}
-
-	if (S_ISCHR(st.st_mode)) {
-		rc = ioctl(fd, MEMGETINFO, &mtdinfo);
-		if (rc < 0) {
-			fprintf(stderr, "Cannot get MTD information for %s\n",
-				DEVNAME(dev_current));
-			return -1;
-		}
-		if (mtdinfo.type != MTD_NORFLASH &&
-		    mtdinfo.type != MTD_NANDFLASH &&
-		    mtdinfo.type != MTD_DATAFLASH &&
-		    mtdinfo.type != MTD_UBIVOLUME) {
-			fprintf (stderr, "Unsupported flash type %u on %s\n",
-				 mtdinfo.type, DEVNAME(dev_current));
-			return -1;
-		}
-	} else {
-		memset(&mtdinfo, 0, sizeof(mtdinfo));
-		mtdinfo.type = MTD_ABSENT;
-	}
-
-	DEVTYPE(dev_current) = mtdinfo.type;
-
 	rc = flash_read_buf(dev_current, fd, environment.image, CUR_ENVSIZE,
-			     DEVOFFSET (dev_current), mtdinfo.type);
+			    DEVOFFSET(dev_current), DEVTYPE(dev_current));
 	if (rc != CUR_ENVSIZE)
 		return -1;
 
@@ -1354,10 +1323,55 @@ int fw_env_open(void)
 	return 0;
 }
 
+static int check_device_config(int dev)
+{
+	struct stat st;
+	int fd, rc = 0;
+
+	fd = open(DEVNAME(dev), O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr,
+			"Cannot open %s: %s\n",
+			DEVNAME(dev), strerror(errno));
+		return -1;
+	}
+
+	rc = fstat(fd, &st);
+	if (rc < 0) {
+		fprintf(stderr, "Cannot stat the file %s\n",
+			DEVNAME(dev));
+		goto err;
+	}
+
+	if (S_ISCHR(st.st_mode)) {
+		struct mtd_info_user mtdinfo;
+		rc = ioctl(fd, MEMGETINFO, &mtdinfo);
+		if (rc < 0) {
+			fprintf(stderr, "Cannot get MTD information for %s\n",
+				DEVNAME(dev));
+			goto err;
+		}
+		if (mtdinfo.type != MTD_NORFLASH &&
+		    mtdinfo.type != MTD_NANDFLASH &&
+		    mtdinfo.type != MTD_DATAFLASH &&
+		    mtdinfo.type != MTD_UBIVOLUME) {
+			fprintf(stderr, "Unsupported flash type %u on %s\n",
+				mtdinfo.type, DEVNAME(dev));
+			goto err;
+		}
+		DEVTYPE(dev) = mtdinfo.type;
+	} else {
+		DEVTYPE(dev) = MTD_ABSENT;
+	}
+
+err:
+	close(fd);
+	return rc;
+}
 
 static int parse_config ()
 {
-	struct stat st;
+	int rc;
 
 #if defined(CONFIG_FILE)
 	/* Fills in DEVNAME(), ENVSIZE(), DEVESIZE(). Or don't. */
@@ -1398,19 +1412,16 @@ static int parse_config ()
 	HaveRedundEnv = 1;
 #endif
 #endif
-	if (stat (DEVNAME (0), &st)) {
-		fprintf (stderr,
-			"Cannot access MTD device %s: %s\n",
-			DEVNAME (0), strerror (errno));
-		return -1;
+	rc = check_device_config(0);
+	if (rc < 0)
+		return rc;
+
+	if (HaveRedundEnv) {
+		rc = check_device_config(1);
+		if (rc < 0)
+			return rc;
 	}
 
-	if (HaveRedundEnv && stat (DEVNAME (1), &st)) {
-		fprintf (stderr,
-			"Cannot access MTD device %s: %s\n",
-			DEVNAME (1), strerror (errno));
-		return -1;
-	}
 	return 0;
 }
 

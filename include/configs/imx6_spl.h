@@ -47,6 +47,12 @@
 #define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	800 /* 400 KB */
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
 #define CONFIG_SYS_MONITOR_LEN  (CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS/2*1024)
+/*
+ * SPL starts at 1KB (ROM offset), hence we need to pad SPL up to 68KB so
+ * that payload (U-Boot) will be at 69KB (sector 138) on the eMMC/SD card.
+ * Required for targets such as u-boot-with-spl.imx.
+ */
+#define CONFIG_SPL_PAD_TO			0x11000
 #endif
 
 /* SATA support */

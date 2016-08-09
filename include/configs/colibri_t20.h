@@ -146,7 +146,7 @@
 #define DFU_ALT_NAND_INFO	"u-boot part 0,0;ubi part 0,3"
 
 #define NFS_BOOTCMD \
-	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw\0" \
 	"nfsboot=usb start; run setup; setenv bootargs ${defargs} ${mtdparts}" \
 		" ${nfsargs} ${setupargs} ${vidargs}; echo Booting via DHCP/" \
 		"TFTP/NFS...; run nfsdtbload; dhcp ${kernel_addr_r} " \

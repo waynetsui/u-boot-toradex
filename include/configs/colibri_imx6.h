@@ -213,7 +213,7 @@
 	"ramdisk_addr_r=0x12100000\0"
 
 #define NFS_BOOTCMD \
-	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw netdevwait\0" \
+	"nfsargs=ip=:::::eth0:on root=/dev/nfs rw\0" \
 	"nfsboot=run setup; " \
 		"setenv bootargs ${defargs} ${nfsargs} ${setupargs} " \
 		"${vidargs}; echo Booting via DHCP/TFTP/NFS...; " \

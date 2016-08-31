@@ -6,6 +6,7 @@
 #include <common.h>
 #include <fdtdec.h>
 #include <lcd.h>
+#include <malloc.h>
 
 #include <asm/system.h>
 #include <asm/gpio.h>
@@ -93,6 +94,17 @@ void lcd_ctrl_init(void *lcdbase)
 	lcd_set_flush_dcache(config.cache_type & FDT_LCD_CACHE_FLUSH);
 
 	debug("LCD frame buffer at %08X\n", disp_config->frame_buffer);
+
+	/*
+	 * Allocate memory to keep BMP colour conversion map. This is
+	   required for 8-bit BMPs only (hence giving 256 colours). If malloc
+	   fails - keep going, it is not even clear if displaying the bitmap
+	   will be required on the way up.
+	 */
+	panel_info.cmap = malloc(256 * NBITS(panel_info.vl_bpix) / 8);
+	if (panel_info.cmap == NULL) {
+		printf("No memory available for panel_info.cmap!");
+	}
 }
 
 ulong calc_fbsize(void)

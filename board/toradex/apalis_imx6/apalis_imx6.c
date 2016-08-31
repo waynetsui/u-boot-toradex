@@ -1122,6 +1122,61 @@ static void spl_dram_init(void)
 	udelay(100);
 }
 
+void set_board_info_ram(void)
+{
+	/* A-Apalis C-Colibry
+	   Q-Quad D-Dual DL-DualLite S-Solo
+	   RAM size(MB)
+	   IT/empty
+	*/
+	typedef enum
+	{
+		IMX6_MODULE_UNDEFINED,
+	        IMX6_MODULE_CS256=14,
+	        IMX6_MODULE_CDL512=15,
+	        IMX6_MODULE_CS256IT=16,
+	        IMX6_MODULE_CDL512IT=17,
+	        IMX6_MODULE_AQ1024=27,
+	        IMX6_MODULE_AQ2048IT=28,
+	        IMX6_MODULE_AD512=29,
+	} IMX6_MODULE_TYPE;
+#define IMX6_BI_FLAG_RECOVERY 0x00000001
+#define IMX6_BI_FLAG_BOOTPART 0x00000002
+	typedef struct IMX6_BOARD_INFO
+	{
+		IMX6_MODULE_TYPE	type;
+		unsigned short	vermaj;
+		unsigned short	vermin;
+		unsigned short	variant;
+		unsigned int	flags;  // misc flags used to report boot mode or options
+	} IMX6_BOARD_INFO;
+
+	IMX6_BOARD_INFO *board_info;
+	int minc, maxc;
+
+	board_info = (IMX6_BOARD_INFO*)0x10001000;
+	memset(board_info, 0, sizeof(IMX6_BOARD_INFO));
+
+	board_info->type = IMX6_MODULE_AD512;
+	switch (get_cpu_temp_grade(&minc, &maxc)) {
+	case TEMP_AUTOMOTIVE:
+	case TEMP_INDUSTRIAL:
+		board_info->type = IMX6_MODULE_AQ2048IT;
+		break;
+	case TEMP_EXTCOMMERCIAL:
+	default:
+		if (is_cpu_type(MXC_CPU_MX6D))
+			board_info->type = IMX6_MODULE_AQ1024;
+		else
+			board_info->type = IMX6_MODULE_AD512;
+		break;
+	};
+	board_info->vermaj = 1;
+	board_info->vermin = 1;
+	board_info->variant = 0;
+	board_info->flags = IMX6_BI_FLAG_BOOTPART;
+}
+
 void board_init_f(ulong dummy)
 {
 	/* setup AIPS and disable watchdog */
@@ -1144,6 +1199,9 @@ void board_init_f(ulong dummy)
 
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
+
+	/* Set board info struct in DDR for later use by bootloader */
+	set_board_info_ram();
 
 	/* load/boot image from boot device */
 	board_init_r(NULL, 0);

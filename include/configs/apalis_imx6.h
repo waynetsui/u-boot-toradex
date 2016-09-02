@@ -230,7 +230,8 @@
 		"setenv bootargs ${defargs} ${emmcargs} ${setupargs} " \
 		"${vidargs}; echo Booting from internal eMMC chip...; "	\
 		"run emmcdtbload; load mmc 0:1 ${kernel_addr_r} " \
-		"${boot_file} && bootm ${kernel_addr_r} ${dtbparam}\0" \
+		"${boot_file} && run fdt_fixup && " \
+		"bootm ${kernel_addr_r} ${dtbparam}\0" \
 	"emmcdtbload=setenv dtbparam; load mmc 0:1 ${fdt_addr_r} " \
 		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
@@ -247,7 +248,7 @@
 		"setenv bootargs ${defargs} ${nfsargs} ${setupargs} " \
 		"${vidargs}; echo Booting via DHCP/TFTP/NFS...; " \
 		"run nfsdtbload; dhcp ${kernel_addr_r} " \
-		"&& bootm ${kernel_addr_r} ${dtbparam}\0" \
+		"&& run fdt_fixup && bootm ${kernel_addr_r} ${dtbparam}\0" \
 	"nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} ${fdt_file} " \
 		"&& setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
@@ -258,7 +259,8 @@
 		"setenv bootargs ${defargs} ${sdargs} ${setupargs} " \
 		"${vidargs}; echo Booting from SD card in 8-bit slot...; " \
 		"run sddtbload; load mmc 1:1 ${kernel_addr_r} " \
-		"${boot_file} && bootm ${kernel_addr_r} ${dtbparam}\0" \
+		"${boot_file} && run fdt_fixup && " \
+		"bootm ${kernel_addr_r} ${dtbparam}\0" \
 	"sddtbload=setenv dtbparam; load mmc 1:1 ${fdt_addr_r} " \
 		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
@@ -268,7 +270,8 @@
 	"usbboot=run setup; setenv bootargs ${defargs} ${setupargs} " \
 		"${usbargs} ${vidargs}; echo Booting from USB stick...; " \
 		"usb start && run usbdtbload; load usb 0:1 ${kernel_addr_r} " \
-		"${boot_file} && bootm ${kernel_addr_r} ${dtbparam}\0" \
+		"${boot_file} && run fdt_fixup && " \
+		"bootm ${kernel_addr_r} ${dtbparam}\0" \
 	"usbdtbload=setenv dtbparam; load usb 0:1 ${fdt_addr_r} " \
 		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
@@ -290,6 +293,7 @@
 	"disable_giga=1\0" \
 	EMMC_BOOTCMD \
 	"fdt_file=" FDT_FILE "\0" \
+	"fdt_fixup=;\0" \
 	MEM_LAYOUT_ENV_SETTINGS \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \

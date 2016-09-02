@@ -150,7 +150,7 @@
 	"nfsboot=usb start; run setup; setenv bootargs ${defargs} ${mtdparts}" \
 		" ${nfsargs} ${setupargs} ${vidargs}; echo Booting via DHCP/" \
 		"TFTP/NFS...; run nfsdtbload; dhcp ${kernel_addr_r} " \
-		"&& bootz ${kernel_addr_r} - ${dtbparam}\0" \
+		"&& run fdt_fixup && bootz ${kernel_addr_r} - ${dtbparam}\0" \
 	"nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} " \
 		"${soc}-colibri-${fdt_board}.dtb " \
 		"&& setenv dtbparam ${fdt_addr_r}\0"
@@ -161,7 +161,7 @@
 	"sdboot=run setup; setenv bootargs ${defargs} ${mtdparts} ${sdargs} " \
 		"${setupargs} ${vidargs}; echo Booting from SD card...; " \
 		"run sddtbload; load mmc 1:1 ${kernel_addr_r} ${boot_file} " \
-		"&& bootz ${kernel_addr_r} - ${dtbparam}\0" \
+		"&& run fdt_fixup && bootz ${kernel_addr_r} - ${dtbparam}\0" \
 	"sddtbload=setenv dtbparam; load mmc 1:1 ${fdt_addr_r} " \
 		"${soc}-colibri-${fdt_board}.dtb " \
 		"&& setenv dtbparam ${fdt_addr_r}\0"
@@ -173,7 +173,7 @@
 		" ${setupargs} ${vidargs}; echo Booting from NAND...; " \
 		"ubi part ubi && " \
         "ubi read ${kernel_addr_r} kernel &&" \
-        "run ubidtbload; " \
+	"run ubidtbload && run fdt_fixup; " \
 		"bootz ${kernel_addr_r} - ${dtbparam}; " \
 		"bootz ${kernel_addr_r} - \0" \
 	"ubidtbload=setenv dtbparam; " \
@@ -187,7 +187,7 @@
 		"${setupargs} ${usbargs} ${vidargs}; echo Booting from USB " \
 		"stick...; usb start && run usbdtbload; load usb 0:1 " \
 		"${kernel_addr_r} ${boot_file} && " \
-		"bootz ${kernel_addr_r} - ${dtbparam}\0" \
+		"run fdt_fixup && bootz ${kernel_addr_r} - ${dtbparam}\0" \
 	"usbdtbload=setenv dtbparam; load usb 0:1 ${fdt_addr_r} " \
 		"${soc}-colibri-${fdt_board}.dtb " \
 		"&& setenv dtbparam ${fdt_addr_r}\0"
@@ -198,6 +198,7 @@
 	"defargs=vmalloc=128M usb_high_speed=1\0" \
 	"dfu_alt_info=" DFU_ALT_NAND_INFO "\0" \
 	"fdt_board=eval-v3\0" \
+	"fdt_fixup=;\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
@@ -238,6 +239,7 @@
 #define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_ALT_MEMTEST
 
+#define CONFIG_OF_LIBFDT
 #define CONFIG_OF_SYSTEM_SETUP
 
 #define CONFIG_SUPPORT_RAW_INITRD

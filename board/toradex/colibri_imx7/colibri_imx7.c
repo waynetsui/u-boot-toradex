@@ -595,6 +595,15 @@ int power_init_board(void)
 	reg &= ~0x7;
 	pmic_reg_write(p, RN5T567_NOETIMSETCNT, reg);
 
+	/* configure sleep slot so rails get disabled on suspend */
+	pmic_reg_read(p, RN5T567_LDO1_SLOT, &reg);
+	reg = (reg & 0xf0) | reg >> 4;
+	pmic_reg_write(p, RN5T567_LDO1_SLOT, reg);
+
+	pmic_reg_read(p, RN5T567_DC2_SLOT, &reg);
+	reg = (reg & 0xf0) | reg >> 4;
+	pmic_reg_write(p, RN5T567_DC2_SLOT, reg);
+
 	return 0;
 }
 

@@ -406,9 +406,9 @@ static int do_write_bcb(cmd_tbl_t *cmdtp, int flag, int argc,
 	if (argc < 2)
 		return -1;
 
-	fw1_off = simple_strtoul(argv[2], NULL, 16);
+	fw1_off = simple_strtoul(argv[1], NULL, 16);
 	if (argc > 2)
-		fw2_off = simple_strtoul(argv[3], NULL, 16);
+		fw2_off = simple_strtoul(argv[2], NULL, 16);
 	else
 		fw2_off = 0;
 

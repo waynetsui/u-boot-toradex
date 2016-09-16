@@ -372,19 +372,27 @@ static void create_dbbt(nand_info_t *nand, uint8_t *buf)
 static void write_bootloader(nand_info_t *nand, uint8_t * addr, loff_t off,
 			    ulong fw_size)
 {
-	int i, j, ret;
+	int i, j, ret = 0;
 	size_t maxsize;
 	unsigned used_page_size, used_page_size_tmp;
 
-	ret = 0;
 	used_page_size = 3 * nand->writesize / 4;
 	maxsize = nand->writesize;
-	for (i = 0, j = 0; i < fw_size;
-	     i += used_page_size, j += nand->writesize) {
+	for (i = 0, j = 0; i < fw_size; j += nand->writesize) {
 		used_page_size_tmp = used_page_size;
-		ret |= nand_write_skip_bad(nand, off + j, &used_page_size_tmp,
+		ret = nand_write_skip_bad(nand, off + j, &used_page_size_tmp,
 					  NULL, maxsize, (u_char *)addr + i,
 					  WITH_WR_VERIFY);
+
+		/* Increment only if data have been written */
+		i += used_page_size_tmp;
+
+		/* Ignore EFBIG, it means that we hit a bad block... */
+		if (ret == -EFBIG)
+			ret = 0;
+
+		if (ret)
+			break;
 	}
 	printf("Bootloader %d bytes written to 0x%x: %s\n", (int)fw_size,
 		(int) off, ret ? "ERROR" : "OK");

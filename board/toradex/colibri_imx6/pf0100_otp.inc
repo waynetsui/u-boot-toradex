@@ -7,7 +7,7 @@
 // Register Output for PF0100 programmer
 // Customer: Toradex AG
 // Program: Colibri iMX6
-// Sample marking: 
+// Sample marking:
 // Date: 24.07.2015
 // Time: 10:52:58
 // Generated from Spreadsheet Revision: P1.8

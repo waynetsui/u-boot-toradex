@@ -22,6 +22,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TAG_VALID	0xcf01
 #define TAG_MAC		0x0000
 #define TAG_HW		0x0008
+#define TAG_INVALID	0xffff
 
 #define TAG_FLAG_VALID	0x1
 
@@ -194,23 +195,25 @@ int read_trdx_cfg_block(void)
 	valid_cfgblock = true;
 	offset = 4;
 
-	while (true) {
+	while (offset < TRDX_CFG_BLOCK_MAX_SIZE) {
 		tag = (struct toradex_tag *)(config_block + offset);
 		offset += 4;
-		if (tag->flags != TAG_FLAG_VALID)
+		if (tag->id == TAG_INVALID)
 			break;
 
-		switch (tag->id)
-		{
-		case TAG_MAC:
-			memcpy(&trdx_eth_addr, config_block + offset, 6);
+		if (tag->flags == TAG_FLAG_VALID) {
+			switch (tag->id) {
+			case TAG_MAC:
+				memcpy(&trdx_eth_addr, config_block + offset,
+				       6);
 
-			/* NIC part of MAC address is serial number */
-			trdx_serial = ntohl(trdx_eth_addr.nic) >> 8;
-			break;
-		case TAG_HW:
-			memcpy(&trdx_hw_tag, config_block + offset, 8);
-			break;
+				/* NIC part of MAC address is serial number */
+				trdx_serial = ntohl(trdx_eth_addr.nic) >> 8;
+				break;
+			case TAG_HW:
+				memcpy(&trdx_hw_tag, config_block + offset, 8);
+				break;
+			}
 		}
 
 		/* Get to next tag according to current tags length */
@@ -218,7 +221,8 @@ int read_trdx_cfg_block(void)
 	}
 
 	/* Cap product id to avoid issues with a yet unknown one */
-	if (trdx_hw_tag.prodid > (sizeof(toradex_modules) / sizeof(toradex_modules[0])))
+	if (trdx_hw_tag.prodid > (sizeof(toradex_modules) /
+				  sizeof(toradex_modules[0])))
 		trdx_hw_tag.prodid = 0;
 
 out:

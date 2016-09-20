@@ -80,6 +80,7 @@ const char * const toradex_modules[] = {
 	[32] = "Colibri iMX7 Solo 256MB",
 	[33] = "Colibri iMX7 Dual 512MB",
 	[34] = "Apalis TK1 2GB",
+	[35] = "Apalis iMX6 Dual 1GB IT",
 };
 
 #ifdef CONFIG_TRDX_CFG_BLOCK_IS_IN_MMC
@@ -240,7 +241,10 @@ static int get_cfgblock_interactive(void)
 	if (!strcmp("mx6", soc)) {
 #ifdef CONFIG_MACH_TYPE
 		if (it == 'y' || it == 'Y')
-			trdx_hw_tag.prodid = APALIS_IMX6Q_IT;
+			if (is_cpu_type(MXC_CPU_MX6Q))
+				trdx_hw_tag.prodid = APALIS_IMX6Q_IT;
+			else
+				trdx_hw_tag.prodid = APALIS_IMX6D_IT;
 		else
 			if (is_cpu_type(MXC_CPU_MX6Q))
 				trdx_hw_tag.prodid = APALIS_IMX6Q;

@@ -52,6 +52,7 @@ enum {
 	COLIBRI_IMX7S,
 	COLIBRI_IMX7D,
 	APALIS_TK1_2GB,
+	APALIS_IMX6D_IT,
 };
 
 extern const char * const toradex_modules[];

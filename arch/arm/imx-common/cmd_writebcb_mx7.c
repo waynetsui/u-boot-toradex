@@ -297,7 +297,6 @@ static void create_fcb(nand_info_t *nand, uint8_t *buf, int fw1_start_address,
 	int i;
 	struct mxs_nand_fcb _fcb;
 	struct mxs_nand_fcb *fcb = &_fcb;
-	int fw_size = BOOTLOADER_MAXSIZE;
 	memset (fcb, 0, sizeof(struct mxs_nand_fcb));
 
 	fcb->fingerprint =		0x20424346;
@@ -316,20 +315,19 @@ static void create_fcb(nand_info_t *nand, uint8_t *buf, int fw1_start_address,
 	fcb->ecc_block_n_size =		512;
 	fcb->ecc_block_0_ecc_type =	4;
 	fcb->metadata_bytes =		10;
-	fcb->num_ecc_blocks_per_page =	2;
+	fcb->num_ecc_blocks_per_page =	3;
 
 	fcb->firmware1_starting_sector = fw1_start_address / nand->writesize;
 	fcb->firmware2_starting_sector = fw2_start_address / nand->writesize;
 
-	fcb->sectors_in_firmware1 =	DIV_ROUND_UP(fw_size, 3 * 512);
-	fcb->sectors_in_firmware2 =	DIV_ROUND_UP(fw_size, 3 * 512);
 	fcb->dbbt_search_area_start_address =	256;
 	fcb->badblock_marker_byte =	1999;
-	fcb->bb_marker_physical_offset =	2048;
+
 	/* This is typically the first byte of the pages OOB area */
 	fcb->bb_marker_physical_offset = nand->writesize;
-	/* workaround bug in bootrom, see errata */
-	fcb->disbbm = 1;
+
+	/* Required for successful factory bad block detection */
+	fcb->disbbm = 0;
 	fcb->disbbm_search = 0;
 
 	/* compute checksum, ~(sum of bytes starting with offset 4) */

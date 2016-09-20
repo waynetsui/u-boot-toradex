@@ -23,8 +23,7 @@ static int mfgr_fuse(void)
 	printf("Fuse 4, 3: %8x\n", val);
 	fuse_sense(4, 2, &val);
 	printf("Fuse 4, 2: %8x\n", val);
-	if(val6 & 0x10)
-	{
+	if (val6 & 0x10) {
 		puts("BT_FUSE_SEL already fused, will do nothing\n");
 		return CMD_RET_FAILURE;
 	}
@@ -72,7 +71,7 @@ int do_updt_fuse(cmd_tbl_t *cmdtp, int flag, int argc,
 				"         Updating to fast boot mode prevents easy\n"
 				"         downgrading to previous BSP versions.\n"
 				"\nReally perform this fuse programming? <y/N>\n");
-		if (!confirm_yesno())
+	        if (!confirm_yesno())
 			return CMD_RET_FAILURE;
 	}
 	puts("Fusing fast boot mode...\n");

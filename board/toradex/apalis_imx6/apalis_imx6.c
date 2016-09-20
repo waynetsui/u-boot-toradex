@@ -257,15 +257,16 @@ static int reset_enet_phy (struct mii_dev *bus)
 
 /* mux the Apalis GPIO pins to GPIO, so they can be used from the U-Boot commandline */
 iomux_v3_cfg_t const gpio_pads[] = {
-	MX6_PAD_NANDF_D4__GPIO2_IO04	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO1 */
-	MX6_PAD_NANDF_D5__GPIO2_IO05	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO2 */
-	MX6_PAD_NANDF_D6__GPIO2_IO06	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO3 */
-	MX6_PAD_NANDF_D7__GPIO2_IO07	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO4 */
-	MX6_PAD_NANDF_RB0__GPIO6_IO10	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO5 */
-	MX6_PAD_NANDF_WP_B__GPIO6_IO09	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO6 */
-	MX6_PAD_GPIO_2__GPIO1_IO02	| MUX_PAD_CTRL(WEAK_PULLDOWN),	/* Apalis GPIO7 */
-	MX6_PAD_GPIO_6__GPIO1_IO06	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Apalis GPIO8 */
-	MX6_PAD_GPIO_4__GPIO1_IO04	| MUX_PAD_CTRL(WEAK_PULLUP),	/* Power Button */
+	/* Apalis GPIO1 - GPIO8 */
+	MX6_PAD_NANDF_D4__GPIO2_IO04	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_NANDF_D5__GPIO2_IO05	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_NANDF_D6__GPIO2_IO06	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_NANDF_D7__GPIO2_IO07	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_NANDF_RB0__GPIO6_IO10	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_NANDF_WP_B__GPIO6_IO09	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_GPIO_2__GPIO1_IO02	| MUX_PAD_CTRL(WEAK_PULLDOWN),
+	MX6_PAD_GPIO_6__GPIO1_IO06	| MUX_PAD_CTRL(WEAK_PULLUP),
+	MX6_PAD_GPIO_4__GPIO1_IO04	| MUX_PAD_CTRL(WEAK_PULLUP),
 };
 
 static void setup_iomux_gpio(void)
@@ -289,7 +290,7 @@ iomux_v3_cfg_t const usb_pads[] = {
 };
 
 /*
- * If UARTs are used in DTE mode, switch the mode on all UARTs before
+ * UARTs are used in DTE mode, switch the mode on all UARTs before
  * any pinmuxing connects a (DCE) output to a transceiver output.
  */
 #define UFCR		0x90	/* FIFO Control Register */
@@ -313,13 +314,15 @@ static void setup_dcemode_uart(void)
 static void setup_iomux_dte_uart(void)
 {
 	setup_dtemode_uart();
-	imx_iomux_v3_setup_multiple_pads(uart1_pads_dte, ARRAY_SIZE(uart1_pads_dte));
+	imx_iomux_v3_setup_multiple_pads(uart1_pads_dte,
+					 ARRAY_SIZE(uart1_pads_dte));
 }
 
 static void setup_iomux_dce_uart(void)
 {
 	setup_dcemode_uart();
-	imx_iomux_v3_setup_multiple_pads(uart1_pads_dce, ARRAY_SIZE(uart1_pads_dce));
+	imx_iomux_v3_setup_multiple_pads(uart1_pads_dce,
+					 ARRAY_SIZE(uart1_pads_dce));
 }
 
 #ifdef CONFIG_USB_EHCI_MX6
@@ -408,8 +411,8 @@ int board_mmc_init(bd_t *bis)
 			break;
 		default:
 			printf("Warning: you configured more USDHC controllers"
-				"(%d) then supported by the board (%d)\n",
-				index + 1, CONFIG_SYS_FSL_USDHC_NUM);
+			       "(%d) than supported by the board (%d)\n",
+			       index + 1, CONFIG_SYS_FSL_USDHC_NUM);
 			return status;
 		}
 
@@ -574,9 +577,8 @@ static void do_enable_hdmi(struct display_info_t const *dev)
 
 static int detect_i2c(struct display_info_t const *dev)
 {
-	return ((0 == i2c_set_bus_num(dev->bus))
-		&&
-		(0 == i2c_probe(dev->addr)));
+	return (0 == i2c_set_bus_num(dev->bus)) &&
+	       (0 == i2c_probe(dev->addr));
 }
 
 static void enable_lvds(struct display_info_t const *dev)
@@ -782,7 +784,7 @@ static void setup_display(void)
 int board_early_init_f(void)
 {
 	imx_iomux_v3_setup_multiple_pads(pwr_intb_pads,
-					ARRAY_SIZE(pwr_intb_pads));
+					 ARRAY_SIZE(pwr_intb_pads));
 #ifndef CONFIG_APALIS_IMX6_V1_0
 	setup_iomux_dte_uart();
 #else
@@ -839,15 +841,15 @@ int board_late_init(void)
 #endif
 
 #ifndef CONFIG_APALIS_IMX6_V1_0
-	if((rev & 0xfff0) == 0x0100) {
-		char* fdt_env;
+	if ((rev & 0xfff0) == 0x0100) {
+		char *fdt_env;
 
 		/* reconfigure the UART to DCE mode dynamically if on V1.0 HW */
 		setup_iomux_dce_uart();
 
 		/* if using the default device tree, use version for V1.0 HW */
 		fdt_env = getenv("fdt_file");
-		if((fdt_env != NULL) && (strcmp(FDT_FILE, fdt_env) == 0)) {
+		if ((fdt_env != NULL) && (strcmp(FDT_FILE, fdt_env) == 0)) {
 			setenv("fdt_file", FDT_FILE_V1_0);
 			printf("patching fdt_file to " FDT_FILE_V1_0 "\n");
 #ifndef CONFIG_ENV_IS_NOWHERE
@@ -864,8 +866,8 @@ int board_late_init(void)
 int checkboard_fallback(void)
 {
 	printf("Model: Toradex Apalis iMX6 %s\n",
-		(gd->ram_size == 0x80000000) ? "2GB" :
-		(gd->ram_size == 0x40000000) ? "1GB" : "512MB");
+	       (gd->ram_size == 0x80000000) ? "2GB" :
+	       (gd->ram_size == 0x40000000) ? "1GB" : "512MB");
 	return 0;
 }
 

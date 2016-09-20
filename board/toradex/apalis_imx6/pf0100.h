@@ -12,7 +12,7 @@
 #define PF0100_H_
 
 /* 7-bit I2C bus slave address */
-#define PFUZE100_I2C_ADDR 		(0x08)
+#define PFUZE100_I2C_ADDR		(0x08)
 /* Register Addresses */
 #define PFUZE100_DEVICEID		(0x0)
 #define PFUZE100_REVID			(0x3)
@@ -30,7 +30,8 @@
 #define PFUZE100_VGEN1CTL		(0x6c)
 #define PFUZE100_VGEN1_VAL		(0x30 + 0x08) /* Always ON, 1.2V */
 #define PFUZE100_SWBSTCTL		(0x66)
-#define PFUZE100_SWBST_VAL		(0x40 + 0x08 + 0x00) /* Always ON, Auto Switching Mode, 5.0V */
+/* Always ON, Auto Switching Mode, 5.0V */
+#define PFUZE100_SWBST_VAL		(0x40 + 0x08 + 0x00)
 
 /* chooses the extended page (registers 0x80..0xff) */
 #define PFUZE100_PAGE_REGISTER		0x7f

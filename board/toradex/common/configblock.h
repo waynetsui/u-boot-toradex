@@ -17,8 +17,8 @@ struct toradex_hw {
 };
 
 struct toradex_eth_addr {
-	u32 oui : 24;
-	u32 nic : 24;
+	u32 oui:24;
+	u32 nic:24;
 } __attribute__((__packed__));
 
 enum {
@@ -54,7 +54,7 @@ enum {
 	APALIS_TK1_2GB,
 };
 
-extern const char* const toradex_modules[];
+extern const char * const toradex_modules[];
 extern bool valid_cfgblock;
 extern struct toradex_hw trdx_hw_tag;
 extern struct toradex_eth_addr trdx_eth_addr;

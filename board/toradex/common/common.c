@@ -67,7 +67,6 @@ void get_board_serial(struct tag_serialnr *serialnr)
 }
 #endif /* CONFIG_SERIAL_TAG */
 
-
 int checkboard(void)
 {
 	unsigned char ethaddr[6];
@@ -84,7 +83,6 @@ int checkboard(void)
 		trdx_hw_tag.ver_major,
 		trdx_hw_tag.ver_minor,
 		(char)trdx_hw_tag.ver_assembly + 'A');
-
 
 	setenv("serial#", trdx_serial_str);
 
@@ -108,9 +106,9 @@ int checkboard(void)
 #endif
 
 	printf("Model: Toradex %s %s, Serial# %s\n",
-		toradex_modules[trdx_hw_tag.prodid],
-		trdx_board_rev_str,
-		trdx_serial_str);
+	       toradex_modules[trdx_hw_tag.prodid],
+	       trdx_board_rev_str,
+	       trdx_serial_str);
 
 	return 0;
 }
@@ -164,7 +162,6 @@ u32 get_board_serial(void)
 	return 0;
 }
 #endif /* CONFIG_SERIAL_TAG */
-
 
 int checkboard(void)
 {

@@ -34,9 +34,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #endif
 
 struct toradex_tag {
-	u32 len : 14;
-	u32 flags : 2;
-	u32 id : 16;
+	u32 len:14;
+	u32 flags:2;
+	u32 id:16;
 };
 
 bool valid_cfgblock;
@@ -44,7 +44,7 @@ struct toradex_hw trdx_hw_tag;
 struct toradex_eth_addr trdx_eth_addr;
 u32 trdx_serial;
 
-const char* const toradex_modules[] = {
+const char * const toradex_modules[] = {
 	 [0] = "UNKNOWN MODULE",
 	 [1] = "Colibri PXA270 312MHz",
 	 [2] = "Colibri PXA270 520MHz",
@@ -431,7 +431,7 @@ static int do_cfgblock_create(cmd_tbl_t *cmdtp, int flag, int argc,
 	offset += 4;
 
 	memcpy(config_block + offset, &trdx_eth_addr, 6);
-	offset +=6;
+	offset += 6;
 	memset(config_block + offset, 0, 32 - offset);
 
 #ifdef CONFIG_TRDX_CFG_BLOCK_IS_IN_MMC

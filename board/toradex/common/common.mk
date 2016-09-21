@@ -5,4 +5,7 @@ obj- := __dummy__.o
 else
 obj-$(CONFIG_TRDX_CFG_BLOCK) += ../common/configblock.o
 obj-y += ../common/common.o
+ifeq ($(SOC),$(filter $(SOC),mx6 mx7))
+obj-y += ../common/common-imx.o
+endif
 endif

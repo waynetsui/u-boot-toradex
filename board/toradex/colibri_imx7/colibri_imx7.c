@@ -633,6 +633,19 @@ int board_late_init(void)
 	board_late_mmc_init();
 #endif
 
+	if (is_soc_rev(CHIP_REV_1_1) < 0) {
+		printf("\nWARNING: This module uses an early tapeout/stepping "
+			"of the i.MX 7 SoC which suffers a NAND flash issue "
+			"requiring a software workaround. This U-Boot version "
+			"still implements this workaround, but future U-Boot "
+			"versions provided by Toradex will not use the "
+			"workaround anymore. You must use a newer Colibri "
+			"iMX7 (V1.1B or later) to use future software "
+			"versions. For evaluation and testing purposes it will "
+			"be possible to keep the current U-Boot and only "
+			"update the kernel and root filesystem.\n\n");
+	}
+
 	return 0;
 }
 

@@ -13,6 +13,14 @@
 		.init	= TEGRA_GPIO_INIT_##_init,	\
 	}
 
+/*
+ * Please note: This table does not actually work!
+ * If it wouldn't be run in SPL without anything ever getting printed
+ * one would see the following:
+ * A: dir_input: error: gpio A1 not reserved
+ * ...
+ * The current workaround is to configure pull-up/downs further below.
+ */
 static const struct tegra_gpio_config apalis_tk1_gpio_inits[] = {
 	/*        gpio, init_val */
 	GPIO_INIT(A1,   IN),

@@ -11,10 +11,12 @@
 
 #include <linux/sizes.h>
 
-/* enable PMIC */
-#define CONFIG_AS3722_POWER
-
 #include "tegra124-common.h"
+
+#define CONFIG_ARCH_MISC_INIT
+
+/* Enable PMIC */
+#define CONFIG_AS3722_POWER
 
 /* High-level configuration options */
 #define V_PROMPT			"Apalis TK1 # "
@@ -199,6 +201,7 @@
 #define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_ALT_MEMTEST
 
+#define CONFIG_OF_LIBFDT
 #define CONFIG_OF_SYSTEM_SETUP
 
 #define CONFIG_SUPPORT_RAW_INITRD

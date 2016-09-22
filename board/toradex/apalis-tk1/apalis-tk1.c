@@ -18,8 +18,6 @@
 
 #define LAN_RESET_N GPIO_PS2
 
-DECLARE_GLOBAL_DATA_PTR;
-
 int arch_misc_init(void)
 {
 	if (readl(NV_PA_BASE_SRAM + NVBOOTINFOTABLE_BOOTTYPE) ==
@@ -148,6 +146,25 @@ int tegra_pcie_board_init(void)
 
 	mdelay(100);
 	gpio_set_value(LAN_RESET_N, 1);
+
+#ifdef APALIS_TK1_PCIE_EVALBOARD_INIT
+#define PEX_PERST_N	GPIO_PDD1 /* Apalis GPIO7 */
+#define RESET_MOCI_CTRL	GPIO_PU4
+
+	/* Reset PLX PEX 8605 PCIe Switch plus PCIe devices on Apalis Evaluation
+	   Board */
+	gpio_request(PEX_PERST_N, "PEX_PERST_N");
+	gpio_request(RESET_MOCI_CTRL, "RESET_MOCI_CTRL");
+	gpio_direction_output(PEX_PERST_N, 0);
+	gpio_direction_output(RESET_MOCI_CTRL, 0);
+	/* Must be asserted for 100 ms after power and clocks are stable */
+	mdelay(100);
+	gpio_set_value(PEX_PERST_N, 1);
+	/* Err_5: PEX_REFCLK_OUTpx/nx Clock Outputs is not Guaranteed Until
+	   900 us After PEX_PERST# De-assertion */
+	mdelay(1);
+	gpio_set_value(RESET_MOCI_CTRL, 1);
+#endif /* APALIS_T30_PCIE_EVALBOARD_INIT */
 
 	return 0;
 }

@@ -49,6 +49,7 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_TEGRA_MMC
 #define CONFIG_CMD_MMC
+#define CONFIG_SUPPORT_EMMC_BOOT	/* eMMC specific */
 
 /* Environment in eMMC, before config block at the end of 1st "boot sector" */
 #define CONFIG_ENV_IS_IN_MMC

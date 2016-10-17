@@ -37,7 +37,6 @@ static const struct tegra_gpio_config apalis_tk1_gpio_inits[] = {
 	GPIO_INIT(N5,   OUT1),
 	GPIO_INIT(N7,   IN),
 	GPIO_INIT(O5,   IN),
-	GPIO_INIT(O6,   OUT1),
 	GPIO_INIT(Q0,   OUT1),
 	GPIO_INIT(Q1,   OUT1),
 	GPIO_INIT(Q2,   OUT1),
@@ -51,8 +50,6 @@ static const struct tegra_gpio_config apalis_tk1_gpio_inits[] = {
 	GPIO_INIT(S3,   OUT0),
 	GPIO_INIT(U4,   OUT1),
 	GPIO_INIT(V3,   IN),
-	GPIO_INIT(V4,   IN),
-	GPIO_INIT(V5,   IN),
 	GPIO_INIT(W3,   IN),
 	GPIO_INIT(W5,   IN),
 	GPIO_INIT(BB0,  IN),
@@ -61,16 +58,10 @@ static const struct tegra_gpio_config apalis_tk1_gpio_inits[] = {
 	GPIO_INIT(BB5,  OUT1),
 	GPIO_INIT(BB6,  OUT0),
 	GPIO_INIT(CC5,  IN),
-	GPIO_INIT(DD1,  IN),
-	GPIO_INIT(DD2,  IN),
 	GPIO_INIT(DD3,  IN),
-	GPIO_INIT(DD5,  IN),
-	GPIO_INIT(DD6,  IN),
 	GPIO_INIT(EE3,  IN),
 	GPIO_INIT(EE5,  IN),
-	GPIO_INIT(FF0,  IN),
 	GPIO_INIT(FF1,  IN),
-	GPIO_INIT(FF2,  IN),
 };
 
 #define PINCFG(_pingrp, _mux, _pull, _tri, _io, _od, _rcv_sel)	\

@@ -222,6 +222,8 @@ typedef enum {
  * before calling nand_scan_tail.
  */
 #define NAND_BUSWIDTH_AUTO      0x00080000
+/* Chip needs BBT scan */
+#define NAND_NEED_BBTSCAN	0x00200000
 
 /* Options set by nand scan */
 /* bbt has already been read */

@@ -363,40 +363,6 @@ static void create_dbbt(nand_info_t *nand, uint8_t *buf)
 #endif
 }
 
-/* workaround for i.MX 7 errata e9609, use only 3/4
- * of the available chunks in a block and have an
- * FCB with a matching ecc layout and DISBBM set to 1
-*/
-static void write_bootloader(nand_info_t *nand, uint8_t * addr, loff_t off,
-			    ulong fw_size)
-{
-	int i, j, ret = 0;
-	size_t maxsize;
-	unsigned used_page_size, used_page_size_tmp;
-
-	used_page_size = 3 * nand->writesize / 4;
-	maxsize = nand->writesize;
-	for (i = 0, j = 0; i < fw_size; j += nand->writesize) {
-		used_page_size_tmp = used_page_size;
-		ret = nand_write_skip_bad(nand, off + j, &used_page_size_tmp,
-					  NULL, maxsize, (u_char *)addr + i,
-					  WITH_WR_VERIFY);
-
-		/* Increment only if data have been written */
-		i += used_page_size_tmp;
-
-		/* Ignore EFBIG, it means that we hit a bad block... */
-		if (ret == -EFBIG)
-			ret = 0;
-
-		if (ret)
-			break;
-	}
-	printf("Bootloader %d bytes written to 0x%x: %s\n", (int)fw_size,
-		(int) off, ret ? "ERROR" : "OK");
-
-}
-
 static int do_write_bcb(cmd_tbl_t *cmdtp, int flag, int argc,
 			char * const argv[])
 {
@@ -471,56 +437,8 @@ static int do_write_bcb(cmd_tbl_t *cmdtp, int flag, int argc,
 	return 0;
 }
 
-static int do_write_boot(cmd_tbl_t *cmdtp, int flag, int argc,
-			char * const argv[])
-{
-	uint8_t *addr;
-	ulong fw1_off, fw2_off, fw_size;
-	nand_info_t *nand;
-
-	int dev = nand_curr_device;
-
-	if (argc < 4)
-		return -1;
-
-	addr = (uint8_t *)simple_strtoul(argv[1], NULL, 16);
-	fw1_off = simple_strtoul(argv[2], NULL, 16);
-	if (argc > 3) {
-		fw2_off = simple_strtoul(argv[3], NULL, 16);
-		fw_size = simple_strtoul(argv[4], NULL, 16);
-	} else {
-		fw2_off = 0;
-		fw_size = simple_strtoul(argv[3], NULL, 16);
-	}
-
-	/* The FCB copies BOOTLOADER_MAXSIZE into RAM, so we must not allow
-	 * a bigger bootloader */
-	if (fw_size > BOOTLOADER_MAXSIZE) {
-		printf("ERROR: Only %d bytes are copied by bootrom to RAM, your bootloader is %d\n",
-			BOOTLOADER_MAXSIZE, (int) fw_size);
-		return 1;
-	}
-	else
-		fw_size = BOOTLOADER_MAXSIZE;
-
-	nand = &nand_info[dev];
-
-	puts("Write bootloader...\n");
-	write_bootloader(nand, addr, fw1_off, fw_size);
-	if(fw2_off)
-		write_bootloader(nand, addr, fw2_off, fw_size);
-
-	return 0;
-}
-
 U_BOOT_CMD(
 	writebcb, 3, 0, do_write_bcb,
 	"Write Boot Control Block (FCB and DBBT)",
 	"fw1-off [fw2-off]"
-);
-
-U_BOOT_CMD(
-	writeboot, 5, 0, do_write_boot,
-	"Write bootloadder",
-	"addr fw1-off [fw2-off] fw_size"
 );

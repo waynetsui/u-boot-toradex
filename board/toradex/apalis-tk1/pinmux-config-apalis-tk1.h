@@ -197,7 +197,7 @@ static const struct pmux_pingrp_config apalis_tk1_pingrps[] = {
 	PINCFG(PU6,                    PWM3,         NORMAL, NORMAL,   OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(PV0,                    RSVD1,        DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(PV1,                    RSVD1,        DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
-	PINCFG(SDMMC3_CD_N_PV2,        RSVD3,        DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
+	PINCFG(SDMMC3_CD_N_PV2,        RSVD3,        UP,     TRISTATE, INPUT,   DEFAULT, DEFAULT),
 	PINCFG(SDMMC1_WP_N_PV3,        SDMMC1,       UP,     TRISTATE, INPUT,   DEFAULT, DEFAULT),
 	PINCFG(DDC_SCL_PV4,            RSVD2,        NORMAL, NORMAL,   INPUT,   DEFAULT, DEFAULT),
 	PINCFG(DDC_SDA_PV5,            RSVD2,        NORMAL, NORMAL,   INPUT,   DEFAULT, DEFAULT),
@@ -257,14 +257,14 @@ static const struct pmux_pingrp_config apalis_tk1_pingrps[] = {
 	PINCFG(CLK3_REQ_PEE1,          RSVD2,        DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(DAP_MCLK1_REQ_PEE2,     RSVD4,        DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(HDMI_CEC_PEE3,          CEC,          NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
-	/* Leave SDMMC3_CLK_LB_OUT aka SD1_CD# muxed as SDMMC3 with output driver enabled aka not
-	 * tristated and input driver enabled as well for now as it features some magic properties
-	 * even though the external loopback is disabled and the internal loopback used as per
-	 * SDMMC_VENDOR_MISC_CNTRL_0 register's SDMMC_SPARE1 bits being set to 0xfffd according to
-	 * the TRM!
-	 * PINCFG(SDMMC3_CLK_LB_OUT_PEE4, RSVD2,        UP,     TRISTATE, INPUT,   DEFAULT, DEFAULT),
+	/*
+	 * Leave SDMMC3_CLK_LB_OUT muxed as SDMMC3 with output driver enabled aka not
+	 * tristated and input driver enabled as well as it features some magic
+	 * properties even though the external loopback is disabled and the internal
+	 * loopback used as per SDMMC_VENDOR_MISC_CNTRL_0 register's SDMMC_SPARE1 bits
+	 * being set to 0xfffd according to the TRM!
 	 */
-	PINCFG(SDMMC3_CLK_LB_OUT_PEE4, SDMMC3,       UP,     NORMAL,   INPUT,   DEFAULT, DEFAULT),
+	PINCFG(SDMMC3_CLK_LB_OUT_PEE4, SDMMC3,       NORMAL, NORMAL,   INPUT,   DEFAULT, DEFAULT),
 	PINCFG(SDMMC3_CLK_LB_IN_PEE5,  RSVD2,        NORMAL, NORMAL,   INPUT,   DEFAULT, DEFAULT),
 	PINCFG(DP_HPD_PFF0,            DP,           NORMAL, NORMAL,   INPUT,   DEFAULT, DEFAULT),
 	PINCFG(USB_VBUS_EN2_PFF1,      RSVD2,        NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),

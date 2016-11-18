@@ -121,7 +121,7 @@ static const struct pmux_pingrp_config apalis_tk1_pingrps[] = {
 	PINCFG(PI3,                    SPI4,         NORMAL, NORMAL,   OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(PI4,                    GMI,          DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(PI5,                    RSVD2,        UP,     TRISTATE, INPUT,   ENABLE,  DEFAULT),
-	PINCFG(PI6,                    RSVD1,        NORMAL, TRISTATE, INPUT,   DEFAULT, DEFAULT),
+	PINCFG(PI6,                    RSVD1,        UP,     TRISTATE, INPUT,   DEFAULT, DEFAULT),
 	PINCFG(PI7,                    RSVD1,        DOWN,   TRISTATE, OUTPUT,  DEFAULT, DEFAULT),
 	PINCFG(PJ0,                    RSVD1,        UP,     TRISTATE, INPUT,   ENABLE,  DEFAULT),
 	PINCFG(PJ2,                    RSVD1,        UP,     TRISTATE, INPUT,   ENABLE,  DEFAULT),

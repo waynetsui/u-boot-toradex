@@ -107,7 +107,7 @@
 				"boot part 0 1 mmcpart 0; " \
 				"rootfs part 0 2 mmcpart 0; " \
 				"uImage fat 0 1 mmcpart 0; " \
-				"tegra30-apalis-eval.dtb fat 0 1 mmcpart 0"
+				"tegra124-apalis-eval.dtb fat 0 1 mmcpart 0"
 
 #define EMMC_BOOTCMD \
 	"emmcargs=ip=off root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait\0" \

@@ -76,7 +76,7 @@
 				"tegra124-apalis-eval.dtb fat 0 1 mmcpart 0"
 
 #define EMMC_BOOTCMD \
-	"emmcargs=ip=off root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait\0" \
+	"emmcargs=ip=off root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait\0" \
 	"emmcboot=run setup; setenv bootargs ${defargs} ${emmcargs} " \
 		"${setupargs} ${vidargs}; echo Booting from internal eMMC " \
 		"chip...; run emmcdtbload; load mmc 0:1 ${kernel_addr_r} " \

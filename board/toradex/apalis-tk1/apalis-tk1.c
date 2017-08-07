@@ -16,6 +16,7 @@
 #include "pinmux-config-apalis-tk1.h"
 
 #define LAN_RESET_N TEGRA_GPIO(S, 2)
+#define IXORA_FAN_GPIO TEGRA_GPIO(DD, 2)
 
 int arch_misc_init(void)
 {
@@ -175,3 +176,10 @@ int tegra_pcie_board_init(void)
 	return 0;
 }
 #endif /* CONFIG_PCI_TEGRA */
+
+void start_cpu_fan(void)
+{
+    gpio_request(IXORA_FAN_GPIO, "IXORA_FAN_GPIO");
+    gpio_direction_output(IXORA_FAN_GPIO, 1);
+
+}

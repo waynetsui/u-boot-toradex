@@ -346,8 +346,8 @@
 #include <asm/types.h>
 
 /* only for i.MX6SX/UL */
-#define WDOG3_BASE_ADDR ((is_mx6ul() ?	\
-			 MX6UL_WDOG3_BASE_ADDR :  MX6SX_WDOG3_BASE_ADDR))
+#define WDOG3_BASE_ADDR ((is_mx6ul() || is_mx6ull()) ?	\
+			 MX6UL_WDOG3_BASE_ADDR :  MX6SX_WDOG3_BASE_ADDR)
 #define LCDIF1_BASE_ADDR ((is_mx6ul()) ?	\
 			  MX6UL_LCDIF1_BASE_ADDR :		\
 			  ((is_mx6ull()) ?	\

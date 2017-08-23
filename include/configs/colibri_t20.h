@@ -10,6 +10,7 @@
 #define __CONFIG_H
 
 #include "tegra20-common.h"
+#undef CONFIG_ISO_PARTITION
 
 #undef CONFIG_SYS_DCACHE_OFF		/* breaks L4T kernel boot */
 #define CONFIG_ARCH_MISC_INIT

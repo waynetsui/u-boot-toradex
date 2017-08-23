@@ -15,6 +15,7 @@
 #define CONFIG_AS3722_POWER
 
 #include "tegra124-common.h"
+#undef CONFIG_ISO_PARTITION
 
 #define CONFIG_ARCH_MISC_INIT
 

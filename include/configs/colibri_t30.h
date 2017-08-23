@@ -12,6 +12,7 @@
 #include <linux/sizes.h>
 
 #include "tegra30-common.h"
+#undef CONFIG_ISO_PARTITION
 
 #define CONFIG_ARCH_MISC_INIT
 

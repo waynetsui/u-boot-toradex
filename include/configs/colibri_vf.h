@@ -166,6 +166,8 @@
 #include <config_distro_bootcmd.h>
 #include <config_distro_defaults.h>
 
+#undef CONFIG_ISO_PARTITION
+
 #define DFU_ALT_NAND_INFO "vf-bcb part 0,1;u-boot part 0,2;ubi part 0,4"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \

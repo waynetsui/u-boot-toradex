@@ -161,6 +161,7 @@
         func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
 #include <config_distro_defaults.h>
+#undef CONFIG_ISO_PARTITION
 #else
 #define BOOTENV
 #endif

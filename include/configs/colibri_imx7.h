@@ -115,6 +115,8 @@
 #include <config_distro_bootcmd.h>
 #include <config_distro_defaults.h>
 
+#undef CONFIG_ISO_PARTITION
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	BOOTENV \
 	MEM_LAYOUT_ENV_SETTINGS \

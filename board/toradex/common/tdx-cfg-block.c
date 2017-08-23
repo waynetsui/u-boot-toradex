@@ -313,7 +313,11 @@ static int get_cfgblock_interactive(void)
 				tdx_hw_tag.prodid = COLIBRI_IMX6ULL;
 #endif /* CONFIG_MACH_TYPE */
 	} else if (!strcmp("imx7d", soc)) {
+#ifdef CONFIG_TARGET_COLIBRI_IMX7_EMMC
+		tdx_hw_tag.prodid = COLIBRI_IMX7D_EMMC;
+#else
 		tdx_hw_tag.prodid = COLIBRI_IMX7D;
+#endif
 	} else if (!strcmp("imx7s", soc)) {
 		tdx_hw_tag.prodid = COLIBRI_IMX7S;
 	} else if (!strcmp("tegra20", soc)) {

@@ -175,7 +175,7 @@
 	"imx6q-colibri-cam-eval-v3.dtb fat 0 1"
 
 #define EMMC_BOOTCMD \
-	"emmcargs=ip=off root=/dev/mmcblk0p2 rw,noatime rootfstype=ext4 " \
+	"emmcargs=ip=off root=/dev/mmcblk0p2 ro rootfstype=ext4 " \
 		"rootwait\0" \
 	"emmcboot=run setup; " \
 		"setenv bootargs ${defargs} ${emmcargs} ${setupargs} " \
@@ -207,7 +207,7 @@
 		"&& setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
 #define SD_BOOTCMD						\
-	"sdargs=ip=off root=/dev/mmcblk1p2 rw,noatime rootfstype=ext4 " \
+	"sdargs=ip=off root=/dev/mmcblk1p2 ro rootfstype=ext4 " \
 		"rootwait\0" \
 	"sdboot=run setup; " \
 		"setenv bootargs ${defargs} ${sdargs} ${setupargs} " \
@@ -219,7 +219,7 @@
 		"${fdt_file} && setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
 #define USB_BOOTCMD \
-	"usbargs=ip=off root=/dev/sda2 rw,noatime rootfstype=ext4 " \
+	"usbargs=ip=off root=/dev/sda2 ro rootfstype=ext4 " \
 		"rootwait\0" \
 	"usbboot=run setup; setenv bootargs ${defargs} ${setupargs} " \
 		"${usbargs} ${vidargs}; echo Booting from USB stick...; " \

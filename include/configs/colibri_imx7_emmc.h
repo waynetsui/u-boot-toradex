@@ -88,7 +88,7 @@
 	"scriptaddr=0x87000000\0"
 
 #define SD_BOOTCMD \
-	"sdargs=root=/dev/mmcblk0p2 rw rootwait\0"	\
+	"sdargs=root=/dev/mmcblk0p2 ro rootwait\0"	\
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
 	"run m4boot && " \

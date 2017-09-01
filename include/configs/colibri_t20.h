@@ -116,7 +116,7 @@
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define SD_BOOTCMD \
-	"sdargs=ip=off root=/dev/mmcblk0p2 rw,noatime rootfstype=ext3 " \
+	"sdargs=ip=off root=/dev/mmcblk0p2 ro rootfstype=ext3 " \
 		"rootwait\0" \
 	"sdboot=run setup; setenv bootargs ${defargs} ${mtdparts} ${sdargs} " \
 		"${setupargs} ${vidargs}; echo Booting from SD card...; " \
@@ -140,7 +140,7 @@
 		"setenv dtbparam ${fdt_addr_r}\0"
 
 #define USB_BOOTCMD \
-	"usbargs=ip=off root=/dev/sda2 rw,noatime rootfstype=ext3 " \
+	"usbargs=ip=off root=/dev/sda2 ro rootfstype=ext3 " \
 		"rootwait\0" \
 	"usbboot=run setup; setenv bootargs ${defargs} ${mtdparts} " \
 		"${setupargs} ${usbargs} ${vidargs}; echo Booting from USB " \

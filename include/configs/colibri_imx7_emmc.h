@@ -177,18 +177,17 @@
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
+
+#define CONFIG_ENV_SIZE			(8 * 1024)
+
 #define CONFIG_ENV_IS_IN_MMC
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
+/* Environment in eMMC, before config block at the end of 1st "boot sector" */
+#define CONFIG_ENV_OFFSET		(-CONFIG_ENV_SIZE + \
+					 CONFIG_TDX_CFG_BLOCK_OFFSET)
 #define CONFIG_SYS_MMC_ENV_DEV		0
 #define CONFIG_SYS_MMC_ENV_PART		1
-#define CONFIG_MMCROOT			"/dev/mmcblk0p2"
-#define CONFIG_ENV_OFFSET		(8 * SZ_64K)
-#define CONFIG_ENV_SIZE			(8 * 1024)
-#elif defined(CONFIG_ENV_IS_IN_NAND)
-#define CONFIG_ENV_SECT_SIZE		(128 * 1024)
-#define CONFIG_ENV_OFFSET		(28 * CONFIG_ENV_SECT_SIZE)
-#define CONFIG_ENV_SIZE			CONFIG_ENV_SECT_SIZE
 #endif
 
 /* USB Configs */

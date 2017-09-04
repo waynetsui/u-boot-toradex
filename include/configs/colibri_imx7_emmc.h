@@ -93,7 +93,7 @@
 		"setenv bootargs ${defargs} ${nfsargs} " \
 		"${setupargs} ${vidargs}; echo Booting from NFS...;" \
 		"dhcp ${kernel_addr_r} && " \
-		"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
+		"tftp ${fdt_addr_r} ${soc}-colibri-emmc-${fdt_board}.dtb && " \
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define SD_BOOTCMD \
@@ -105,8 +105,8 @@
 	"load mmc 1:1 ${fdt_addr_r} ${soc}-colibri-emmc-${fdt_board}.dtb && " \
 	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
-#define CONFIG_BOOTCOMMAND "run ubiboot; " \
-	"setenv fdtfile ${soc}-colibri-${fdt_board}.dtb && run distro_bootcmd;"
+#define CONFIG_BOOTCOMMAND "run emmcboot ; echo ; echo emmcboot failed ; " \
+	"setenv fdtfile ${soc}-colibri-emmc-${fdt_board}.dtb && run distro_bootcmd;"
 
 #define BOOTENV_RUN_NET_USB_START ""
 #define BOOT_TARGET_DEVICES(func) \

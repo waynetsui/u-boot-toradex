@@ -110,7 +110,7 @@
 
 #define BOOTENV_RUN_NET_USB_START ""
 #define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 0) \
+	func(MMC, mmc, 1) \
 	func(USB, usb, 0) \
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>

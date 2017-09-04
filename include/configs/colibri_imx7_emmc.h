@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Toradex AG
+ * Copyright 2017 Toradex AG
  *
  * Configuration settings for the Colibri iMX7 module.
  *
@@ -71,7 +71,7 @@
 	"emmcargs=ip=off root=/dev/mmcblk0p2 ro rootfstype=ext4 rootwait\0" \
 	"emmcboot=run setup; " \
 		"setenv bootargs ${defargs} ${emmcargs} ${setupargs} " \
-		"${vidargs}; echo Booting from internal eMMC chip...; "	\
+		"${vidargs}; echo Booting from internal eMMC chip...; " \
 		"run m4boot && " \
 		"load mmc 0:1 ${fdt_addr_r} ${soc}-colibri-emmc-${fdt_board}.dtb && " \
 		"load mmc 0:1 ${kernel_addr_r} ${boot_file} && " \
@@ -87,23 +87,23 @@
 	"ramdisk_addr_r=0x82100000\0" \
 	"scriptaddr=0x87000000\0"
 
+#define NFS_BOOTCMD \
+	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"nfsboot=run setup; " \
+		"setenv bootargs ${defargs} ${nfsargs} " \
+		"${setupargs} ${vidargs}; echo Booting from NFS...;" \
+		"dhcp ${kernel_addr_r} && " \
+		"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
+		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
+
 #define SD_BOOTCMD \
-	"sdargs=root=/dev/mmcblk0p2 ro rootwait\0"	\
+	"sdargs=root=/dev/mmcblk0p2 ro rootwait\0" \
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
 	"run m4boot && " \
 	"load mmc 1:1 ${kernel_addr_r} ${kernel_file} && " \
 	"load mmc 1:1 ${fdt_addr_r} ${soc}-colibri-emmc-${fdt_board}.dtb && " \
 	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
-
-#define NFS_BOOTCMD \
-	"nfsargs=ip=:::::eth0: root=/dev/nfs\0"	\
-	"nfsboot=run setup; " \
-		"setenv bootargs ${defargs} ${nfsargs} " \
-		"${setupargs} ${vidargs}; echo Booting from NFS...;" \
-		"dhcp ${kernel_addr_r} && "	\
-		"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
-		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define CONFIG_BOOTCOMMAND "run ubiboot; " \
 	"setenv fdtfile ${soc}-colibri-${fdt_board}.dtb && run distro_bootcmd;"

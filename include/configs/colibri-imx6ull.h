@@ -97,7 +97,7 @@
 	"ubiboot=run setup; " \
 		"setenv bootargs ${defargs} ${ubiargs} " \
 		"${setupargs} ${vidargs}; echo Booting from NAND...; " \
-		"ubi part ubi && run m4boot && " \
+		"ubi part ubi &&" \
 		"ubi read ${kernel_addr_r} kernel && " \
 		"ubi read ${fdt_addr_r} dtb && " \
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
@@ -113,6 +113,8 @@
 #include <config_distro_bootcmd.h>
 #include <config_distro_defaults.h>
 
+#undef CONFIG_ISO_PARTITION
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	BOOTENV \
 	MEM_LAYOUT_ENV_SETTINGS \
@@ -123,7 +125,6 @@
 	"defargs=\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
-	"m4boot=;\0" \
 	"ip_dyn=yes\0" \
 	"kernel_file=zImage\0" \
 	"mtdparts=" MTDPARTS_DEFAULT "\0" \
@@ -173,12 +174,7 @@
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_ENV_IS_IN_NAND
 
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC1 */
-#define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
-#define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC1 */
-#define CONFIG_ENV_OFFSET		(8 * SZ_64K)
-#elif defined(CONFIG_ENV_IS_IN_NAND)
+#if defined(CONFIG_ENV_IS_IN_NAND)
 #define CONFIG_ENV_SECT_SIZE		(128 * 1024)
 #define CONFIG_ENV_OFFSET		(28 * CONFIG_ENV_SECT_SIZE)
 #define CONFIG_ENV_SIZE			CONFIG_ENV_SECT_SIZE
@@ -195,8 +191,6 @@
 #define CONFIG_SYS_NAND_BASE		-1
 #define CONFIG_SYS_NAND_ONFI_DETECTION
 #define CONFIG_SYS_NAND_USE_FLASH_BBT
-/* TODO remove nand torture */
-#define CONFIG_CMD_NAND_TORTURE
 
 /* UBI stuff */
 #define CONFIG_RBTREE

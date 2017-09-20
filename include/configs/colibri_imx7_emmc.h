@@ -97,7 +97,7 @@
 		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define SD_BOOTCMD \
-	"sdargs=root=/dev/mmcblk0p2 ro rootwait\0" \
+	"sdargs=root=/dev/mmcblk1p2 ro rootwait\0" \
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
 	"run m4boot && " \

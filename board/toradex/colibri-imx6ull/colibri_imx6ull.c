@@ -437,7 +437,7 @@ int ft_board_setup(void *blob, bd_t *bd)
 {
 #if defined(CONFIG_FDT_FIXUP_PARTITIONS)
 	static struct node_info nodes[] = {
-		{ "fsl,imx7d-gpmi-nand", MTD_DEV_TYPE_NAND, }, /* NAND flash */
+		{ "fsl,imx6ull-gpmi-nand", MTD_DEV_TYPE_NAND, }, /* NAND flash */
 	};
 
 	/* Update partition nodes using info from mtdparts env var */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Toradex, Inc.
+ * Copyright 2013-2017 Toradex, Inc.
  *
  * Configuration settings for the Toradex Apalis iMX6
  *
@@ -199,7 +199,7 @@
 		"rootwait\0" \
 	"emmcboot=run setup; " \
 		"setenv bootargs ${defargs} ${emmcargs} ${setupargs} " \
-		"${vidargs}; echo Booting from internal eMMC chip...; "	\
+		"${vidargs}; echo Booting from internal eMMC chip...; " \
 		"run emmcdtbload; load mmc 0:1 ${kernel_addr_r} " \
 		"${boot_file} && run fdt_fixup && " \
 		"bootm ${kernel_addr_r} ${dtbparam}\0" \
@@ -226,7 +226,7 @@
 	"nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} ${fdt_file} " \
 		"&& setenv dtbparam \" - ${fdt_addr_r}\" && true\0"
 
-#define SD_BOOTCMD						\
+#define SD_BOOTCMD \
 	"sdargs=ip=off root=/dev/mmcblk1p2 ro rootfstype=ext4 " \
 		"rootwait\0" \
 	"sdboot=run setup; " \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Toradex, Inc.
+ * Copyright (c) 2016-2017 Toradex, Inc.
  *
  * Configuration settings for the Toradex Apalis TK1 modules.
  *
@@ -77,7 +77,7 @@
 				"tegra124-apalis-eval.dtb fat 0 1 mmcpart 0"
 
 #define EMMC_BOOTCMD \
-	"emmcargs=ip=off root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait\0" \
+	"emmcargs=ip=off root=/dev/mmcblk0p2 ro rootfstype=ext4 rootwait\0" \
 	"emmcboot=run setup; setenv bootargs ${defargs} ${emmcargs} " \
 		"${setupargs} ${vidargs}; echo Booting from internal eMMC " \
 		"chip...; run emmcdtbload; load mmc 0:1 ${kernel_addr_r} " \
@@ -98,7 +98,7 @@
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define SD_BOOTCMD \
-	"sdargs=ip=off root=/dev/mmcblk1p2 rw rootfstype=ext4 rootwait\0" \
+	"sdargs=ip=off root=/dev/mmcblk1p2 ro rootfstype=ext4 rootwait\0" \
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} ${setupargs} " \
 		"${vidargs}; echo Booting from SD card in 8bit slot...; " \
 		"run sddtbload; load mmc 1:1 ${kernel_addr_r} " \
@@ -109,7 +109,7 @@
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define USB_BOOTCMD \
-	"usbargs=ip=off root=/dev/sda2 rw rootfstype=ext4 rootwait\0" \
+	"usbargs=ip=off root=/dev/sda2 ro rootfstype=ext4 rootwait\0" \
 	"usbboot=run setup; setenv bootargs ${defargs} ${setupargs} " \
 		"${usbargs} ${vidargs}; echo Booting from USB stick...; " \
 		"usb start && run usbdtbload; load usb 0:1 ${kernel_addr_r} " \

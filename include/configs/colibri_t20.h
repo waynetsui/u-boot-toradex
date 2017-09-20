@@ -127,7 +127,7 @@
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define UBI_BOOTCMD \
-	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rootfstype=ubifs " \
+	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rw rootfstype=ubifs " \
 		"ubi.fm_autoconvert=1\0" \
 	"ubiboot=run setup; setenv bootargs ${defargs} ${ubiargs} ${mtdparts}" \
 		" ${setupargs} ${vidargs}; echo Booting from NAND...; " \

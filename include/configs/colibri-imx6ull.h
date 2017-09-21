@@ -74,25 +74,24 @@
 	"ramdisk_addr_r=0x82100000\0" \
 	"scriptaddr=0x87000000\0"
 
+#define NFS_BOOTCMD \
+	"nfsargs=ip=:::::eth0: root=/dev/nfs\0" \
+	"nfsboot=run setup; " \
+		"setenv bootargs ${defargs} ${nfsargs} " \
+		"${setupargs} ${vidargs}; echo Booting from NFS...;" \
+		"dhcp ${kernel_addr_r} && " \
+		"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
+		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
+
 #define SD_BOOTCMD \
-	"sdargs=root=/dev/mmcblk0p2 ro rootwait\0"	\
+	"sdargs=root=/dev/mmcblk0p2 ro rootwait\0" \
 	"sdboot=run setup; setenv bootargs ${defargs} ${sdargs} " \
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
-	"run m4boot && " \
 	"load mmc 0:1 ${kernel_addr_r} ${kernel_file} && " \
 	"load mmc 0:1 ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
 	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
-#define NFS_BOOTCMD \
-	"nfsargs=ip=:::::eth0: root=/dev/nfs\0"	\
-	"nfsboot=run setup; " \
-		"setenv bootargs ${defargs} ${nfsargs} " \
-		"${setupargs} ${vidargs}; echo Booting from NFS...;" \
-		"dhcp ${kernel_addr_r} && "	\
-		"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
-		"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
-
-#define UBI_BOOTCMD	\
+#define UBI_BOOTCMD \
 	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rw rootfstype=ubifs " \
 		"ubi.fm_autoconvert=1\0" \
 	"ubiboot=run setup; " \

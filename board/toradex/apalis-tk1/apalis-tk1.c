@@ -24,6 +24,10 @@
 #define PEX_PERST_N	TEGRA_GPIO(DD, 1) /* Apalis GPIO7 */
 #define RESET_MOCI_CTRL	TEGRA_GPIO(U, 4)
 #endif /* CONFIG_APALIS_TK1_PCIE_EVALBOARD_INIT */
+#define VCC_USBH	TEGRA_GPIO(T, 6)
+#define VCC_USBH_V1_0	TEGRA_GPIO(N, 5)
+#define VCC_USBO1	TEGRA_GPIO(T, 5)
+#define VCC_USBO1_V1_0	TEGRA_GPIO(N, 4)
 
 int arch_misc_init(void)
 {
@@ -31,6 +35,37 @@ int arch_misc_init(void)
 	    NVBOOTTYPE_RECOVERY) {
 		printf("USB recovery mode, disabled autoboot\n");
 		setenv("bootdelay", "-1");
+	}
+
+	/* PCB Version Indication: V1.2 and later have GPIO_PV0 wired to GND */
+	gpio_request(TEGRA_GPIO(V, 0), "PCB Version Indication");
+	gpio_direction_input(TEGRA_GPIO(V, 0));
+	if (gpio_get_value(TEGRA_GPIO(V, 0))) {
+		/*
+		 * if using the default device tree for new V1.2 and later HW,
+		 * use version for older V1.0 and V1.1 HW
+		 */
+		char *fdt_env = getenv("fdt_module");
+		if ((fdt_env != NULL) && (strcmp(FDT_MODULE, fdt_env) == 0)) {
+			setenv("fdt_module", FDT_MODULE_V1_0);
+			printf("patching fdt_module to " FDT_MODULE_V1_0
+			       " for older V1.0 and V1.1 HW\n");
+#ifndef CONFIG_ENV_IS_NOWHERE
+			saveenv();
+#endif
+		}
+
+		/* activate USB power enable GPIOs */
+		gpio_request(VCC_USBH_V1_0, "VCC_USBH");
+		gpio_direction_output(VCC_USBH_V1_0, 1);
+		gpio_request(VCC_USBO1_V1_0, "VCC_USBO1");
+		gpio_direction_output(VCC_USBO1_V1_0, 1);
+	} else {
+		/* activate USB power enable GPIOs */
+		gpio_request(VCC_USBH, "VCC_USBH");
+		gpio_direction_output(VCC_USBH, 1);
+		gpio_request(VCC_USBO1, "VCC_USBO1");
+		gpio_direction_output(VCC_USBO1, 1);
 	}
 
 	return 0;

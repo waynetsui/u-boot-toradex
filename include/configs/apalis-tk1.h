@@ -26,6 +26,9 @@
 #define CONFIG_TEGRA_ENABLE_UARTA
 #define CONFIG_SYS_NS16550_COM1		NV_PA_APB_UARTA_BASE
 
+#define FDT_MODULE			"apalis-v1.2"
+#define FDT_MODULE_V1_0			"apalis"
+
 /* I2C */
 #define CONFIG_SYS_I2C_TEGRA
 
@@ -67,7 +70,7 @@
 #define CONFIG_SERVERIP		192.168.10.1
 
 #define CONFIG_BOOTCOMMAND \
-	"run emmcboot; setenv fdtfile ${soc}-apalis-${fdt_board}.dtb && " \
+	"run emmcboot; setenv fdtfile ${soc}-${fdt_module}-${fdt_board}.dtb && " \
 		"run distro_bootcmd"
 
 #define DFU_ALT_EMMC_INFO	"apalis-tk1.img raw 0x0 0x500 mmcpart 1; " \
@@ -84,7 +87,7 @@
 		"${boot_file} && run fdt_fixup && " \
 		"bootm ${kernel_addr_r} - ${dtbparam}\0" \
 	"emmcdtbload=setenv dtbparam; load mmc 0:1 ${fdt_addr_r} " \
-		"${soc}-apalis-${fdt_board}.dtb && " \
+		"${soc}-${fdt_module}-${fdt_board}.dtb && " \
 		"setenv dtbparam ${fdt_addr_r}\0"
 
 #define NFS_BOOTCMD \
@@ -94,7 +97,7 @@
 		"run nfsdtbload; dhcp ${kernel_addr_r} " \
 		"&& run fdt_fixup && bootm ${kernel_addr_r} - ${dtbparam}\0" \
 	"nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} " \
-		"${soc}-apalis-${fdt_board}.dtb " \
+		"${soc}-${fdt_module}-${fdt_board}.dtb " \
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define SD_BOOTCMD \
@@ -105,7 +108,7 @@
 		"${boot_file} && run fdt_fixup && " \
 		"bootm ${kernel_addr_r} - ${dtbparam}\0" \
 	"sddtbload=setenv dtbparam; load mmc 1:1 ${fdt_addr_r} " \
-		"${soc}-apalis-${fdt_board}.dtb " \
+		"${soc}-${fdt_module}-${fdt_board}.dtb " \
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define USB_BOOTCMD \
@@ -116,7 +119,7 @@
 		"${boot_file} && run fdt_fixup && " \
 		"bootm ${kernel_addr_r} - ${dtbparam}\0" \
 	"usbdtbload=setenv dtbparam; load usb 0:1 ${fdt_addr_r} " \
-		"${soc}-apalis-${fdt_board}.dtb " \
+		"${soc}-${fdt_module}-${fdt_board}.dtb " \
 		"&& setenv dtbparam ${fdt_addr_r}\0"
 
 #define BOARD_EXTRA_ENV_SETTINGS \
@@ -128,6 +131,7 @@
 	EMMC_BOOTCMD \
 	"fdt_board=eval\0" \
 	"fdt_fixup=;\0" \
+	"fdt_module=" FDT_MODULE "\0" \
 	NFS_BOOTCMD \
 	SD_BOOTCMD \
 	"setethupdate=if env exists ethaddr; then; else setenv ethaddr " \

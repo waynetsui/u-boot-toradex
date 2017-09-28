@@ -16,6 +16,7 @@
 #include "../common/tdx-common.h"
 #include "pinmux-config-apalis-tk1.h"
 
+#define FAN_EN		TEGRA_GPIO(DD, 2) /* Apalis GPIO8 */
 #define LAN_DEV_OFF_N	TEGRA_GPIO(O, 6)
 #define LAN_RESET_N	TEGRA_GPIO(S, 2)
 #define LAN_WAKE_N	TEGRA_GPIO(O, 5)
@@ -23,8 +24,6 @@
 #define PEX_PERST_N	TEGRA_GPIO(DD, 1) /* Apalis GPIO7 */
 #define RESET_MOCI_CTRL	TEGRA_GPIO(U, 4)
 #endif /* CONFIG_APALIS_TK1_PCIE_EVALBOARD_INIT */
-
-#define IXORA_FAN_GPIO TEGRA_GPIO(DD, 2)
 
 int arch_misc_init(void)
 {
@@ -215,7 +214,6 @@ void tegra_pcie_board_port_reset(struct tegra_pcie_port *port)
 
 void start_cpu_fan(void)
 {
-    gpio_request(IXORA_FAN_GPIO, "IXORA_FAN_GPIO");
-    gpio_direction_output(IXORA_FAN_GPIO, 1);
-
+	gpio_request(FAN_EN, "FAN_EN");
+	gpio_direction_output(FAN_EN, 1);
 }

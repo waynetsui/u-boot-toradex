@@ -21,6 +21,7 @@
 #include <dm/platform_data/serial_mxc.h>
 #include <fdt_support.h>
 #include <fsl_esdhc.h>
+#include <imx_thermal.h>
 #include <jffs2/load_kernel.h>
 #include <linux/sizes.h>
 #include <mmc.h>
@@ -352,6 +353,10 @@ static const struct boot_mode board_boot_modes[] = {
 
 int board_late_init(void)
 {
+	int minc, maxc;
+	if (get_cpu_temp_grade(&minc, &maxc) != TEMP_COMMERCIAL)
+		setenv("variant", "-wifi");
+
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif

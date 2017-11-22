@@ -47,7 +47,6 @@
 #define CONFIG_MXC_UART_BASE		UART1_BASE
 
 /* Make the HW version stuff available in U-Boot env */
-#define CONFIG_VERSION_VARIABLE		/* ver environment variable */
 #define CONFIG_ENV_VARS_UBOOT_CONFIG
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 

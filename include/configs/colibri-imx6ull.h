@@ -124,7 +124,7 @@
 	SD_BOOTCMD \
 	UBI_BOOTCMD \
 	"console=ttymxc0\0" \
-	"defargs=\0" \
+	"defargs=user_debug=31\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
 	"ip_dyn=yes\0" \

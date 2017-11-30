@@ -262,7 +262,7 @@
 		"setenv stdout serial,vga ; setenv stdin serial,usbkbd\0" \
 	"boot_file=uImage\0" \
 	"console=ttymxc0\0" \
-	"defargs=enable_wait_mode=off vmalloc=400M\0" \
+	"defargs=vmalloc=400M user_debug=31\0" \
 	"dfu_alt_info=" DFU_ALT_EMMC_INFO "\0" \
 	EMMC_BOOTCMD \
 	"fdt_file=" FDT_FILE "\0" \

@@ -117,6 +117,8 @@
 
 #undef CONFIG_ISO_PARTITION
 
+#define DFU_ALT_NAND_INFO "imx6ull-bcb part 0,1;u-boot1 part 0,2;u-boot2 part 0,3;u-boot-env part 0,4;ubi partubi 0,5"
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	BOOTENV \
 	MEM_LAYOUT_ENV_SETTINGS \
@@ -125,6 +127,7 @@
 	UBI_BOOTCMD \
 	"console=ttymxc0\0" \
 	"defargs=user_debug=31\0" \
+	"dfu_alt_info=" DFU_ALT_NAND_INFO "\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
 	"ip_dyn=yes\0" \

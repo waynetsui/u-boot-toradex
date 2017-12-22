@@ -124,7 +124,7 @@
 	SD_BOOTCMD \
 	UBI_BOOTCMD \
 	"console=ttymxc0\0" \
-	"defargs=user_debug=31\0" \
+	"defargs=user_debug=30\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
 	"m4boot=;\0" \

@@ -137,7 +137,7 @@
 #define BOARD_EXTRA_ENV_SETTINGS \
 	"boot_file=uImage\0" \
 	"console=ttyS0\0" \
-	"defargs=core_edp_mv=1300 usb_high_speed=1 user_debug=31\0" \
+	"defargs=core_edp_mv=1300 usb_high_speed=1 user_debug=30\0" \
 	"dfu_alt_info=" DFU_ALT_EMMC_INFO "\0" \
 	EMMC_BOOTCMD \
 	"fdt_board=eval-v3\0" \

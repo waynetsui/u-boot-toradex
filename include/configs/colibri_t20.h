@@ -154,7 +154,7 @@
 #define BOARD_EXTRA_ENV_SETTINGS \
 	"boot_file=zImage\0" \
 	"console=ttyS0\0" \
-	"defargs=vmalloc=128M usb_high_speed=1 user_debug=31\0" \
+	"defargs=vmalloc=128M usb_high_speed=1 user_debug=30\0" \
 	"dfu_alt_info=" DFU_ALT_NAND_INFO "\0" \
 	"fdt_board=eval-v3\0" \
 	"fdt_fixup=;\0" \
